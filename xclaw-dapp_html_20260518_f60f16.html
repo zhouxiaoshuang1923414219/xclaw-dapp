@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>X.Claw DApp</title>
+    <style>
+        /* ===== 全局样式 ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0b0b15;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* ===== 手机容器 ===== */
+        .mobile-container {
+            width: 100%;
+            max-width: 414px;
+            background-color: #0f1018;
+            background-image: radial-gradient(circle at center, #1a1b2e 0%, #08080d 100%);
+            padding: 70px 15px 80px 15px;
+            position: relative;
+            min-height: 100vh;
+            border: 1px solid #1c1d2a;
+        }
+
+        /* ===== 顶部导航 (固定悬浮) ===== */
+        header {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            z-index: 1000;
+            background-color: #0f1018;
+            padding: 15px 15px 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .logo-icon {
+            width: 20px;
+            height: 20px;
+            background-color: #ff3b3b;
+            margin-right: 8px;
+            border-radius: 4px;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+
+        /* ===== 钱包连接按钮 ===== */
+        .wallet-btn {
+            background-color: #1e1f2d;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: 1px solid #333;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .wallet-btn:hover {
+            background-color: #2a2b3d;
+            border-color: #ff3b3b;
+        }
+
+        .wallet-btn.connected {
+            border-color: #4caf50;
+        }
+
+        .wallet-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #ff4d4d;
+            border-radius: 50%;
+            margin-right: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .wallet-dot.connected-dot {
+            background-color: #4caf50;
+        }
+
+        /* ===== 旋转图标样式 (新增) ===== */
+        .spinner-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-top: 2px solid #ff4d4d;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+            background-color: rgba(255, 59, 59, 0.2);
+            box-shadow: 0 0 6px rgba(255, 59, 59, 0.4);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== 通用卡片样式 ===== */
+        .card {
+            background: rgba(21, 22, 36, 0.9);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #23243a;
+        }
+
+        .title-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .title-left h2 {
+            font-size: 18px;
+        }
+
+        .title-left span {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .progress-ring {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-text {
+            position: absolute;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* 状态标签 - 修改为 flex 布局 */
+        .status-badge {
+            background-color: #3e1d24;
+            color: #ff6b6b;
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #5e2a30;
+            margin: 5px 0 15px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            background-color: #0f101e;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #1f2135;
+        }
+
+        .stat-num {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .price-row {
+            background-color: #0f101e;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            align-items: center;
+            border: 1px solid #1f2135;
+        }
+
+        /* ===== 输入框区域 ===== */
+        .input-wrapper {
+            margin-top: 10px;
+        }
+
+        .input-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .input-box {
+            background-color: #0a0a14;
+            border-radius: 10px;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #25263a;
+        }
+
+        .input-box input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            width: 60%;
+        }
+
+        .input-box input:focus {
+            outline: none;
+        }
+
+        .input-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .max-btn {
+            color: #ff3b3b;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .token-tag {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .token-icon {
+            width: 16px;
+            height: 16px;
+            background: #ffd700;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .arrow-separator {
+            text-align: center;
+            color: #ff3b3b;
+            margin: 5px 0;
+            font-size: 20px;
+        }
+
+        .action-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #ff3b3b, #ff5252);
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 59, 59, 0.3);
+            transition: opacity 0.3s;
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .rules {
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+        }
+
+        .rules li {
+            margin-bottom: 4px;
+            list-style: none;
+        }
+
+        .rules li::before {
+            content: "● ";
+            color: #666;
+        }
+
+        /* ===== 底部导航 ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            background-color: #161724;
+            border-top: 1px solid #25263a;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #666;
+            font-size: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-item.active {
+            color: #ff3b3b;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            display: block;
+        }
+
+        .nav-icon.placeholder { background-color: currentColor; opacity: 0.3; }
+        .nav-item.active .nav-icon.placeholder { background-color: #ff3b3b; opacity: 1; }
+
+        /* ===== 页面占位 ===== */
+        .page-placeholder {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+            color: #555;
+            font-size: 18px;
+        }
+
+        /* ===== 通知提示 ===== */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            display: none;
+            border: 1px solid #333;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .toast.success { border-color: #4caf50; }
+        .toast.error { border-color: #ff4d4d; }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 通知提示 ===== -->
+    <div id="toast" class="toast"></div>
+
+    <div class="mobile-container">
+        <!-- ===== 顶部导航 ===== -->
+        <header>
+            <div class="logo-area">
+                <div class="logo-icon"></div>
+                X.CLAW
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <!-- 钱包连接按钮 -->
+                <button id="walletConnectBtn" class="wallet-btn" onclick="toggleWallet()">
+                    <span id="walletDot" class="wallet-dot"></span>
+                    <span id="walletStatus">连接钱包</span>
+                </button>
+                <div style="font-size: 20px; cursor: pointer;">🌐</div>
+            </div>
+        </header>
+
+        <!-- ===== 首页内容 ===== -->
+        <div id="home-content">
+            <!-- 先锋配售卡片 -->
+            <div class="card">
+                <div class="title-section">
+                    <div class="title-left">
+                        <h2>先锋配售</h2>
+                        <span>XClaw 先锋轮认购，限量 1,000,000,000 枚</span>
+                    </div>
+                    <div class="progress-ring">
+                        <svg width="60" height="60" viewBox="0 0 60 60">
+                            <circle cx="30" cy="30" r="25" stroke="#2a2a40" stroke-width="5" fill="none"/>
+                            <circle cx="30" cy="30" r="25" stroke="#ff4d4d" stroke-width="5" fill="none" 
+                                    stroke-dasharray="157" stroke-dashoffset="44" />
+                        </svg>
+                        <span class="progress-text">72.07%</span>
+                    </div>
+                </div>
+                
+                <!-- === 修改后的状态标签 === -->
+                <div class="status-badge">
+                    <span class="spinner-icon"></span> 认购进行中
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span style="font-size:20px;">👤</span>
+                        <div class="stat-num">3,380</div>
+                        <div class="stat-label">认购地址</div>
+                    </div>
+                    <div class="stat-item">
+                        <span style="font-size:20px;">💳</span>
+                        <div class="stat-num">2,162.3</div>
+                        <div class="stat-label">已认购(BNB)</div>
+                    </div>
+                    <div class="stat-item">
+                        <span style="font-size:20px;">🪙</span>
+                        <div class="stat-num">540,575,000</div>
+                        <div class="stat-label">已配售(XClaw)</div>
+                    </div>
+                </div>
+
+                <div class="price-row">
+                    <span>配售价格</span>
+                    <span><strong>1 BNB = 250,000 XClaw</strong></span>
+                </div>
+            </div>
+
+            <!-- 参与配售卡片 -->
+            <div class="card">
+                <div class="title-left">
+                    <h2 style="margin-bottom: 10px;">参与配售</h2>
+                </div>
+
+                <div class="input-wrapper">
+                    <div class="input-label">
+                        <span>认购金额</span>
+                        <span>余额: <span id="bnbBalance">0</span> BNB</span>
+                    </div>
+                    <div class="input-box">
+                        <input type="text" id="amountInput" placeholder="0.0" value="">
+                        <div class="input-actions">
+                            <span class="max-btn" onclick="setMaxAmount()">MAX</span>
+                            <div class="token-tag">
+                                <div class="token-icon"></div> BNB
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="arrow-separator">▼</div>
+
+                <div class="input-wrapper">
+                    <div class="input-label">
+                        <span>获得代币</span>
+                    </div>
+                    <div class="input-box">
+                        <input type="text" id="outputAmount" value="0" disabled style="color: #fff;">
+                        <div class="token-tag">
+                            <div style="width:16px;height:16px;background:#ff3b3b;border-radius:50%;margin-right:5px;"></div> XClaw
+                        </div>
+                    </div>
+                </div>
+
+                <button id="confirmBtn" class="action-btn" onclick="confirmPurchase()">确认认购</button>
+
+                <div class="rules">
+                    <li>首次认购最低 0.2 BNB，追加认购最低 0.1 BNB</li>
+                    <li>单地址累计认购上限 5 BNB</li>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 其他页面占位 ===== -->
+        <div id="page-predict" class="page-placeholder">预测界面 (空)</div>
+        <div id="page-openclaw" class="page-placeholder">OpenClaw 界面 (空)</div>
+        <div id="page-community" class="page-placeholder">社区界面 (空)</div>
+        <div id="page-rewards" class="page-placeholder">奖励界面 (空)</div>
+
+        <!-- ===== 底部导航 ===== -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('home')">
+                <div class="nav-icon placeholder"></div>
+                配售
+            </div>
+            <div class="nav-item" onclick="switchTab('predict')">
+                <div class="nav-icon placeholder"></div>
+                预测
+            </div>
+            <div class="nav-item" onclick="switchTab('openclaw')">
+                <div class="nav-icon placeholder"></div>
+                OpenClaw
+            </div>
+            <div class="nav-item" onclick="switchTab('community')">
+                <div class="nav-icon placeholder"></div>
+                社区
+            </div>
+            <div class="nav-item" onclick="switchTab('rewards')">
+                <div class="nav-icon placeholder"></div>
+                奖励
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  钱包连接逻辑
+        // ============================================================
+
+        let isConnected = false;
+        let currentAccount = null;
+        let mockBalance = 12.5; // 模拟余额
+
+        // 模拟钱包地址生成
+        function generateMockAddress() {
+            const chars = '0123456789abcdef';
+            let address = '0x';
+            for (let i = 0; i < 40; i++) {
+                address += chars[Math.floor(Math.random() * 16)];
+            }
+            return address;
+        }
+
+        // 格式化地址 (0x1234...5678)
+        function formatAddress(address) {
+            if (!address) return '';
+            return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+        }
+
+        // 切换钱包连接状态
+        function toggleWallet() {
+            if (isConnected) {
+                // 断开连接
+                disconnectWallet();
+            } else {
+                // 连接钱包
+                connectWallet();
+            }
+        }
+
+        // 连接钱包
+        function connectWallet() {
+            // 模拟连接过程
+            showToast('正在连接钱包...', 'info');
+
+            // 模拟延迟
+            setTimeout(() => {
+                // 生成随机地址
+                const address = generateMockAddress();
+                currentAccount = address;
+                isConnected = true;
+
+                // 更新 UI
+                updateWalletUI();
+                updateBalanceUI();
+
+                showToast('钱包连接成功!', 'success');
+            }, 800);
+        }
+
+        // 断开钱包
+        function disconnectWallet() {
+            isConnected = false;
+            currentAccount = null;
+
+            // 更新 UI
+            updateWalletUI();
+            updateBalanceUI();
+
+            showToast('已断开钱包连接', 'info');
+        }
+
+        // 更新钱包按钮 UI
+        function updateWalletUI() {
+            const btn = document.getElementById('walletConnectBtn');
+            const dot = document.getElementById('walletDot');
+            const status = document.getElementById('walletStatus');
+
+            if (isConnected && currentAccount) {
+                btn.classList.add('connected');
+                dot.classList.add('connected-dot');
+                status.textContent = formatAddress(currentAccount);
+            } else {
+                btn.classList.remove('connected');
+                dot.classList.remove('connected-dot');
+                status.textContent = '连接钱包';
+            }
+        }
+
+        // 更新余额 UI
+        function updateBalanceUI() {
+            const balanceEl = document.getElementById('bnbBalance');
+            if (isConnected) {
+                // 显示模拟余额 (保留2位小数)
+                balanceEl.textContent = mockBalance.toFixed(2);
+            } else {
+                balanceEl.textContent = '0';
+            }
+        }
+
+        // ============================================================
+        //  认购逻辑
+        // ============================================================
+
+        // 价格: 1 BNB = 250,000 XClaw
+        const RATE = 250000;
+
+        // 监听输入金额变化
+        document.getElementById('amountInput').addEventListener('input', function() {
+            const val = parseFloat(this.value) || 0;
+            const output = val * RATE;
+            document.getElementById('outputAmount').value = output.toLocaleString();
+        });
+
+        // 点击 MAX 按钮
+        function setMaxAmount() {
+            if (!isConnected) {
+                showToast('请先连接钱包', 'error');
+                return;
+            }
+            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
+            if (balance > 0) {
+                document.getElementById('amountInput').value = balance;
+                // 触发 input 事件更新输出
+                const event = new Event('input');
+                document.getElementById('amountInput').dispatchEvent(event);
+            }
+        }
+
+        // 确认认购
+        function confirmPurchase() {
+            if (!isConnected) {
+                showToast('请先连接钱包', 'error');
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            if (!amount || amount <= 0) {
+                showToast('请输入有效的认购金额', 'error');
+                return;
+            }
+
+            // 验证余额
+            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
+            if (amount > balance) {
+                showToast('余额不足', 'error');
+                return;
+            }
+
+            // 验证规则
+            if (amount < 0.2) {
+                showToast('首次认购最低 0.2 BNB', 'error');
+                return;
+            }
+            if (amount > 5) {
+                showToast('单地址累计认购上限 5 BNB', 'error');
+                return;
+            }
+
+            // 模拟交易
+            showToast('交易处理中...', 'info');
+            setTimeout(() => {
+                // 扣除余额
+                mockBalance -= amount;
+                updateBalanceUI();
+
+                // 重置输入框
+                document.getElementById('amountInput').value = '';
+                document.getElementById('outputAmount').value = '0';
+
+                showToast(`认购成功! 获得 ${(amount * RATE).toLocaleString()} XClaw`, 'success');
+            }, 1500);
+        }
+
+        // ============================================================
+        //  页面切换
+        // ============================================================
+
+        function switchTab(tabName) {
+            // 隐藏所有页面
+            document.getElementById('home-content').style.display = 'none';
+            document.getElementById('page-predict').style.display = 'none';
+            document.getElementById('page-openclaw').style.display = 'none';
+            document.getElementById('page-community').style.display = 'none';
+            document.getElementById('page-rewards').style.display = 'none';
+
+            // 移除所有导航激活状态
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+
+            // 显示对应页面并激活导航
+            if (tabName === 'home') {
+                document.getElementById('home-content').style.display = 'block';
+                document.querySelector('.nav-item:nth-child(1)').classList.add('active');
+            } else {
+                document.getElementById('page-' + tabName).style.display = 'flex';
+                const indexMap = { 'predict': 1, 'openclaw': 2, 'community': 3, 'rewards': 4 };
+                document.querySelectorAll('.nav-item')[indexMap[tabName]].classList.add('active');
+            }
+        }
+
+        // ============================================================
+        //  Toast 通知
+        // ============================================================
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+
+            // 自动隐藏
+            clearTimeout(toast._hideTimer);
+            toast._hideTimer = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // ============================================================
+        //  初始化
+        // ============================================================
+
+        // 默认显示首页
+        document.getElementById('home-content').style.display = 'block';
+    </script>
+</body>
+</html>
