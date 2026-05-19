@@ -78,7 +78,6 @@
             align-items: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
         }
 
         .wallet-btn:hover {
@@ -103,7 +102,7 @@
             background-color: #4caf50;
         }
 
-        /* ===== 旋转图标样式 (新增) ===== */
+        /* ===== 旋转图标样式 ===== */
         .spinner-icon {
             display: inline-block;
             width: 14px;
@@ -123,14 +122,15 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* ===== 通用卡片样式 ===== */
-        .card {
+        /* ===== 首页 - 先锋配售样式 ===== */
+        .card-dark {
             background: rgba(21, 22, 36, 0.9);
             border-radius: 16px;
             padding: 16px;
             margin-bottom: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             border: 1px solid #23243a;
+            color: #fff;
         }
 
         .title-section {
@@ -163,7 +163,6 @@
             font-weight: bold;
         }
 
-        /* 状态标签 - 修改为 flex 布局 */
         .status-badge {
             background-color: #3e1d24;
             color: #ff6b6b;
@@ -213,7 +212,7 @@
             border: 1px solid #1f2135;
         }
 
-        /* ===== 输入框区域 ===== */
+        /* 输入框区域 */
         .input-wrapper {
             margin-top: 10px;
         }
@@ -318,6 +317,254 @@
             color: #666;
         }
 
+        /* ===== OpenClaw 页面 - 持币分红活动样式 ===== */
+        
+        .banner-container {
+            width: 100%;
+            margin-bottom: 15px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #ff8c00, #ff6600);
+            position: relative;
+            padding: 20px 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
+        }
+
+        .banner-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .banner-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px 10px;
+            position: relative;
+            max-width: 280px;
+            margin: 0 auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .banner-card h2 {
+            color: #1a3c6e;
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .banner-card h3 {
+            color: #ff3b3b;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .banner-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f7d875, #d4a017);
+            margin: 10px auto 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-size: 24px;
+        }
+
+        .card-beige {
+            background: #fcf8e8;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .card-beige h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #222;
+        }
+
+        .card-beige .sub-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .progress-area {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+
+        .circle-progress {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 6px solid #ff8c00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff8c00;
+            margin-right: 20px;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .circle-progress::after {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            border-radius: 50%;
+            border: 6px solid #e0e0e0;
+            border-top-color: #ff8c00;
+            transform: rotate(-45deg);
+        }
+
+        .progress-info {
+            flex: 1;
+        }
+        .progress-info .row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .progress-info .row span:last-child {
+            font-weight: bold;
+        }
+        .progress-info .highlight {
+            color: #4a90d9;
+        }
+        .progress-info .highlight-red {
+            color: #ff3b3b;
+        }
+
+        .countdown-area {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+        .countdown-area .label {
+            font-size: 14px;
+            color: #555;
+            margin-right: 15px;
+        }
+        .countdown-box {
+            display: flex;
+            gap: 8px;
+        }
+        .countdown-box .box {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            min-width: 32px;
+            text-align: center;
+        }
+        .countdown-box .colon {
+            color: #1a1a1a;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .participate-btn {
+            width: 100%;
+            background: #b0b0b0;
+            border: none;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: not-allowed;
+            text-align: center;
+        }
+
+        .record-table {
+            width: 100%;
+        }
+        .record-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 12px;
+        }
+        .record-row:last-child {
+            border-bottom: none;
+        }
+        .record-row .col-left {
+            display: flex;
+            flex-direction: column;
+            color: #28a745;
+            font-weight: 500;
+        }
+        .record-row .col-left .time {
+            color: #999;
+            font-weight: normal;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+        .record-row .col-mid {
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+            color: #333;
+        }
+        .record-row .col-mid .usd {
+            color: #999;
+            font-size: 11px;
+        }
+        .record-row .col-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            color: #666;
+            font-size: 11px;
+        }
+        .record-row .col-right .icons {
+            display: flex;
+            gap: 4px;
+            margin-top: 2px;
+        }
+        .record-row .col-right .icons span {
+            background: #eee;
+            border-radius: 4px;
+            padding: 0 4px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .rules-list {
+            font-size: 13px;
+            color: #444;
+            line-height: 1.8;
+        }
+        .rules-list li {
+            list-style: none;
+            margin-bottom: 2px;
+        }
+        .rules-list li::before {
+            content: "• ";
+            color: #ff8c00;
+        }
+
         /* ===== 底部导航 ===== */
         .bottom-nav {
             position: fixed;
@@ -360,16 +607,6 @@
         .nav-icon.placeholder { background-color: currentColor; opacity: 0.3; }
         .nav-item.active .nav-icon.placeholder { background-color: #ff3b3b; opacity: 1; }
 
-        /* ===== 页面占位 ===== */
-        .page-placeholder {
-            display: none;
-            justify-content: center;
-            align-items: center;
-            height: 80vh;
-            color: #555;
-            font-size: 18px;
-        }
-
         /* ===== 通知提示 ===== */
         .toast {
             position: fixed;
@@ -405,7 +642,6 @@
                 X.CLAW
             </div>
             <div style="display: flex; gap: 10px; align-items: center;">
-                <!-- 钱包连接按钮 -->
                 <button id="walletConnectBtn" class="wallet-btn" onclick="toggleWallet()">
                     <span id="walletDot" class="wallet-dot"></span>
                     <span id="walletStatus">连接钱包</span>
@@ -414,10 +650,9 @@
             </div>
         </header>
 
-        <!-- ===== 首页内容 ===== -->
+        <!-- ===== 首页内容（先锋配售） ===== -->
         <div id="home-content">
-            <!-- 先锋配售卡片 -->
-            <div class="card">
+            <div class="card-dark">
                 <div class="title-section">
                     <div class="title-left">
                         <h2>先锋配售</h2>
@@ -433,7 +668,6 @@
                     </div>
                 </div>
                 
-                <!-- === 修改后的状态标签 === -->
                 <div class="status-badge">
                     <span class="spinner-icon"></span> 认购进行中
                 </div>
@@ -462,8 +696,7 @@
                 </div>
             </div>
 
-            <!-- 参与配售卡片 -->
-            <div class="card">
+            <div class="card-dark">
                 <div class="title-left">
                     <h2 style="margin-bottom: 10px;">参与配售</h2>
                 </div>
@@ -507,9 +740,178 @@
             </div>
         </div>
 
+        <!-- ===== OpenClaw 页面（持币分红活动） ===== -->
+        <div id="page-openclaw" style="display:none;">
+            
+            <!-- 顶部橙色横幅 -->
+            <div class="banner-container">
+                <div class="banner-title">持币分红活动</div>
+                <div class="banner-card">
+                    <h2>BCBSE</h2>
+                    <h3>持币分红计划</h3>
+                    <div class="banner-logo">🦅</div>
+                </div>
+            </div>
+
+            <!-- 活动进度卡片 -->
+            <div class="card-beige">
+                <h3>活动进度</h3>
+                <div class="sub-text">超强共识者奖励计划，持币分红奖励 10% ~ 90%，<br>倒计时结束，暴利分红千亿 USDT!</div>
+                
+                <div class="progress-area">
+                    <div class="circle-progress">95%</div>
+                    <div class="progress-info">
+                        <div class="row">
+                            <span>已领取:</span>
+                            <span class="highlight">224份</span>
+                        </div>
+                        <div class="row">
+                            <span>剩余:</span>
+                            <span class="highlight-red">0 份</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="countdown-area">
+                    <span class="label">距活动结束:</span>
+                    <div class="countdown-box">
+                        <div class="box">424</div>
+                        <div class="colon">:</div>
+                        <div class="box">21</div>
+                        <div class="colon">:</div>
+                        <div class="box">07</div>
+                        <div class="colon">:</div>
+                        <div class="box">30</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 参与活动卡片 -->
+            <div class="card-beige">
+                <h3>参与活动</h3>
+                <button class="participate-btn">活动已结束</button>
+            </div>
+
+            <!-- 实时领取记录 -->
+            <div class="card-beige">
+                <h3>实时领取记录</h3>
+                <div class="record-table">
+                    <div class="record-row">
+                        <div class="col-left">
+                            买入 +4,152.69
+                            <span class="time">20:45:11</span>
+                        </div>
+                        <div class="col-mid">
+                            $19.90
+                            <span class="usd">$0.004792</span>
+                        </div>
+                        <div class="col-right">
+                            0xea9...c0a73
+                            <div class="icons"><span>📋</span><span>🔗</span></div>
+                        </div>
+                    </div>
+                    <div class="record-row">
+                        <div class="col-left">
+                            买入 +32.91K
+                            <span class="time">20:45:04</span>
+                        </div>
+                        <div class="col-mid">
+                            $128.01
+                            <span class="usd">$0.003890</span>
+                        </div>
+                        <div class="col-right">
+                            0x2a4...47AAF
+                            <div class="icons"><span>📋</span><span>🔗</span></div>
+                        </div>
+                    </div>
+                    <div class="record-row">
+                        <div class="col-left">
+                            买入 +2,176.79
+                            <span class="time">20:43:43</span>
+                        </div>
+                        <div class="col-mid">
+                            $6.97
+                            <span class="usd">$0.003206</span>
+                        </div>
+                        <div class="col-right">
+                            0x734...0b975
+                            <div class="icons"><span>📋</span><span>🔗</span></div>
+                        </div>
+                    </div>
+                    <div class="record-row">
+                        <div class="col-left">
+                            买入 +3,194.49
+                            <span class="time">20:42:25</span>
+                        </div>
+                        <div class="col-mid">
+                            $9.97
+                            <span class="usd">$0.003120</span>
+                        </div>
+                        <div class="col-right">
+                            0x734...0b975
+                            <div class="icons"><span>📋</span><span>🔗</span></div>
+                        </div>
+                    </div>
+                    <div class="record-row">
+                        <div class="col-left">
+                            买入 +10.19K
+                            <span class="time">19:52:55</span>
+                        </div>
+                        <div class="col-mid">
+                            $29.81
+                            <span class="usd">$0.002924</span>
+                        </div>
+                        <div class="col-right">
+                            0x48B...a14ec
+                            <div class="icons"><span>📋</span><span>🔗</span></div>
+                        </div>
+                    </div>
+                    <div class="record-row">
+                        <div class="col-left">
+                            买入 +3,642.20
+                            <span class="time">19:23:59</span>
+                        </div>
+                        <div class="col-mid">
+                            $9.97
+                            <span class="usd">$0.002737</span>
+                        </div>
+                        <div class="col-right">
+                            0x1d6...E8a36
+                            <div class="icons"><span>📋</span><span>🔗</span></div>
+                        </div>
+                    </div>
+                    <div class="record-row">
+                        <div class="col-left">
+                            买入 +11.72K
+                            <span class="time">16:38:51</span>
+                        </div>
+                        <div class="col-mid">
+                            $29.91
+                            <span class="usd">$0.002552</span>
+                        </div>
+                        <div class="col-right">
+                            0x2ee1...6088
+                            <div class="icons"><span>📋</span><span>🔗</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 活动规则说明 -->
+            <div class="card-beige">
+                <h3>活动规则说明</h3>
+                <ul class="rules-list">
+                    <li>持币用户才能领取分红奖励，未持币用户只能获取参与奖励</li>
+                    <li>持币越多领取的分红越多</li>
+                    <li>持有代币且从未卖过币的用户领取的分红更高</li>
+                    <li>领取奖励后等待3~5分钟奖励即可发到钱包</li>
+                </ul>
+            </div>
+
+        </div>
+
         <!-- ===== 其他页面占位 ===== -->
         <div id="page-predict" class="page-placeholder">预测界面 (空)</div>
-        <div id="page-openclaw" class="page-placeholder">OpenClaw 界面 (空)</div>
         <div id="page-community" class="page-placeholder">社区界面 (空)</div>
         <div id="page-rewards" class="page-placeholder">奖励界面 (空)</div>
 
@@ -545,9 +947,8 @@
 
         let isConnected = false;
         let currentAccount = null;
-        let mockBalance = 12.5; // 模拟余额
+        let mockBalance = 12.5;
 
-        // 模拟钱包地址生成
         function generateMockAddress() {
             const chars = '0123456789abcdef';
             let address = '0x';
@@ -557,56 +958,37 @@
             return address;
         }
 
-        // 格式化地址 (0x1234...5678)
         function formatAddress(address) {
             if (!address) return '';
             return address.substring(0, 6) + '...' + address.substring(address.length - 4);
         }
 
-        // 切换钱包连接状态
         function toggleWallet() {
             if (isConnected) {
-                // 断开连接
                 disconnectWallet();
             } else {
-                // 连接钱包
                 connectWallet();
             }
         }
 
-        // 连接钱包
         function connectWallet() {
-            // 模拟连接过程
             showToast('正在连接钱包...', 'info');
-
-            // 模拟延迟
             setTimeout(() => {
-                // 生成随机地址
                 const address = generateMockAddress();
                 currentAccount = address;
                 isConnected = true;
-
-                // 更新 UI
                 updateWalletUI();
-                updateBalanceUI();
-
                 showToast('钱包连接成功!', 'success');
             }, 800);
         }
 
-        // 断开钱包
         function disconnectWallet() {
             isConnected = false;
             currentAccount = null;
-
-            // 更新 UI
             updateWalletUI();
-            updateBalanceUI();
-
             showToast('已断开钱包连接', 'info');
         }
 
-        // 更新钱包按钮 UI
         function updateWalletUI() {
             const btn = document.getElementById('walletConnectBtn');
             const dot = document.getElementById('walletDot');
@@ -623,32 +1005,18 @@
             }
         }
 
-        // 更新余额 UI
-        function updateBalanceUI() {
-            const balanceEl = document.getElementById('bnbBalance');
-            if (isConnected) {
-                // 显示模拟余额 (保留2位小数)
-                balanceEl.textContent = mockBalance.toFixed(2);
-            } else {
-                balanceEl.textContent = '0';
-            }
-        }
-
         // ============================================================
-        //  认购逻辑
+        //  认购逻辑（首页）
         // ============================================================
 
-        // 价格: 1 BNB = 250,000 XClaw
         const RATE = 250000;
 
-        // 监听输入金额变化
         document.getElementById('amountInput').addEventListener('input', function() {
             const val = parseFloat(this.value) || 0;
             const output = val * RATE;
             document.getElementById('outputAmount').value = output.toLocaleString();
         });
 
-        // 点击 MAX 按钮
         function setMaxAmount() {
             if (!isConnected) {
                 showToast('请先连接钱包', 'error');
@@ -657,13 +1025,11 @@
             const balance = parseFloat(document.getElementById('bnbBalance').textContent);
             if (balance > 0) {
                 document.getElementById('amountInput').value = balance;
-                // 触发 input 事件更新输出
                 const event = new Event('input');
                 document.getElementById('amountInput').dispatchEvent(event);
             }
         }
 
-        // 确认认购
         function confirmPurchase() {
             if (!isConnected) {
                 showToast('请先连接钱包', 'error');
@@ -676,14 +1042,12 @@
                 return;
             }
 
-            // 验证余额
             const balance = parseFloat(document.getElementById('bnbBalance').textContent);
             if (amount > balance) {
                 showToast('余额不足', 'error');
                 return;
             }
 
-            // 验证规则
             if (amount < 0.2) {
                 showToast('首次认购最低 0.2 BNB', 'error');
                 return;
@@ -693,19 +1057,23 @@
                 return;
             }
 
-            // 模拟交易
             showToast('交易处理中...', 'info');
             setTimeout(() => {
-                // 扣除余额
                 mockBalance -= amount;
                 updateBalanceUI();
-
-                // 重置输入框
                 document.getElementById('amountInput').value = '';
                 document.getElementById('outputAmount').value = '0';
-
                 showToast(`认购成功! 获得 ${(amount * RATE).toLocaleString()} XClaw`, 'success');
             }, 1500);
+        }
+
+        function updateBalanceUI() {
+            const balanceEl = document.getElementById('bnbBalance');
+            if (isConnected) {
+                balanceEl.textContent = mockBalance.toFixed(2);
+            } else {
+                balanceEl.textContent = '0';
+            }
         }
 
         // ============================================================
@@ -727,9 +1095,12 @@
             if (tabName === 'home') {
                 document.getElementById('home-content').style.display = 'block';
                 document.querySelector('.nav-item:nth-child(1)').classList.add('active');
+            } else if (tabName === 'openclaw') {
+                document.getElementById('page-openclaw').style.display = 'block';
+                document.querySelector('.nav-item:nth-child(3)').classList.add('active');
             } else {
                 document.getElementById('page-' + tabName).style.display = 'flex';
-                const indexMap = { 'predict': 1, 'openclaw': 2, 'community': 3, 'rewards': 4 };
+                const indexMap = { 'predict': 1, 'community': 3, 'rewards': 4 };
                 document.querySelectorAll('.nav-item')[indexMap[tabName]].classList.add('active');
             }
         }
@@ -743,8 +1114,6 @@
             toast.textContent = message;
             toast.className = 'toast ' + type;
             toast.style.display = 'block';
-
-            // 自动隐藏
             clearTimeout(toast._hideTimer);
             toast._hideTimer = setTimeout(() => {
                 toast.style.display = 'none';
@@ -755,7 +1124,6 @@
         //  初始化
         // ============================================================
 
-        // 默认显示首页
         document.getElementById('home-content').style.display = 'block';
     </script>
 </body>
