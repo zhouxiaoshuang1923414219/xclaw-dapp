@@ -1,0 +1,166 @@
+/* ===== 全局样式 ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: #0b0b15;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.mobile-container {
+    width: 100%;
+    max-width: 414px;
+    background-color: #0f1018;
+    background-image: radial-gradient(circle at center, #1a1b2e 0%, #08080d 100%);
+    padding: 70px 15px 80px 15px;
+    position: relative;
+    min-height: 100vh;
+    border: 1px solid #1c1d2a;
+}
+
+/* ===== 顶部导航 ===== */
+header {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 414px;
+    z-index: 1000;
+    background-color: #0f1018;
+    padding: 15px 15px 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.logo-icon {
+    width: 20px;
+    height: 20px;
+    background-color: #ff3b3b;
+    margin-right: 8px;
+    border-radius: 4px;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.wallet-btn {
+    background-color: #1e1f2d;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    border: 1px solid #333;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.wallet-btn:hover {
+    background-color: #2a2b3d;
+    border-color: #ff3b3b;
+}
+
+.wallet-btn.connected {
+    border-color: #4caf50;
+}
+
+.wallet-dot {
+    width: 6px;
+    height: 6px;
+    background-color: #ff4d4d;
+    border-radius: 50%;
+    margin-right: 6px;
+    transition: background-color 0.3s;
+}
+
+.wallet-dot.connected-dot {
+    background-color: #4caf50;
+}
+
+/* ===== 页面容器 ===== */
+.page-container {
+    display: none;
+}
+
+.page-container.active {
+    display: block;
+}
+
+/* ===== 底部导航 ===== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 414px;
+    background-color: #161724;
+    border-top: 1px solid #25263a;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    z-index: 100;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #666;
+    font-size: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.nav-item.active {
+    color: #ff3b3b;
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    display: block;
+}
+
+.nav-icon.placeholder { background-color: currentColor; opacity: 0.3; }
+.nav-item.active .nav-icon.placeholder { background-color: #ff3b3b; opacity: 1; }
+
+/* ===== Toast 通知 ===== */
+.toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 9999;
+    display: none;
+    border: 1px solid #333;
+    max-width: 90%;
+    text-align: center;
+}
+
+.toast.success { border-color: #4caf50; }
+.toast.error { border-color: #ff4d4d; }
