@@ -1,1 +1,159 @@
-11
+<!-- ===== 首页（先锋配售） ===== -->
+<div id="page-home" class="page-container active">
+    <div class="card-dark">
+        <div class="title-section">
+            <div class="title-left">
+                <h2>先锋配售</h2>
+                <span>XClaw 先锋轮认购，限量 1,000,000,000 枚</span>
+            </div>
+            <div class="progress-ring">
+                <svg width="60" height="60" viewBox="0 0 60 60">
+                    <circle cx="30" cy="30" r="25" stroke="#2a2a40" stroke-width="5" fill="none"/>
+                    <circle cx="30" cy="30" r="25" stroke="#ff4d4d" stroke-width="5" fill="none" 
+                            stroke-dasharray="157" stroke-dashoffset="44" />
+                </svg>
+                <span class="progress-text">72.07%</span>
+            </div>
+        </div>
+        
+        <div class="status-badge">
+            <span class="spinner-icon"></span> 认购进行中
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span style="font-size:20px;">👤</span>
+                <div class="stat-num">3,380</div>
+                <div class="stat-label">认购地址</div>
+            </div>
+            <div class="stat-item">
+                <span style="font-size:20px;">💳</span>
+                <div class="stat-num">2,162.3</div>
+                <div class="stat-label">已认购(BNB)</div>
+            </div>
+            <div class="stat-item">
+                <span style="font-size:20px;">🪙</span>
+                <div class="stat-num">540,575,000</div>
+                <div class="stat-label">已配售(XClaw)</div>
+            </div>
+        </div>
+
+        <div class="price-row">
+            <span>配售价格</span>
+            <span><strong>1 BNB = 250,000 XClaw</strong></span>
+        </div>
+    </div>
+
+    <div class="card-dark">
+        <div class="title-left">
+            <h2 style="margin-bottom: 10px;">参与配售</h2>
+        </div>
+
+        <div class="input-wrapper">
+            <div class="input-label">
+                <span>认购金额</span>
+                <span>余额: <span id="bnbBalance">0</span> BNB</span>
+            </div>
+            <div class="input-box">
+                <input type="text" id="amountInput" placeholder="0.0" value="">
+                <div class="input-actions">
+                    <span class="max-btn" onclick="setMaxAmount()">MAX</span>
+                    <div class="token-tag">
+                        <div class="token-icon"></div> BNB
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="arrow-separator">▼</div>
+
+        <div class="input-wrapper">
+            <div class="input-label">
+                <span>获得代币</span>
+            </div>
+            <div class="input-box">
+                <input type="text" id="outputAmount" value="0" disabled style="color: #fff;">
+                <div class="token-tag">
+                    <div style="width:16px;height:16px;background:#ff3b3b;border-radius:50%;margin-right:5px;"></div> XClaw
+                </div>
+            </div>
+        </div>
+
+        <button id="confirmBtn" class="action-btn" onclick="confirmPurchase()">确认认购</button>
+
+        <div class="rules">
+            <li>首次认购最低 0.2 BNB，追加认购最低 0.1 BNB</li>
+            <li>单地址累计认购上限 5 BNB</li>
+        </div>
+    </div>
+
+    <script>
+        // 首页专用的认购逻辑
+        const RATE = 250000;
+
+        document.getElementById('amountInput').addEventListener('input', function() {
+            const val = parseFloat(this.value) || 0;
+            const output = val * RATE;
+            document.getElementById('outputAmount').value = output.toLocaleString();
+        });
+
+        function setMaxAmount() {
+            if (!isConnected) {
+                showToast('请先连接钱包', 'error');
+                return;
+            }
+            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
+            if (balance > 0) {
+                document.getElementById('amountInput').value = balance;
+                const event = new Event('input');
+                document.getElementById('amountInput').dispatchEvent(event);
+            }
+        }
+
+        function confirmPurchase() {
+            if (!isConnected) {
+                showToast('请先连接钱包', 'error');
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            if (!amount || amount <= 0) {
+                showToast('请输入有效的认购金额', 'error');
+                return;
+            }
+
+            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
+            if (amount > balance) {
+                showToast('余额不足', 'error');
+                return;
+            }
+
+            if (amount < 0.2) {
+                showToast('首次认购最低 0.2 BNB', 'error');
+                return;
+            }
+            if (amount > 5) {
+                showToast('单地址累计认购上限 5 BNB', 'error');
+                return;
+            }
+
+            showToast('交易处理中...', 'info');
+            setTimeout(() => {
+                mockBalance -= amount;
+                updateBalanceUI();
+                document.getElementById('amountInput').value = '';
+                document.getElementById('outputAmount').value = '0';
+                showToast(`认购成功! 获得 ${(amount * RATE).toLocaleString()} XClaw`, 'success');
+            }, 1500);
+        }
+
+        function updateBalanceUI() {
+            const balanceEl = document.getElementById('bnbBalance');
+            if (isConnected) {
+                balanceEl.textContent = mockBalance.toFixed(2);
+            } else {
+                balanceEl.textContent = '0';
+            }
+        }
+    </script>
+</div>
