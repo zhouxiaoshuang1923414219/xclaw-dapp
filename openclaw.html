@@ -3,152 +3,187 @@
     <style>
         /* ===== openclaw.html 专用样式 ===== */
         
-        /* ===== 顶部信封卡片 ===== */
-        .banner-container {
+        /* ===== 红包卡片样式 ===== */
+        .red-envelope {
+            position: relative;
             width: 100%;
-            margin-bottom: 15px;
-            border-radius: 16px;
-            overflow: hidden;
-            background: linear-gradient(135deg, #ff8c00, #ff6600);
-            position: relative;
-            padding: 20px 15px 30px 15px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
+            max-width: 360px;
+            min-width: 280px;
+            margin: 0 auto 20px auto;
+            background: #cf2e2e;
+            background-image: radial-gradient(circle at 25% 40%, rgba(255, 220, 100, 0.1) 2%, transparent 2.5%),
+                              radial-gradient(circle at 70% 85%, rgba(255, 200, 80, 0.1) 1.8%, transparent 2%);
+            background-size: 28px 28px, 22px 22px;
+            border-radius: 32px 32px 28px 28px;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 215, 0, 0.4) inset, 0 6px 0 #851e1e inset;
+            cursor: default;
         }
 
-        .banner-title {
-            font-size: 22px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 15px;
-            position: relative;
-            z-index: 2;
-        }
-
-        /* ===== 信封包装器 ===== */
-        .envelope-wrapper {
-            position: relative;
-            max-width: 320px;
-            margin: 0 auto;
-            padding-bottom: 40px;
-        }
-
-        /* ===== 放射状光芒背景 ===== */
-        .sunburst {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                repeating-conic-gradient(
-                    from 0deg,
-                    rgba(255, 200, 0, 0.3) 0deg 5deg,
-                    rgba(255, 150, 0, 0.1) 5deg 10deg
-                );
-            border-radius: 12px;
-            z-index: 1;
-            animation: rotateSunburst 30s linear infinite;
-        }
-
-        @keyframes rotateSunburst {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* ===== 信封主体 ===== */
-        .envelope-body {
-            position: relative;
-            z-index: 2;
-            background: #e85d3a;
-            border-radius: 8px 8px 0 0;
-            padding: 20px 15px 30px 15px;
-            min-height: 180px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
-        /* ===== 白色卡片 ===== */
-        .white-card {
-            background: #fff;
-            border-radius: 8px;
-            padding: 20px 15px;
-            margin: 0 auto 15px auto;
-            max-width: 240px;
-            position: relative;
-            z-index: 3;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .white-card h2.project-name {
-            color: #1a3c6e;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 4px;
-            letter-spacing: 1px;
-        }
-
-        .white-card h3.activity-name {
-            color: #d43d2a;
-            font-size: 20px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        /* ===== 信封翻盖（上方三角形） ===== */
+        /* 红包顶层翻盖 */
         .envelope-flap {
             position: absolute;
-            top: -20px;
-            left: 0;
-            right: 0;
-            height: 40px;
-            background: #d44a2a;
-            clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
-            z-index: 4;
-            border-radius: 8px 8px 0 0;
+            top: -18px;
+            left: 5%;
+            width: 90%;
+            height: 32px;
+            background: #e03a3a;
+            border-radius: 28px 28px 16px 16px;
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2), 0 -2px 0 rgba(255, 235, 140, 0.7) inset;
+            z-index: 8;
+            transition: all 0.2s;
         }
 
-        /* ===== 信封底部（下方三角形） ===== */
-        .envelope-bottom {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: #d44a2a;
-            clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
-            z-index: 1;
-            border-radius: 0 0 8px 8px;
+        /* 红包主体 */
+        .envelope-body {
+            position: relative;
+            padding: 20px 18px 24px 18px;
+            border-radius: inherit;
+            overflow: visible;
+            z-index: 2;
         }
 
-        /* ===== 底部圆形徽章 ===== */
-        .badge-circle {
+        /* 鎏金暗纹 */
+        .envelope-body::after {
+            content: "🎁";
             position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f7d875, #d4a017);
-            border: 3px solid #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            z-index: 5;
+            bottom: 12px;
+            right: 18px;
+            font-size: 32px;
+            opacity: 0.2;
+            color: #ffec9f;
+            pointer-events: none;
+            transform: rotate(-5deg);
+        }
+
+        .envelope-body::before {
+            content: "✦";
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            font-size: 28px;
+            opacity: 0.25;
+            color: #ffd966;
+            font-weight: 300;
+            pointer-events: none;
+        }
+
+        /* 红包底部祝福语 */
+        .red-envelope-footer {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: #fff3cf;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 60px;
+            width: fit-content;
+            padding: 5px 16px;
+            backdrop-filter: blur(2px);
+            font-weight: 500;
+            margin-left: auto;
+            margin-right: auto;
             display: flex;
             align-items: center;
+            gap: 6px;
             justify-content: center;
         }
 
-        .badge-content {
-            width: 46px;
-            height: 46px;
+        .red-envelope-footer span {
+            font-size: 13px;
+        }
+
+        /* 金色装饰线 */
+        .gold-line {
+            width: 40%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ffcd7e, #ffb347, #ffcd7e, transparent);
+            margin: 12px auto 8px auto;
+            border-radius: 2px;
+        }
+
+        /* 半夹白色卡片 */
+        .semi-clip-card {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: -78px;
+            width: calc(100% - 36px);
+            background: #fffdf7;
+            border-radius: 18px;
+            padding: 14px 12px 18px 12px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25), 0 2px 0 rgba(255, 215, 0, 0.5) inset, 0 4px 14px rgba(100, 30, 0, 0.15);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+            transition: transform 0.2s;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .semi-clip-card .title-top {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a3c6e;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .semi-clip-card .title-main {
+            font-size: 22px;
+            font-weight: 800;
+            color: #c43a2a;
+            letter-spacing: 2px;
+            text-shadow: 0 1px 2px rgba(200, 50, 20, 0.1);
+            margin-bottom: 4px;
+        }
+
+        .semi-clip-card .sub-deco {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            color: #b87333;
+            font-weight: 500;
+        }
+
+        .semi-clip-card .sub-deco::before,
+        .semi-clip-card .sub-deco::after {
+            content: "";
+            height: 1px;
+            width: 30px;
+            background: linear-gradient(90deg, transparent, #d4a06a);
+        }
+
+        /* 底部圆形徽章（金币/鹰） */
+        .badge-circle {
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #f7d875, #d4a017);
+            border: 3px solid #fff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 215, 0, 0.4) inset;
+            z-index: 12;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .badge-circle .badge-inner {
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             border: 2px solid #b8860b;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
             background: #f5e6c8;
-            overflow: hidden;
         }
 
         /* ===== 米色卡片（活动进度、参与活动、记录、规则） ===== */
@@ -350,46 +385,43 @@
 
         /* ===== 响应式调整 ===== */
         @media (max-width: 360px) {
-            .white-card {
-                padding: 15px 10px;
-                max-width: 200px;
+            .semi-clip-card .title-top {
+                font-size: 14px;
             }
-            .white-card h2.project-name {
-                font-size: 20px;
+            .semi-clip-card .title-main {
+                font-size: 18px;
             }
-            .white-card h3.activity-name {
-                font-size: 16px;
+            .red-envelope {
+                min-width: 240px;
             }
         }
     </style>
 
-    <!-- ===== 顶部信封卡片 ===== -->
-    <div class="banner-container">
-        <div class="banner-title">持币分红活动</div>
+    <!-- ===== 红包卡片 ===== -->
+    <div class="red-envelope">
+        <!-- 顶层翻盖 -->
+        <div class="envelope-flap"></div>
         
-        <!-- 信封卡片 -->
-        <div class="envelope-wrapper">
-            <!-- 背景光芒（放射线） -->
-            <div class="sunburst"></div>
+        <!-- 红包主体 -->
+        <div class="envelope-body">
+            <!-- 半夹白色卡片 -->
+            <div class="semi-clip-card">
+                <div class="title-top">BCBSE</div>
+                <div class="title-main">持币分红计划</div>
+                <div class="sub-deco">✦ 限时活动 ✦</div>
+            </div>
             
-            <!-- 信封底部 -->
-            <div class="envelope-bottom"></div>
+            <!-- 底部圆形徽章 -->
+            <div class="badge-circle">
+                <div class="badge-inner">🦅</div>
+            </div>
             
-            <!-- 信封主体 -->
-            <div class="envelope-body">
-                <!-- 白色卡片 -->
-                <div class="white-card">
-                    <h2 class="project-name">BCBSE</h2>
-                    <h3 class="activity-name">持币分红计划</h3>
-                </div>
-                
-                <!-- 信封翻盖 -->
-                <div class="envelope-flap"></div>
-                
-                <!-- 底部圆形徽章 -->
-                <div class="badge-circle">
-                    <div class="badge-content">🦅</div>
-                </div>
+            <!-- 金色装饰线 -->
+            <div class="gold-line"></div>
+            
+            <!-- 底部祝福语 -->
+            <div class="red-envelope-footer">
+                <span>🧧</span> 点击领取分红 <span>🧧</span>
             </div>
         </div>
     </div>
