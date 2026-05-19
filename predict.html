@@ -1,74 +1,677 @@
 <!-- ===== 预测页面 ===== -->
 <div id="page-predict" class="page-container">
-    
-    <div class="card-dark">
-        <div class="title-left">
-            <h2>📊 市场预测</h2>
-            <span style="font-size:12px;color:#888;">参与预测，赢取奖励</span>
-        </div>
-    </div>
-
-    <!-- 预测列表 -->
-    <div class="card-dark">
-        <h3 style="margin-bottom:12px;">热门预测</h3>
+    <style>
+        /* ===== predict.html 专用样式 ===== */
         
-        <div class="predict-item" style="padding:12px 0;border-bottom:1px solid #1f2135;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div>
-                    <div style="font-weight:bold;font-size:14px;">BNB 本周价格预测</div>
-                    <div style="font-size:12px;color:#888;margin-top:4px;">结束时间: 2026-05-25 12:00</div>
-                </div>
-                <div style="text-align:right;">
-                    <div style="font-size:14px;color:#4caf50;">$620.50</div>
-                    <div style="font-size:12px;color:#888;">已参与: 1,234人</div>
-                </div>
-            </div>
-            <div style="display:flex;gap:8px;margin-top:10px;">
-                <button class="action-btn" style="padding:6px 12px;font-size:12px;margin:0;">看涨 📈</button>
-                <button class="action-btn" style="padding:6px 12px;font-size:12px;margin:0;background:linear-gradient(90deg,#666,#888);">看跌 📉</button>
-            </div>
-        </div>
+        /* ===== 顶部预测委托卡片 ===== */
+        .predict-card {
+            background: rgba(21, 22, 36, 0.9);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #23243a;
+            color: #fff;
+        }
 
-        <div class="predict-item" style="padding:12px 0;border-bottom:1px solid #1f2135;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div>
-                    <div style="font-weight:bold;font-size:14px;">XClaw 下周涨幅预测</div>
-                    <div style="font-size:12px;color:#888;margin-top:4px;">结束时间: 2026-05-28 18:00</div>
-                </div>
-                <div style="text-align:right;">
-                    <div style="font-size:14px;color:#ff6b6b;">+15.2%</div>
-                    <div style="font-size:12px;color:#888;">已参与: 892人</div>
-                </div>
-            </div>
-            <div style="display:flex;gap:8px;margin-top:10px;">
-                <button class="action-btn" style="padding:6px 12px;font-size:12px;margin:0;">涨 📈</button>
-                <button class="action-btn" style="padding:6px 12px;font-size:12px;margin:0;background:linear-gradient(90deg,#666,#888);">跌 📉</button>
-            </div>
-        </div>
+        .predict-card h2 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
 
-        <div class="predict-item" style="padding:12px 0;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div>
-                    <div style="font-weight:bold;font-size:14px;">BTC 突破 10万 预测</div>
-                    <div style="font-size:12px;color:#888;margin-top:4px;">结束时间: 2026-06-01 00:00</div>
-                </div>
-                <div style="text-align:right;">
-                    <div style="font-size:14px;color:#4caf50;">$98,750</div>
-                    <div style="font-size:12px;color:#888;">已参与: 3,456人</div>
-                </div>
+        .predict-card .sub-text {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 12px;
+        }
+
+        .predict-card .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #1f2135;
+            font-size: 14px;
+        }
+
+        .predict-card .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .predict-card .info-row .label {
+            color: #888;
+        }
+
+        .predict-card .info-row .value {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .predict-card .info-row .value.orange {
+            color: #ff8c00;
+        }
+
+        .predict-card .info-row .value.red {
+            color: #ff4d4d;
+        }
+
+        .predict-card .info-row .value.green {
+            color: #4caf50;
+        }
+
+        /* ===== 龙虾图标 ===== */
+        .lobster-icon {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #ff3b3b;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-size: 20px;
+            margin-left: auto;
+        }
+
+        /* ===== 我的委托卡片 ===== */
+        .my-delegation-card {
+            background: rgba(21, 22, 36, 0.9);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #23243a;
+            color: #fff;
+        }
+
+        .my-delegation-card h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .delegation-stats {
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #1f2135;
+        }
+
+        .delegation-stats .stat {
+            flex: 1;
+        }
+
+        .delegation-stats .stat .number {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .delegation-stats .stat .label {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .delegation-stats .stat .number.green {
+            color: #4caf50;
+        }
+
+        .delegation-stats .stat .number.orange {
+            color: #ff8c00;
+        }
+
+        .delegation-stats .stat .number.blue {
+            color: #4a90d9;
+        }
+
+        .delegation-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #ff3b3b, #ff5252);
+            border: none;
+            color: white;
+            padding: 12px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 59, 59, 0.3);
+        }
+
+        /* ===== 策略表现 ===== */
+        .strategy-card {
+            background: rgba(21, 22, 36, 0.9);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #23243a;
+            color: #fff;
+        }
+
+        .strategy-card h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .strategy-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .strategy-tabs .tab {
+            flex: 1;
+            padding: 8px 0;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            background: #1a1a2e;
+            border: 1px solid #2a2a40;
+            color: #888;
+            transition: all 0.3s;
+        }
+
+        .strategy-tabs .tab.active {
+            background: #1a1a2e;
+            border-color: #ff3b3b;
+            color: #fff;
+        }
+
+        .strategy-values {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #1f2135;
+        }
+
+        .strategy-values .value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4caf50;
+        }
+
+        .strategy-values .value.green {
+            color: #4caf50;
+        }
+
+        .strategy-values .value.red {
+            color: #ff4d4d;
+        }
+
+        /* ===== 预测列表 ===== */
+        .position-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #1f2135;
+        }
+
+        .position-tabs .tab {
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #888;
+            position: relative;
+        }
+
+        .position-tabs .tab.active {
+            color: #fff;
+        }
+
+        .position-tabs .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ff3b3b;
+        }
+
+        /* ===== 预测项 ===== */
+        .predict-item {
+            background: rgba(21, 22, 36, 0.9);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #23243a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .predict-item .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #1a1a2e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .predict-item .content {
+            flex: 1;
+        }
+
+        .predict-item .content .title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .predict-item .content .sub {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .predict-item .right {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .predict-item .right .amount {
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .predict-item .right .amount.green {
+            color: #4caf50;
+        }
+
+        .predict-item .right .amount.red {
+            color: #ff4d4d;
+        }
+
+        .predict-item .right .change {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .predict-item .right .change.green {
+            color: #4caf50;
+        }
+
+        .predict-item .right .change.red {
+            color: #ff4d4d;
+        }
+
+        .predict-item .right .percent {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .predict-item .right .percent.green {
+            color: #4caf50;
+        }
+
+        .predict-item .right .percent.red {
+            color: #ff4d4d;
+        }
+        
+        .predict-item .right .percent.gray {
+            color: #888;
+        }
+
+        .predict-item .right .status {
+            font-size: 11px;
+            color: #888;
+        }
+        
+        .predict-item .right .status.green {
+            color: #4caf50;
+        }
+        
+        .predict-item .right .status.red {
+            color: #ff4d4d;
+        }
+    </style>
+
+    <!-- ===== 顶部预测委托卡片 ===== -->
+    <div class="predict-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+                <h2>预测委托</h2>
+                <div class="sub-text">让XClaw预测市场AI智能体，帮您实现自动化收益：</div>
             </div>
-            <div style="display:flex;gap:8px;margin-top:10px;">
-                <button class="action-btn" style="padding:6px 12px;font-size:12px;margin:0;">看涨 📈</button>
-                <button class="action-btn" style="padding:6px 12px;font-size:12px;margin:0;background:linear-gradient(90deg,#666,#888);">看跌 📉</button>
-            </div>
+            <div class="lobster-icon">🦞</div>
+        </div>
+        
+        <div class="info-row">
+            <span class="label">委托金额：</span>
+            <span class="value orange">31600 USDT</span>
+        </div>
+        <div class="info-row">
+            <span class="label">预期APR：</span>
+            <span class="value red">9-27%</span>
         </div>
     </div>
 
-    <!-- 我的预测记录 -->
-    <div class="card-dark">
-        <h3 style="margin-bottom:12px;">我的预测记录</h3>
-        <div style="font-size:13px;color:#888;text-align:center;padding:20px 0;">
-            暂无预测记录，参与预测赢取奖励！
+    <!-- ===== 我的委托卡片 ===== -->
+    <div class="my-delegation-card">
+        <h3>我的委托</h3>
+        <div class="delegation-stats">
+            <div class="stat">
+                <div class="number">未参与</div>
+                <div class="label">当前委托</div>
+            </div>
+            <div class="stat">
+                <div class="number green">0 USDT</div>
+                <div class="label">累计收益</div>
+            </div>
+            <div class="stat">
+                <div class="number orange">灵活</div>
+                <div class="label">退出周期</div>
+            </div>
+        </div>
+        <button class="delegation-btn">立即委托</button>
+    </div>
+
+    <!-- ===== 策略表现 ===== -->
+    <div class="strategy-card">
+        <h3>策略表现</h3>
+        <div class="strategy-tabs">
+            <div class="tab active">1W</div>
+            <div class="tab">1M</div>
+            <div class="tab">1Y</div>
+        </div>
+        <div class="strategy-values">
+            <div class="value green">↗ 115.07K</div>
+            <div class="value green">↗ 157.86K</div>
+            <div class="value green">↗ 462.85</div>
+        </div>
+    </div>
+
+    <!-- ===== Positions / Activity ===== -->
+    <div class="position-tabs">
+        <div class="tab active">Positions</div>
+        <div class="tab">Activity</div>
+    </div>
+
+    <!-- ===== 预测列表 ===== -->
+    
+    <!-- 1. Oklahoma City Thunder -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Will the Oklahoma City Thunder win the 2026 NBA Finals?</div>
+            <div class="sub">Yes 40.31¢ | No 59.69¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$92349</div>
+            <div class="change green">$28786</div>
+            <div class="percent green">45%</div>
+        </div>
+    </div>
+
+    <!-- 2. New York Knicks -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Will the New York Knicks win the 2026 NBA Finals?</div>
+            <div class="sub">Yes 3.5¢ | No 96.5¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$5594</div>
+            <div class="change green">$4200</div>
+            <div class="percent green">301%</div>
+        </div>
+    </div>
+
+    <!-- 3. Cleveland Cavaliers -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Will the Cleveland Cavaliers win the 2026 NBA Finals?</div>
+            <div class="sub">Yes 4.1¢ | No 95.9¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$4981</div>
+            <div class="change green">$50</div>
+            <div class="percent green">1%</div>
+        </div>
+    </div>
+
+    <!-- 4. Mamdani -->
+    <div class="predict-item">
+        <div class="icon">🏗️</div>
+        <div class="content">
+            <div class="title">Mamdani opens city-owned grocery store by...</div>
+            <div class="sub">No 86¢ | Yes 14¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$4877</div>
+            <div class="change green">$577</div>
+            <div class="percent green">13%</div>
+        </div>
+    </div>
+
+    <!-- 5. New York Knicks (another) -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Will the New York Knicks win the NBA Eastern...</div>
+            <div class="sub">Yes 13¢ | No 87¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$4273</div>
+            <div class="change green">$3473</div>
+            <div class="percent green">435%</div>
+        </div>
+    </div>
+
+    <!-- 6. San Antonio Spurs -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Will the San Antonio Spurs win the 2026 NBA Finals?</div>
+            <div class="sub">Yes 14.89¢ | No 85.11¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$3682</div>
+            <div class="change green">$1447</div>
+            <div class="percent green">65%</div>
+        </div>
+    </div>
+
+    <!-- 7. Chennai Super Kings -->
+    <div class="predict-item">
+        <div class="icon">🏏</div>
+        <div class="content">
+            <div class="title">Will Chennai Super Kings win the 2026 Indian Premie...</div>
+            <div class="sub">No 93¢ | Yes 7¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$114</div>
+            <div class="change red">-$1</div>
+            <div class="percent red">-1%</div>
+        </div>
+    </div>
+
+    <!-- 8. Royal Challengers -->
+    <div class="predict-item">
+        <div class="icon">🏏</div>
+        <div class="content">
+            <div class="title">Will Royal Challengers win the 2026 Indian Premie...</div>
+            <div class="sub">No 76¢ | Yes 24¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$38</div>
+            <div class="change red">-$7</div>
+            <div class="percent red">-15%</div>
+        </div>
+    </div>
+
+    <!-- 9. Delhi Capitals -->
+    <div class="predict-item">
+        <div class="icon">🏏</div>
+        <div class="content">
+            <div class="title">Will Delhi Capitals win the 2026 Indian Premier League?</div>
+            <div class="sub">Yes 0.89¢ | No 99.11¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$9</div>
+            <div class="change red">-$12</div>
+            <div class="percent red">-66%</div>
+        </div>
+    </div>
+
+    <!-- 10. BYU Cougars -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">BYU Cougars vs. Cincinnati Bearcats</div>
+            <div class="sub">Yes 12.64¢ | No 87.36¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$0</div>
+            <div class="change red">-$876</div>
+            <div class="percent red">-100%</div>
+        </div>
+    </div>
+
+    <!-- 11. Hornets vs. Knicks -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Hornets vs. Knicks: O/U 217.5</div>
+            <div class="sub">Yes 44.99¢ | No 55.01¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$0</div>
+            <div class="change red">-$2</div>
+            <div class="percent red">-100%</div>
+        </div>
+    </div>
+
+    <!-- 12. Set 1 Winner -->
+    <div class="predict-item">
+        <div class="icon">🎾</div>
+        <div class="content">
+            <div class="title">Set 1 Winner: Potapova vs. Zakharova</div>
+            <div class="sub">Yes 70¢ | No 30¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$0</div>
+            <div class="change red">-$350</div>
+            <div class="percent red">-100%</div>
+        </div>
+    </div>
+
+    <!-- 13. Pistons vs. Cavaliers -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Pistons vs. Cavaliers: O/U 213.5</div>
+            <div class="sub">Yes 45.25¢ | No 54.75¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$0</div>
+            <div class="change red">-$623</div>
+            <div class="percent red">-100%</div>
+        </div>
+    </div>
+
+    <!-- 14. 1H Spread -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">1H Spread: Spurs (-0.5)</div>
+            <div class="sub">No 0.85¢ | Yes 99.15¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$0</div>
+            <div class="change red">-$3</div>
+            <div class="percent red">-100%</div>
+        </div>
+    </div>
+
+    <!-- 15. Warriors vs. Suns -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Warriors vs. Suns: O/U 218.5</div>
+            <div class="sub">Yes 37.98¢ | No 62.02¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$0</div>
+            <div class="change red">-$121</div>
+            <div class="percent red">-100%</div>
+        </div>
+    </div>
+
+    <!-- 16. Hawks vs. Knicks -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Hawks vs. Knicks: O/U 217.5</div>
+            <div class="sub">Yes 52.86¢ | No 47.14¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$0</div>
+            <div class="change red">-$1644</div>
+            <div class="percent red">-100%</div>
+        </div>
+    </div>
+
+    <!-- 17. Spread -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Spread: Pistons (-7.5)</div>
+            <div class="sub">No 39.95¢ | Yes 60.05¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$0</div>
+            <div class="change red">-$2</div>
+            <div class="percent red">-100%</div>
+        </div>
+    </div>
+
+    <!-- 18. UFC Fight Night -->
+    <div class="predict-item">
+        <div class="icon">🥊</div>
+        <div class="content">
+            <div class="title">UFC Fight Night: Dom Mar Fan vs. Kody Steele</div>
+            <div class="sub">Yes 38¢ | No 62¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$0</div>
+            <div class="change red">-$4</div>
+            <div class="percent red">-100%</div>
+        </div>
+    </div>
+
+    <!-- 19. Spread: Celtics -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Spread: Celtics (-15.5)</div>
+            <div class="sub">No 53.95¢ | Yes 46.05¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$0</div>
+            <div class="change red">-$941</div>
+            <div class="percent red">-100%</div>
+        </div>
+    </div>
+
+    <!-- 20. Lakers vs. Thunder -->
+    <div class="predict-item">
+        <div class="icon">🏀</div>
+        <div class="content">
+            <div class="title">Lakers vs. Thunder: O/U 214.5</div>
+            <div class="sub">Yes 48.65¢ | No 51.35¢</div>
+        </div>
+        <div class="right">
+            <div class="amount green">$0</div>
+            <div class="change red">-$1085</div>
+            <div class="percent red">-100%</div>
         </div>
     </div>
 
