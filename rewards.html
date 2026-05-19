@@ -1,80 +1,333 @@
 <!-- ===== 奖励页面 ===== -->
 <div id="page-rewards" class="page-container">
-    
-    <div class="card-dark">
-        <div class="title-left">
-            <h2>🎁 奖励中心</h2>
-            <span style="font-size:12px;color:#888;">完成任务，领取奖励</span>
-        </div>
-    </div>
-
-    <!-- 奖励统计 -->
-    <div class="card-dark">
-        <div style="display:flex;justify-content:space-between;text-align:center;">
-            <div>
-                <div style="font-size:24px;font-weight:bold;color:#ffd700;">1,250</div>
-                <div style="font-size:12px;color:#888;">累计奖励 (XClaw)</div>
-            </div>
-            <div>
-                <div style="font-size:24px;font-weight:bold;color:#4caf50;">12</div>
-                <div style="font-size:12px;color:#888;">已完成任务</div>
-            </div>
-            <div>
-                <div style="font-size:24px;font-weight:bold;color:#4a90d9;">5</div>
-                <div style="font-size:12px;color:#888;">进行中任务</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 任务列表 -->
-    <div class="card-dark">
-        <h3 style="margin-bottom:12px;">📋 每日任务</h3>
+    <style>
+        /* ===== rewards.html 专用样式 ===== */
         
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1f2135;">
-            <div>
-                <div style="font-weight:bold;font-size:14px;">每日签到</div>
-                <div style="font-size:12px;color:#888;">签到领取 +10 XClaw</div>
-            </div>
-            <button style="background:#ff3b3b;border:none;color:#fff;padding:6px 16px;border-radius:20px;font-size:12px;cursor:pointer;">签到</button>
-        </div>
+        /* ===== 奖励卡片通用样式 ===== */
+        .reward-card {
+            background: rgba(21, 22, 36, 0.9);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #23243a;
+            color: #fff;
+        }
 
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1f2135;">
-            <div>
-                <div style="font-weight:bold;font-size:14px;">邀请好友</div>
-                <div style="font-size:12px;color:#888;">邀请好友可获得 +50 XClaw</div>
-            </div>
-            <button style="background:#4a90d9;border:none;color:#fff;padding:6px 16px;border-radius:20px;font-size:12px;cursor:pointer;">邀请</button>
-        </div>
+        .reward-card .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
 
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1f2135;">
-            <div>
-                <div style="font-weight:bold;font-size:14px;">参与预测</div>
-                <div style="font-size:12px;color:#888;">参与预测可获得 +30 XClaw</div>
-            </div>
-            <button style="background:#4caf50;border:none;color:#fff;padding:6px 16px;border-radius:20px;font-size:12px;cursor:pointer;">去预测</button>
-        </div>
+        .reward-card .header h3 {
+            font-size: 17px;
+            font-weight: bold;
+        }
 
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
-            <div>
-                <div style="font-weight:bold;font-size:14px;">社区活跃</div>
-                <div style="font-size:12px;color:#888;">在社区发帖可获得 +20 XClaw</div>
+        .reward-card .header .record-link {
+            font-size: 13px;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .reward-card .header .record-link:hover {
+            color: #fff;
+        }
+
+        /* ===== 统计数据行 ===== */
+        .stats-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .stats-row .stat-item {
+            flex: 1;
+        }
+
+        .stats-row .stat-item .label {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .stats-row .stat-item .value {
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stats-row .stat-item .value .num {
+            font-size: 18px;
+        }
+
+        .stats-row .stat-item .value .unit {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .stats-row .stat-item .value .num.red {
+            color: #ff4d4d;
+        }
+
+        .stats-row .stat-item .value .num.green {
+            color: #4caf50;
+        }
+
+        .stats-row .stat-item .value .num.white {
+            color: #fff;
+        }
+
+        /* ===== 领取按钮 ===== */
+        .claim-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #c0392b, #e74c3c);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            margin-top: 4px;
+        }
+
+        .claim-btn:hover {
+            opacity: 0.9;
+        }
+
+        .claim-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ===== 未达标状态 ===== */
+        .status-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border: 1px solid #2a2a40;
+        }
+
+        .status-box .status-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .status-box .status-title .icon {
+            font-size: 18px;
+        }
+
+        .status-box .status-title .icon.red {
+            color: #ff4d4d;
+        }
+
+        .status-box .status-title .icon.green {
+            color: #4caf50;
+        }
+
+        .status-box .status-title .text.red {
+            color: #ff4d4d;
+        }
+
+        .status-box .status-title .text.green {
+            color: #4caf50;
+        }
+
+        .status-box .info-line {
+            font-size: 13px;
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        .status-box .info-line span {
+            color: #fff;
+        }
+
+        /* ===== 双列数据框 ===== */
+        .data-boxes {
+            display: flex;
+            gap: 12px;
+        }
+
+        .data-boxes .box {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #2a2a40;
+        }
+
+        .data-boxes .box .label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .data-boxes .box .value {
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .data-boxes .box .value .num {
+            font-size: 18px;
+        }
+
+        .data-boxes .box .value .num.red {
+            color: #ff4d4d;
+        }
+
+        .data-boxes .box .value .num.green {
+            color: #4caf50;
+        }
+
+        .data-boxes .box .value .num.white {
+            color: #fff;
+        }
+
+        .data-boxes .box .value .unit {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .data-boxes .box .sub-value {
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }
+    </style>
+
+    <!-- ===== 推荐奖励卡片 ===== -->
+    <div class="reward-card">
+        <div class="header">
+            <h3>推荐奖励</h3>
+            <div class="record-link">奖励记录 ›</div>
+        </div>
+        
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="label">累计奖励</div>
+                <div class="value">
+                    <span class="num white">0</span>
+                    <span class="unit">BNB</span>
+                </div>
             </div>
-            <button style="background:#ff8c00;border:none;color:#fff;padding:6px 16px;border-radius:20px;font-size:12px;cursor:pointer;">去发帖</button>
+            <div class="stat-item">
+                <div class="label">待领取</div>
+                <div class="value">
+                    <span class="num red">0</span>
+                    <span class="unit">BNB</span>
+                </div>
+            </div>
+        </div>
+        
+        <button class="claim-btn">领取奖励</button>
+    </div>
+
+    <!-- ===== 持币分红卡片 ===== -->
+    <div class="reward-card">
+        <div class="header">
+            <h3>持币分红</h3>
+            <div class="record-link">奖励记录 ›</div>
+        </div>
+        
+        <div class="status-box">
+            <div class="status-title">
+                <span class="icon red">❌</span>
+                <span class="text red">未达标</span>
+            </div>
+            <div class="info-line">
+                持币要求：100000 XClaw<br>
+                当前持币：<span>0</span> XClaw
+            </div>
+        </div>
+        
+        <div class="data-boxes">
+            <div class="box">
+                <div class="label">累计分红</div>
+                <div class="value">
+                    <span class="num white">0</span>
+                    <span class="unit">LP</span>
+                </div>
+            </div>
+            <div class="box">
+                <div class="label">当前持有</div>
+                <div class="value">
+                    <span class="num red">0</span>
+                    <span class="unit">LP</span>
+                </div>
+                <div class="sub-value">≈$0</div>
+            </div>
         </div>
     </div>
 
-    <!-- 邀请好友 -->
-    <div class="card-dark">
-        <h3 style="margin-bottom:12px;">🔗 邀请好友</h3>
-        <div style="background:#1a1a2e;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;">
-            <div style="font-size:12px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">
-                https://xclaw.io/ref/0x1234...
+    <!-- ===== 预测委托卡片 ===== -->
+    <div class="reward-card">
+        <div class="header">
+            <h3>预测委托</h3>
+            <div class="record-link">奖励记录 ›</div>
+        </div>
+        
+        <div class="data-boxes">
+            <div class="box">
+                <div class="label">累计收益</div>
+                <div class="value">
+                    <span class="num white">0</span>
+                    <span class="unit">USDT</span>
+                </div>
             </div>
-            <button style="background:#333;border:none;color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer;">复制</button>
+            <div class="box">
+                <div class="label">待领取</div>
+                <div class="value">
+                    <span class="num red">0</span>
+                    <span class="unit">USDT</span>
+                </div>
+            </div>
         </div>
-        <div style="font-size:12px;color:#888;margin-top:8px;text-align:center;">
-            每邀请一位好友，双方各得 50 XClaw
+        
+        <button class="claim-btn">领取分红</button>
+    </div>
+
+    <!-- ===== 节点分红卡片 ===== -->
+    <div class="reward-card">
+        <div class="header">
+            <h3>节点分红</h3>
+            <div class="record-link">奖励记录 ›</div>
         </div>
+        
+        <div class="data-boxes">
+            <div class="box">
+                <div class="label">分红收益</div>
+                <div class="value">
+                    <span class="num white">0</span>
+                    <span class="unit">USDT</span>
+                </div>
+            </div>
+            <div class="box">
+                <div class="label">待领取</div>
+                <div class="value">
+                    <span class="num red">0</span>
+                    <span class="unit">USDT</span>
+                </div>
+            </div>
+        </div>
+        
+        <button class="claim-btn">领取分红</button>
     </div>
 
 </div>
