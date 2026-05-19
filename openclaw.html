@@ -3,7 +3,7 @@
     <style>
         /* ===== openclaw.html 专用样式 ===== */
         
-        /* ===== 顶部橙色横幅 - 信封卡片 ===== */
+        /* ===== 顶部橙色横幅 - 半开红包信封 ===== */
         .banner-container {
             width: 100%;
             margin-bottom: 15px;
@@ -25,8 +25,8 @@
             z-index: 2;
         }
 
-        /* ===== 信封包装器 ===== */
-        .envelope-wrapper {
+        /* ===== 半开红包包装器 ===== */
+        .red-packet-wrapper {
             position: relative;
             max-width: 320px;
             margin: 0 auto;
@@ -56,27 +56,74 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ===== 信封主体 ===== */
-        .envelope-body {
+        /* ===== 红包主体 ===== */
+        .red-packet-body {
             position: relative;
             z-index: 2;
             background: #e85d3a;
-            border-radius: 8px 8px 0 0;
+            border-radius: 12px;
             padding: 20px 15px 30px 15px;
             min-height: 180px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 2px solid #d44a2a;
         }
 
-        /* ===== 白色卡片 ===== */
+        /* ===== 红包封口（半开状态 - 上方弧线） ===== */
+        .red-packet-flap {
+            position: absolute;
+            top: -30px;
+            left: -2px;
+            right: -2px;
+            height: 40px;
+            background: #d44a2a;
+            border-radius: 12px 12px 0 0;
+            z-index: 4;
+            border: 2px solid #d44a2a;
+            border-bottom: none;
+        }
+
+        /* ===== 红包封口翻盖（半开 - 向上翻起） ===== */
+        .red-packet-flap-open {
+            position: absolute;
+            top: -50px;
+            left: 10px;
+            right: 10px;
+            height: 35px;
+            background: #d44a2a;
+            border-radius: 12px 12px 0 0;
+            z-index: 3;
+            border: 2px solid #d44a2a;
+            border-bottom: none;
+            transform: rotateX(180deg);
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* ===== 红包底部 ===== */
+        .red-packet-bottom {
+            position: absolute;
+            bottom: -10px;
+            left: 10px;
+            right: 10px;
+            height: 20px;
+            background: #d44a2a;
+            border-radius: 0 0 12px 12px;
+            z-index: 1;
+            border: 2px solid #d44a2a;
+            border-top: none;
+        }
+
+        /* ===== 白色卡片（从红包中抽出） ===== */
         .white-card {
             background: #fff;
             border-radius: 8px;
             padding: 20px 15px;
-            margin: 0 auto 15px auto;
-            max-width: 240px;
+            margin: 10px auto 0 auto;
+            max-width: 220px;
             position: relative;
-            z-index: 3;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transform: translateY(-10px);
+            border: 1px solid #e0e0e0;
         }
 
         .white-card h2.project-name {
@@ -94,33 +141,7 @@
             letter-spacing: 1px;
         }
 
-        /* ===== 信封翻盖（上方三角形） ===== */
-        .envelope-flap {
-            position: absolute;
-            top: -20px;
-            left: 0;
-            right: 0;
-            height: 40px;
-            background: #d44a2a;
-            clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
-            z-index: 4;
-            border-radius: 8px 8px 0 0;
-        }
-
-        /* ===== 信封底部（下方三角形） ===== */
-        .envelope-bottom {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: #d44a2a;
-            clip-path: polygon(0% 0%, 50% 100%, 100% 0%);
-            z-index: 1;
-            border-radius: 0 0 8px 8px;
-        }
-
-        /* ===== 底部圆形徽章 ===== */
+        /* ===== 底部圆形徽章（金色边框 + 鹰） ===== */
         .badge-circle {
             position: absolute;
             bottom: -25px;
@@ -132,7 +153,7 @@
             background: linear-gradient(135deg, #f7d875, #d4a017);
             border: 3px solid #fff;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            z-index: 5;
+            z-index: 6;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -149,6 +170,17 @@
             font-size: 24px;
             background: #f5e6c8;
             overflow: hidden;
+        }
+
+        /* ===== 红包装饰线 ===== */
+        .red-packet-line {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            z-index: 2;
         }
 
         /* ===== 米色卡片（活动进度、参与活动、记录、规则） ===== */
@@ -372,10 +404,10 @@
         @media (max-width: 360px) {
             .white-card {
                 padding: 15px 10px;
-                max-width: 200px;
+                max-width: 180px;
             }
             .white-card h2.project-name {
-                font-size: 20px;
+                font-size: 18px;
             }
             .white-card h3.activity-name {
                 font-size: 16px;
@@ -383,34 +415,40 @@
         }
     </style>
 
-    <!-- ===== 顶部信封卡片 ===== -->
+    <!-- ===== 顶部半开红包卡片 ===== -->
     <div class="banner-container">
         <div class="banner-title">持币分红活动</div>
         
-        <!-- 信封卡片 -->
-        <div class="envelope-wrapper">
+        <!-- 半开红包 -->
+        <div class="red-packet-wrapper">
             <!-- 背景光芒（放射线） -->
             <div class="sunburst"></div>
             
-            <!-- 信封底部 -->
-            <div class="envelope-bottom"></div>
+            <!-- 红包封口（半开 - 向上翻起） -->
+            <div class="red-packet-flap-open"></div>
             
-            <!-- 信封主体 -->
-            <div class="envelope-body">
-                <!-- 白色卡片 -->
+            <!-- 红包主体 -->
+            <div class="red-packet-body">
+                <!-- 红包装饰线 -->
+                <div class="red-packet-line"></div>
+                
+                <!-- 白色卡片（从红包中抽出） -->
                 <div class="white-card">
                     <h2 class="project-name">BCBSE</h2>
                     <h3 class="activity-name">持币分红计划</h3>
                 </div>
                 
-                <!-- 信封翻盖 -->
-                <div class="envelope-flap"></div>
+                <!-- 红包封口（半开状态） -->
+                <div class="red-packet-flap"></div>
                 
                 <!-- 底部圆形徽章 -->
                 <div class="badge-circle">
                     <div class="badge-content">🦅</div>
                 </div>
             </div>
+            
+            <!-- 红包底部 -->
+            <div class="red-packet-bottom"></div>
         </div>
     </div>
 
