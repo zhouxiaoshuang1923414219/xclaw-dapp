@@ -3,63 +3,116 @@
     <style>
         /* ===== openclaw.html 专用样式 ===== */
         
-        /* 顶部橙色横幅 */
+        /* ===== 顶部信封样式 ===== */
         .banner-container {
             width: 100%;
             margin-bottom: 15px;
             border-radius: 16px;
             overflow: hidden;
-            background: linear-gradient(135deg, #ff8c00, #ff6600);
+            background: radial-gradient(circle at center, #ffcc00 0%, #ff8c00 50%, #ff6600 100%);
             position: relative;
-            padding: 20px 15px;
-            text-align: center;
+            padding: 0;
             box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
+            border: 2px solid #ff8c00;
         }
 
-        .banner-title {
+        .banner-header {
+            background: linear-gradient(180deg, #ff7b00, #ff5500);
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            padding: 12px 0;
+            border-bottom: 2px solid #e06500;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            padding: 20px 15px 50px 15px;
+            background: radial-gradient(ellipse at center, #ffaa00 0%, #ff7700 70%, #ff5500 100%);
+            overflow: hidden;
+        }
+
+        .envelope-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-conic-gradient(
+                from 0deg,
+                rgba(255, 255, 255, 0.05) 0deg 10deg,
+                transparent 10deg 20deg
+            );
+            pointer-events: none;
+        }
+
+        .envelope-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 25px 15px 20px 15px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            max-width: 280px;
+            margin: 0 auto 10px auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .envelope-card .project-name {
+            color: #1a3c6e;
             font-size: 22px;
             font-weight: bold;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-
-        .banner-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px 10px;
-            position: relative;
-            max-width: 280px;
-            margin: 0 auto;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .banner-card h2 {
-            color: #1a3c6e;
-            font-size: 20px;
             margin-bottom: 4px;
+            letter-spacing: 1px;
         }
 
-        .banner-card h3 {
-            color: #ff3b3b;
-            font-size: 18px;
+        .envelope-card .activity-name {
+            color: #d4441c;
+            font-size: 20px;
             font-weight: bold;
+            margin: 0;
+            letter-spacing: 1px;
         }
 
-        .banner-logo {
-            width: 50px;
-            height: 50px;
+        .envelope-bottom {
+            position: relative;
+            z-index: 1;
+            margin-top: -15px;
+            height: 60px;
+            background: linear-gradient(180deg, #e85a3a, #c9432a);
+            border-radius: 0 0 20px 20px;
+            clip-path: ellipse(60% 80% at 50% 0%);
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 10px;
+        }
+
+        .badge-circle {
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: linear-gradient(135deg, #f7d875, #d4a017);
-            margin: 10px auto 0;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            font-size: 24px;
+            margin-bottom: -10px;
+            position: relative;
+            z-index: 3;
+            overflow: hidden;
         }
 
-        /* 米色卡片（活动进度、参与活动、记录、规则） */
+        .badge-circle span {
+            font-size: 28px;
+        }
+
+        /* ===== 米色卡片样式 ===== */
         .card-beige {
             background: #fcf8e8;
             border-radius: 16px;
@@ -82,7 +135,7 @@
             margin-bottom: 12px;
         }
 
-        /* 进度圆环区域 */
+        /* ===== 进度圆环区域 ===== */
         .progress-area {
             display: flex;
             align-items: center;
@@ -139,7 +192,7 @@
             color: #ff3b3b;
         }
 
-        /* 倒计时 */
+        /* ===== 倒计时 ===== */
         .countdown-area {
             display: flex;
             align-items: center;
@@ -171,7 +224,7 @@
             align-items: center;
         }
 
-        /* 参与活动按钮 */
+        /* ===== 参与活动按钮 ===== */
         .participate-btn {
             width: 100%;
             background: #b0b0b0;
@@ -185,7 +238,7 @@
             text-align: center;
         }
 
-        /* 实时领取记录表格 */
+        /* ===== 实时领取记录表格 ===== */
         .record-table {
             width: 100%;
         }
@@ -241,7 +294,7 @@
             cursor: pointer;
         }
 
-        /* 规则说明 */
+        /* ===== 规则说明 ===== */
         .rules-list {
             font-size: 13px;
             color: #444;
@@ -255,19 +308,50 @@
             content: "• ";
             color: #ff8c00;
         }
+
+        /* ===== 移动端适配 ===== */
+        @media (max-width: 414px) {
+            .banner-header {
+                font-size: 18px;
+                padding: 10px 0;
+            }
+            .envelope-card {
+                padding: 20px 10px 15px 10px;
+                max-width: 240px;
+            }
+            .envelope-card .project-name {
+                font-size: 20px;
+            }
+            .envelope-card .activity-name {
+                font-size: 18px;
+            }
+            .badge-circle {
+                width: 50px;
+                height: 50px;
+            }
+            .badge-circle span {
+                font-size: 22px;
+            }
+        }
     </style>
 
-    <!-- 顶部橙色横幅 -->
+    <!-- ===== 顶部信封样式横幅 ===== -->
     <div class="banner-container">
-        <div class="banner-title">持币分红活动</div>
-        <div class="banner-card">
-            <h2>BCBSE</h2>
-            <h3>持币分红计划</h3>
-            <div class="banner-logo">🦅</div>
+        <div class="banner-header">持币分红活动</div>
+        <div class="envelope-wrapper">
+            <div class="envelope-card">
+                <h2 class="project-name">BCBSE</h2>
+                <h3 class="activity-name">持币分红计划</h3>
+            </div>
+            <div class="envelope-bottom">
+                <div class="badge-circle">
+                    <span>🦅</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- 活动进度卡片 -->
+    <!-- ===== 活动进度卡片 ===== -->
     <div class="card-beige">
         <h3>活动进度</h3>
         <div class="sub-text">超强共识者奖励计划，持币分红奖励 10% ~ 90%，<br>倒计时结束，暴利分红千亿 USDT!</div>
@@ -300,13 +384,13 @@
         </div>
     </div>
 
-    <!-- 参与活动卡片 -->
+    <!-- ===== 参与活动卡片 ===== -->
     <div class="card-beige">
         <h3>参与活动</h3>
         <button class="participate-btn">活动已结束</button>
     </div>
 
-    <!-- 实时领取记录 -->
+    <!-- ===== 实时领取记录 ===== -->
     <div class="card-beige">
         <h3>实时领取记录</h3>
         <div class="record-table">
@@ -411,7 +495,7 @@
         </div>
     </div>
 
-    <!-- 活动规则说明 -->
+    <!-- ===== 活动规则说明 ===== -->
     <div class="card-beige">
         <h3>活动规则说明</h3>
         <ul class="rules-list">
