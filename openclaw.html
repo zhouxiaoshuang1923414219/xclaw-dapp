@@ -3,7 +3,7 @@
     <style>
         /* ===== openclaw.html 专用样式 ===== */
         
-        /* ===== 顶部信封卡片 ===== */
+        /* ===== 顶部橙色横幅 - 信封卡片 ===== */
         .banner-container {
             width: 100%;
             margin-bottom: 15px;
@@ -199,6 +199,7 @@
             flex-shrink: 0;
             position: relative;
         }
+
         .circle-progress::after {
             content: '';
             position: absolute;
@@ -215,18 +216,22 @@
         .progress-info {
             flex: 1;
         }
+
         .progress-info .row {
             display: flex;
             justify-content: space-between;
             font-size: 14px;
             margin-bottom: 4px;
         }
+
         .progress-info .row span:last-child {
             font-weight: bold;
         }
+
         .progress-info .highlight {
             color: #4a90d9;
         }
+
         .progress-info .highlight-red {
             color: #ff3b3b;
         }
@@ -237,15 +242,18 @@
             align-items: center;
             margin-top: 5px;
         }
+
         .countdown-area .label {
             font-size: 14px;
             color: #555;
             margin-right: 15px;
         }
+
         .countdown-box {
             display: flex;
             gap: 8px;
         }
+
         .countdown-box .box {
             background: #1a1a1a;
             color: #fff;
@@ -256,6 +264,7 @@
             min-width: 32px;
             text-align: center;
         }
+
         .countdown-box .colon {
             color: #1a1a1a;
             font-weight: bold;
@@ -281,6 +290,7 @@
         .record-table {
             width: 100%;
         }
+
         .record-row {
             display: flex;
             justify-content: space-between;
@@ -288,31 +298,37 @@
             border-bottom: 1px solid rgba(0,0,0,0.05);
             font-size: 12px;
         }
+
         .record-row:last-child {
             border-bottom: none;
         }
+
         .record-row .col-left {
             display: flex;
             flex-direction: column;
             color: #28a745;
             font-weight: 500;
         }
+
         .record-row .col-left .time {
             color: #999;
             font-weight: normal;
             font-size: 11px;
             margin-top: 2px;
         }
+
         .record-row .col-mid {
             display: flex;
             flex-direction: column;
             text-align: right;
             color: #333;
         }
+
         .record-row .col-mid .usd {
             color: #999;
             font-size: 11px;
         }
+
         .record-row .col-right {
             display: flex;
             flex-direction: column;
@@ -320,11 +336,13 @@
             color: #666;
             font-size: 11px;
         }
+
         .record-row .col-right .icons {
             display: flex;
             gap: 4px;
             margin-top: 2px;
         }
+
         .record-row .col-right .icons span {
             background: #eee;
             border-radius: 4px;
@@ -339,10 +357,12 @@
             color: #444;
             line-height: 1.8;
         }
+
         .rules-list li {
             list-style: none;
             margin-bottom: 2px;
         }
+
         .rules-list li::before {
             content: "• ";
             color: #ff8c00;
@@ -544,7 +564,7 @@
         <ul class="rules-list">
             <li>持币用户才能领取分红奖励，未持币用户只能获取参与奖励</li>
             <li>持币越多领取的分红越多</li>
-            <li>持有代币且从未卖过币的用户领取的分工更高</li>
+            <li>持有代币且从未卖过币的用户领取的分红更高</li>
             <li>领取奖励后等待3~5分钟奖励即可发到钱包</li>
         </ul>
     </div>
