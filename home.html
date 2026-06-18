@@ -1,0 +1,107 @@
+<div id="page-home" class="page-container">
+    <style>
+        .card { background: rgba(21,22,36,0.9); border-radius:16px; padding:16px; margin-bottom:15px; border:1px solid #23243a; color:#fff; }
+        .title-section { display:flex; justify-content:space-between; margin-bottom:10px; }
+        .title-left h2 { font-size:18px; } .title-left span { font-size:12px; color:#888; }
+        .progress-ring { position:relative; width:60px; height:60px; display:flex; align-items:center; justify-content:center; }
+        .progress-text { position:absolute; font-size:12px; font-weight:bold; }
+        .status-badge { background-color:#3e1d24; color:#ff6b6b; font-size:11px; padding:4px 12px; border-radius:12px; display:inline-flex; align-items:center; border:1px solid #5e2a30; margin:5px 0 15px 0; }
+        .spinner-icon { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.2); border-top:2px solid #ff4d4d; border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px; background-color:rgba(255,59,59,0.2); box-shadow:0 0 6px rgba(255,59,59,0.4); }
+        @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+        .stats-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:15px; }
+        .stat-item { background-color:#0f101e; border-radius:10px; padding:10px; text-align:center; border:1px solid #1f2135; }
+        .stat-num { font-size:16px; font-weight:bold; } .stat-label { font-size:10px; color:#666; margin-top:4px; }
+        .price-row { background-color:#0f101e; border-radius:8px; padding:10px; display:flex; justify-content:space-between; font-size:14px; align-items:center; border:1px solid #1f2135; }
+        .input-wrapper { margin-top:10px; }
+        .input-label { display:flex; justify-content:space-between; font-size:13px; color:#aaa; margin-bottom:5px; }
+        .input-box { background-color:#0a0a14; border-radius:10px; padding:10px 15px; display:flex; justify-content:space-between; align-items:center; border:1px solid #25263a; }
+        .input-box input { background:transparent; border:none; color:#fff; font-size:18px; width:60%; } .input-box input:focus { outline:none; }
+        .input-actions { display:flex; align-items:center; gap:10px; }
+        .max-btn { color:#ff3b3b; font-weight:bold; font-size:12px; cursor:pointer; }
+        .token-tag { display:flex; align-items:center; font-size:14px; }
+        .token-icon { width:16px; height:16px; background:#ffd700; border-radius:50%; margin-right:5px; }
+        .arrow-separator { text-align:center; color:#ff3b3b; margin:5px 0; font-size:20px; }
+        .action-btn { width:100%; background:linear-gradient(90deg,#ff3b3b,#ff5252); border:none; color:white; padding:12px; border-radius:25px; font-size:16px; font-weight:bold; margin-top:15px; cursor:pointer; box-shadow:0 4px 10px rgba(255,59,59,0.3); }
+        .rules { font-size:12px; color:#999; margin-top:15px; } .rules li { margin-bottom:4px; list-style:none; } .rules li::before { content:"● "; color:#666; }
+    </style>
+
+    <div class="card">
+        <div class="title-section">
+            <div class="title-left"><h2>领取福利</h2><span>MYK 生态福利，每日领取持币奖励</span></div>
+            <div class="progress-ring">
+                <svg width="60" height="60" viewBox="0 0 60 60">
+                    <circle cx="30" cy="30" r="25" stroke="#2a2a40" stroke-width="5" fill="none"/>
+                    <circle cx="30" cy="30" r="25" stroke="#ff4d4d" stroke-width="5" fill="none" stroke-dasharray="157" stroke-dashoffset="44"/>
+                </svg>
+                <span class="progress-text">72.07%</span>
+            </div>
+        </div>
+        <div class="status-badge"><span class="spinner-icon"></span> 福利可领取</div>
+        <div class="stats-grid">
+            <div class="stat-item"><span style="font-size:20px;">👤</span><div class="stat-num">3,380</div><div class="stat-label">领取地址</div></div>
+            <div class="stat-item"><span style="font-size:20px;">💳</span><div class="stat-num">2,162.3</div><div class="stat-label">已发放(BNB)</div></div>
+            <div class="stat-item"><span style="font-size:20px;">🪙</span><div class="stat-num">540,575,000</div><div class="stat-label">已领取(MYK)</div></div>
+        </div>
+        <div class="price-row"><span>当前汇率</span><span><strong>1 BNB = 250,000 MYK</strong></span></div>
+    </div>
+
+    <div class="card">
+        <div class="title-left"><h2 style="margin-bottom:10px;">领取福利</h2></div>
+        <div class="input-wrapper">
+            <div class="input-label"><span>福利金额</span><span>余额: <span id="bnbBalance">0</span> BNB</span></div>
+            <div class="input-box">
+                <input type="text" id="amountInput" placeholder="0.0">
+                <div class="input-actions">
+                    <span class="max-btn" onclick="setMaxAmount()">MAX</span>
+                    <div class="token-tag"><div class="token-icon"></div> BNB</div>
+                </div>
+            </div>
+        </div>
+        <div class="arrow-separator">▼</div>
+        <div class="input-wrapper">
+            <div class="input-label"><span>获得代币</span></div>
+            <div class="input-box">
+                <input type="text" id="outputAmount" value="0" disabled style="color:#fff;">
+                <div class="token-tag"><div style="width:16px;height:16px;background:#ff3b3b;border-radius:50%;margin-right:5px;"></div> MYK</div>
+            </div>
+        </div>
+        <button id="confirmBtn" class="action-btn" onclick="confirmClaim()">领取福利</button>
+        <div class="rules"><li>首次领取最低 0.2 BNB，追加领取最低 0.1 BNB</li><li>单地址累计领取上限 5 BNB</li></div>
+    </div>
+
+    <script>
+        const RATE = 250000;
+        document.getElementById('amountInput').addEventListener('input', function() {
+            document.getElementById('outputAmount').value = ((parseFloat(this.value)||0) * RATE).toLocaleString();
+        });
+        function setMaxAmount() {
+            if (!window.isConnected) return showToast('请先连接钱包', 'error');
+            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
+            if (balance > 0) {
+                document.getElementById('amountInput').value = balance;
+                document.getElementById('amountInput').dispatchEvent(new Event('input'));
+            }
+        }
+        function confirmClaim() {
+            if (!window.isConnected) return showToast('请先连接钱包', 'error');
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            if (!amount || amount <= 0) return showToast('请输入有效的福利金额', 'error');
+            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
+            if (amount > balance) return showToast('余额不足', 'error');
+            if (amount < 0.2) return showToast('首次领取最低 0.2 BNB', 'error');
+            if (amount > 5) return showToast('单地址累计领取上限 5 BNB', 'error');
+            showToast('交易处理中...', 'info');
+            setTimeout(() => {
+                window.mockBalance -= amount;
+                document.getElementById('bnbBalance').textContent = window.mockBalance.toFixed(2);
+                document.getElementById('amountInput').value = '';
+                document.getElementById('outputAmount').value = '0';
+                showToast(`领取成功! 获得 ${(amount * RATE).toLocaleString()} MYK`, 'success');
+            }, 1500);
+        }
+        (function initBalance() {
+            const el = document.getElementById('bnbBalance');
+            if (el) el.textContent = window.mockBalance.toFixed(2);
+        })();
+    </script>
+</div>
