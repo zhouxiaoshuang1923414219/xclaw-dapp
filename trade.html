@@ -1,106 +1,369 @@
-<div id="page-home" class="page-container">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>X.Claw DApp</title>
     <style>
-        .card { background: rgba(21,22,36,0.9); border-radius:16px; padding:16px; margin-bottom:15px; border:1px solid #23243a; color:#fff; }
-        .title-section { display:flex; justify-content:space-between; margin-bottom:10px; }
-        .title-left h2 { font-size:18px; } .title-left span { font-size:12px; color:#888; }
-        .progress-ring { position:relative; width:60px; height:60px; display:flex; align-items:center; justify-content:center; }
-        .progress-text { position:absolute; font-size:12px; font-weight:bold; }
-        .status-badge { background-color:#3e1d24; color:#ff6b6b; font-size:11px; padding:4px 12px; border-radius:12px; display:inline-flex; align-items:center; border:1px solid #5e2a30; margin:5px 0 15px 0; }
-        .spinner-icon { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.2); border-top:2px solid #ff4d4d; border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px; background-color:rgba(255,59,59,0.2); box-shadow:0 0 6px rgba(255,59,59,0.4); }
-        @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
-        .stats-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:15px; }
-        .stat-item { background-color:#0f101e; border-radius:10px; padding:10px; text-align:center; border:1px solid #1f2135; }
-        .stat-num { font-size:16px; font-weight:bold; } .stat-label { font-size:10px; color:#666; margin-top:4px; }
-        .price-row { background-color:#0f101e; border-radius:8px; padding:10px; display:flex; justify-content:space-between; font-size:14px; align-items:center; border:1px solid #1f2135; }
-        .input-wrapper { margin-top:10px; }
-        .input-label { display:flex; justify-content:space-between; font-size:13px; color:#aaa; margin-bottom:5px; }
-        .input-box { background-color:#0a0a14; border-radius:10px; padding:10px 15px; display:flex; justify-content:space-between; align-items:center; border:1px solid #25263a; }
-        .input-box input { background:transparent; border:none; color:#fff; font-size:18px; width:60%; } .input-box input:focus { outline:none; }
-        .input-actions { display:flex; align-items:center; gap:10px; }
-        .max-btn { color:#ff3b3b; font-weight:bold; font-size:12px; cursor:pointer; }
-        .token-tag { display:flex; align-items:center; font-size:14px; }
-        .token-icon { width:16px; height:16px; background:#ffd700; border-radius:50%; margin-right:5px; }
-        .arrow-separator { text-align:center; color:#ff3b3b; margin:5px 0; font-size:20px; }
-        .action-btn { width:100%; background:linear-gradient(90deg,#ff3b3b,#ff5252); border:none; color:white; padding:12px; border-radius:25px; font-size:16px; font-weight:bold; margin-top:15px; cursor:pointer; box-shadow:0 4px 10px rgba(255,59,59,0.3); }
-        .rules { font-size:12px; color:#999; margin-top:15px; } .rules li { margin-bottom:4px; list-style:none; } .rules li::before { content:"● "; color:#666; }
+        /* ===== 1. 全局基础样式 ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0b0b15;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 414px; /* 模拟手机容器宽度 */
+            background-color: #0f1018;
+            background-image: radial-gradient(circle at center, #1a1b2e 0%, #08080d 100%);
+            padding: 70px 15px 80px 15px; /* 为固定顶部/底部留出空间 */
+            position: relative;
+            min-height: 100vh;
+            border: 1px solid #1c1d2a;
+        }
+
+        /* ===== 2. 顶部导航 (固定悬浮) ===== */
+        header {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            z-index: 1000;
+            background-color: #0f1018;
+            padding: 15px 15px 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .logo-icon {
+            width: 20px;
+            height: 20px;
+            background-color: #ff3b3b;
+            margin-right: 8px;
+            border-radius: 4px;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+
+        .wallet-btn {
+            background-color: #1e1f2d;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            border: 1px solid #333;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .wallet-btn.connected {
+            border-color: #4caf50;
+        }
+
+        .wallet-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #ff4d4d;
+            border-radius: 50%;
+            margin-right: 6px;
+            transition: background-color 0.3s;
+        }
+
+        .wallet-dot.connected-dot {
+            background-color: #4caf50;
+        }
+
+        /* ===== 3. 底部导航 ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            background-color: #161724;
+            border-top: 1px solid #25263a;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #666;
+            font-size: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-item.active {
+            color: #ff3b3b;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+            display: block;
+        }
+
+        .nav-icon.placeholder { background-color: currentColor; opacity: 0.3; }
+        .nav-item.active .nav-icon.placeholder { background-color: #ff3b3b; opacity: 1; }
+
+        /* ===== 4. 公共组件 (Toast 通知) ===== */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            display: none;
+            border: 1px solid #333;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .toast.success { border-color: #4caf50; }
+        .toast.error { border-color: #ff4d4d; }
+
+        /* ===== 5. 页面容器 (动态加载的内容放在这里) ===== */
+        #page-container {
+            min-height: 60vh;
+        }
     </style>
+</head>
+<body>
 
-    <div class="card">
-        <div class="title-section">
-            <div class="title-left"><h2>先锋配售</h2><span>XClaw 先锋轮认购，限量 1,000,000,000 枚</span></div>
-            <div class="progress-ring">
-                <svg width="60" height="60" viewBox="0 0 60 60">
-                    <circle cx="30" cy="30" r="25" stroke="#2a2a40" stroke-width="5" fill="none"/>
-                    <circle cx="30" cy="30" r="25" stroke="#ff4d4d" stroke-width="5" fill="none" stroke-dasharray="157" stroke-dashoffset="44"/>
-                </svg>
-                <span class="progress-text">72.07%</span>
-            </div>
-        </div>
-        <div class="status-badge"><span class="spinner-icon"></span> 认购进行中</div>
-        <div class="stats-grid">
-            <div class="stat-item"><span style="font-size:20px;">👤</span><div class="stat-num">3,380</div><div class="stat-label">认购地址</div></div>
-            <div class="stat-item"><span style="font-size:20px;">💳</span><div class="stat-num">2,162.3</div><div class="stat-label">已认购(BNB)</div></div>
-            <div class="stat-item"><span style="font-size:20px;">🪙</span><div class="stat-num">540,575,000</div><div class="stat-label">已配售(XClaw)</div></div>
-        </div>
-        <div class="price-row"><span>配售价格</span><span><strong>1 BNB = 250,000 XClaw</strong></span></div>
-    </div>
+    <!-- Toast 通知根节点 -->
+    <div id="toast" class="toast"></div>
 
-    <div class="card">
-        <div class="title-left"><h2 style="margin-bottom:10px;">参与配售</h2></div>
-        <div class="input-wrapper">
-            <div class="input-label"><span>认购金额</span><span>余额: <span id="bnbBalance">0</span> BNB</span></div>
-            <div class="input-box">
-                <input type="text" id="amountInput" placeholder="0.0">
-                <div class="input-actions">
-                    <span class="max-btn" onclick="setMaxAmount()">MAX</span>
-                    <div class="token-tag"><div class="token-icon"></div> BNB</div>
-                </div>
+    <div class="mobile-container">
+        
+        <!-- 顶部导航 -->
+        <header>
+            <div class="logo-area">
+                <div class="logo-icon"></div>
+                X.CLAW
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button id="walletConnectBtn" class="wallet-btn" onclick="toggleWallet()">
+                    <span id="walletDot" class="wallet-dot"></span>
+                    <span id="walletStatus">连接钱包</span>
+                </button>
+                <div style="font-size: 20px; cursor: pointer;">🌐</div>
+            </div>
+        </header>
+
+        <!-- 动态内容容器 -->
+        <div id="page-container"></div>
+
+        <!-- 底部导航 -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('home')">
+                <div class="nav-icon placeholder"></div>
+                配售
+            </div>
+            <div class="nav-item" onclick="switchTab('predict')">
+                <div class="nav-icon placeholder"></div>
+                预测
+            </div>
+            <div class="nav-item" onclick="switchTab('openclaw')">
+                <div class="nav-icon placeholder"></div>
+                OpenClaw
+            </div>
+            <div class="nav-item" onclick="switchTab('community')">
+                <div class="nav-icon placeholder"></div>
+                社区
+            </div>
+            <div class="nav-item" onclick="switchTab('rewards')">
+                <div class="nav-icon placeholder"></div>
+                奖励
             </div>
         </div>
-        <div class="arrow-separator">▼</div>
-        <div class="input-wrapper">
-            <div class="input-label"><span>获得代币</span></div>
-            <div class="input-box">
-                <input type="text" id="outputAmount" value="0" disabled style="color:#fff;">
-                <div class="token-tag"><div style="width:16px;height:16px;background:#ff3b3b;border-radius:50%;margin-right:5px;"></div> XClaw</div>
-            </div>
-        </div>
-        <button id="confirmBtn" class="action-btn" onclick="confirmPurchase()">确认认购</button>
-        <div class="rules"><li>首次认购最低 0.2 BNB，追加认购最低 0.1 BNB</li><li>单地址累计认购上限 5 BNB</li></div>
     </div>
 
     <script>
-        const RATE = 250000;
-        document.getElementById('amountInput').addEventListener('input', function() {
-            document.getElementById('outputAmount').value = ((parseFloat(this.value)||0) * RATE).toLocaleString();
-        });
-        function setMaxAmount() {
-            if (!window.isConnected) return showToast('请先连接钱包', 'error');
-            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
-            if (balance > 0) {
-                document.getElementById('amountInput').value = balance;
-                document.getElementById('amountInput').dispatchEvent(new Event('input'));
+        // ============================================================
+        // 核心模块 1：全局状态管理 (跨页面共享)
+        // ============================================================
+        window.isConnected = false;
+        window.currentAccount = null;
+        window.mockBalance = 12.5; // 模拟余额
+
+        // ============================================================
+        // 核心模块 2：页面路由与动态加载
+        // ============================================================
+        const pageMap = {
+            'home': 'home.html',
+            'predict': 'predict.html',
+            'openclaw': 'openclaw.html',
+            'community': 'community.html',
+            'rewards': 'rewards.html'
+        };
+
+        function loadPage(pageName) {
+            const container = document.getElementById('page-container');
+            
+            if (!pageMap[pageName]) {
+                container.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:80vh;color:#555;font-size:18px;">页面加载失败：路径未定义</div>`;
+                return;
+            }
+
+            // 显示加载动画
+            container.innerHTML = `
+                <div style="display:flex;justify-content:center;align-items:center;height:80vh;flex-direction:column;gap:20px;">
+                    <div style="width:40px;height:40px;border:4px solid rgba(255,255,255,0.2);border-top:4px solid #ff4d4d;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+                    <div style="color:#888;font-size:14px;">加载中...</div>
+                </div>
+            `;
+
+            fetch(pageMap[pageName])
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response.text();
+                })
+                .then(html => {
+                    container.innerHTML = html;
+                    // 重新执行页面内嵌入的 <script> 脚本
+                    const scripts = container.querySelectorAll('script');
+                    scripts.forEach(script => {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = script.textContent;
+                        document.body.appendChild(newScript);
+                        document.body.removeChild(newScript);
+                    });
+                })
+                .catch(error => {
+                    console.error('加载页面出错:', error);
+                    container.innerHTML = `
+                        <div style="display:flex;justify-content:center;align-items:center;height:80vh;color:#ff4d4d;font-size:18px;text-align:center;padding:20px;">
+                            加载失败<br><span style="font-size:12px;color:#888;">请检查文件：${pageMap[pageName]}</span>
+                        </div>
+                    `;
+                });
+        }
+
+        function switchTab(tabName) {
+            // 移除所有导航激活状态
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+
+            // 激活对应的导航项
+            const navIndex = {
+                'home': 0, 'predict': 1, 'openclaw': 2, 'community': 3, 'rewards': 4
+            };
+            if (navIndex[tabName] !== undefined) {
+                document.querySelectorAll('.nav-item')[navIndex[tabName]].classList.add('active');
+            }
+
+            // 加载页面内容
+            loadPage(tabName);
+        }
+
+        // ============================================================
+        // 核心模块 3：钱包连接功能
+        // ============================================================
+        function generateMockAddress() {
+            const chars = '0123456789abcdef';
+            let address = '0x';
+            for (let i = 0; i < 40; i++) address += chars[Math.floor(Math.random() * 16)];
+            return address;
+        }
+
+        function formatAddress(address) {
+            if (!address) return '';
+            return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+        }
+
+        function toggleWallet() {
+            if (window.isConnected) disconnectWallet();
+            else connectWallet();
+        }
+
+        function connectWallet() {
+            showToast('正在连接钱包...', 'info');
+            setTimeout(() => {
+                window.currentAccount = generateMockAddress();
+                window.isConnected = true;
+                updateWalletUI();
+                showToast('钱包连接成功!', 'success');
+            }, 800);
+        }
+
+        function disconnectWallet() {
+            window.isConnected = false;
+            window.currentAccount = null;
+            updateWalletUI();
+            showToast('已断开钱包连接', 'info');
+        }
+
+        function updateWalletUI() {
+            const btn = document.getElementById('walletConnectBtn');
+            const dot = document.getElementById('walletDot');
+            const status = document.getElementById('walletStatus');
+
+            if (window.isConnected && window.currentAccount) {
+                btn.classList.add('connected');
+                dot.classList.add('connected-dot');
+                status.textContent = formatAddress(window.currentAccount);
+            } else {
+                btn.classList.remove('connected');
+                dot.classList.remove('connected-dot');
+                status.textContent = '连接钱包';
             }
         }
-        function confirmPurchase() {
-            if (!window.isConnected) return showToast('请先连接钱包', 'error');
-            const amount = parseFloat(document.getElementById('amountInput').value);
-            if (!amount || amount <= 0) return showToast('请输入有效的认购金额', 'error');
-            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
-            if (amount > balance) return showToast('余额不足', 'error');
-            if (amount < 0.2) return showToast('首次认购最低 0.2 BNB', 'error');
-            if (amount > 5) return showToast('单地址累计认购上限 5 BNB', 'error');
-            showToast('交易处理中...', 'info');
-            setTimeout(() => {
-                window.mockBalance -= amount;
-                document.getElementById('bnbBalance').textContent = window.mockBalance.toFixed(2);
-                document.getElementById('amountInput').value = '';
-                document.getElementById('outputAmount').value = '0';
-                showToast(`认购成功! 获得 ${(amount * RATE).toLocaleString()} XClaw`, 'success');
-            }, 1500);
+
+        // ============================================================
+        // 核心模块 4：Toast 通知系统
+        // ============================================================
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            clearTimeout(toast._hideTimer);
+            toast._hideTimer = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
         }
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('bnbBalance').textContent = window.mockBalance.toFixed(2);
+
+        // ============================================================
+        // 启动：默认加载配售(首页)
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            switchTab('home');
         });
     </script>
-</div>
+</body>
+</html>
