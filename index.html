@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>X.Claw DApp</title>
     <style>
-        /* ===== 1. 全局基础样式 ===== */
+        /* ===== 全局样式 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -23,16 +23,16 @@
 
         .mobile-container {
             width: 100%;
-            max-width: 414px; /* 模拟手机容器宽度 */
+            max-width: 414px;
             background-color: #0f1018;
             background-image: radial-gradient(circle at center, #1a1b2e 0%, #08080d 100%);
-            padding: 70px 15px 80px 15px; /* 为固定顶部/底部留出空间 */
+            padding: 70px 15px 80px 15px;
             position: relative;
             min-height: 100vh;
             border: 1px solid #1c1d2a;
         }
 
-        /* ===== 2. 顶部导航 (固定悬浮) ===== */
+        /* ===== 顶部导航 ===== */
         header {
             position: fixed;
             top: 0;
@@ -78,6 +78,11 @@
             transition: all 0.3s ease;
         }
 
+        .wallet-btn:hover {
+            background-color: #2a2b3d;
+            border-color: #ff3b3b;
+        }
+
         .wallet-btn.connected {
             border-color: #4caf50;
         }
@@ -95,7 +100,12 @@
             background-color: #4caf50;
         }
 
-        /* ===== 3. 底部导航 ===== */
+        /* ===== 页面容器 ===== */
+        #page-container {
+            min-height: 60vh;
+        }
+
+        /* ===== 底部导航 ===== */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -137,7 +147,7 @@
         .nav-icon.placeholder { background-color: currentColor; opacity: 0.3; }
         .nav-item.active .nav-icon.placeholder { background-color: #ff3b3b; opacity: 1; }
 
-        /* ===== 4. 公共组件 (Toast 通知) ===== */
+        /* ===== Toast ===== */
         .toast {
             position: fixed;
             top: 80px;
@@ -157,21 +167,13 @@
 
         .toast.success { border-color: #4caf50; }
         .toast.error { border-color: #ff4d4d; }
-
-        /* ===== 5. 页面容器 (动态加载的内容放在这里) ===== */
-        #page-container {
-            min-height: 60vh;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Toast 通知根节点 -->
     <div id="toast" class="toast"></div>
 
     <div class="mobile-container">
-        
-        <!-- 顶部导航 -->
         <header>
             <div class="logo-area">
                 <div class="logo-icon"></div>
@@ -186,10 +188,8 @@
             </div>
         </header>
 
-        <!-- 动态内容容器 -->
         <div id="page-container"></div>
 
-        <!-- 底部导航 -->
         <div class="bottom-nav">
             <div class="nav-item active" onclick="switchTab('home')">
                 <div class="nav-icon placeholder"></div>
@@ -216,15 +216,17 @@
 
     <script>
         // ============================================================
-        // 核心模块 1：全局状态管理 (跨页面共享)
+        //  全局变量
         // ============================================================
+
         window.isConnected = false;
         window.currentAccount = null;
-        window.mockBalance = 12.5; // 模拟余额
+        window.mockBalance = 12.5;
 
         // ============================================================
-        // 核心模块 2：页面路由与动态加载
+        //  页面加载逻辑
         // ============================================================
+
         const pageMap = {
             'home': 'home.html',
             'predict': 'predict.html',
@@ -237,7 +239,11 @@
             const container = document.getElementById('page-container');
             
             if (!pageMap[pageName]) {
-                container.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:80vh;color:#555;font-size:18px;">页面加载失败：路径未定义</div>`;
+                container.innerHTML = `
+                    <div style="display:flex;justify-content:center;align-items:center;height:80vh;color:#555;font-size:18px;">
+                        页面加载中...
+                    </div>
+                `;
                 return;
             }
 
@@ -251,12 +257,14 @@
 
             fetch(pageMap[pageName])
                 .then(response => {
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    if (!response.ok) {
+                        throw new Error('页面加载失败');
+                    }
                     return response.text();
                 })
                 .then(html => {
                     container.innerHTML = html;
-                    // 重新执行页面内嵌入的 <script> 脚本
+                    // 重新执行页面内的脚本
                     const scripts = container.querySelectorAll('script');
                     scripts.forEach(script => {
                         const newScript = document.createElement('script');
@@ -268,8 +276,8 @@
                 .catch(error => {
                     console.error('加载页面出错:', error);
                     container.innerHTML = `
-                        <div style="display:flex;justify-content:center;align-items:center;height:80vh;color:#ff4d4d;font-size:18px;text-align:center;padding:20px;">
-                            加载失败<br><span style="font-size:12px;color:#888;">请检查文件：${pageMap[pageName]}</span>
+                        <div style="display:flex;justify-content:center;align-items:center;height:80vh;color:#ff4d4d;font-size:18px;">
+                            页面加载失败，请检查文件是否存在
                         </div>
                     `;
                 });
@@ -281,7 +289,11 @@
 
             // 激活对应的导航项
             const navIndex = {
-                'home': 0, 'predict': 1, 'openclaw': 2, 'community': 3, 'rewards': 4
+                'home': 0,
+                'predict': 1,
+                'openclaw': 2,
+                'community': 3,
+                'rewards': 4
             };
             if (navIndex[tabName] !== undefined) {
                 document.querySelectorAll('.nav-item')[navIndex[tabName]].classList.add('active');
@@ -292,12 +304,15 @@
         }
 
         // ============================================================
-        // 核心模块 3：钱包连接功能
+        //  钱包逻辑
         // ============================================================
+
         function generateMockAddress() {
             const chars = '0123456789abcdef';
             let address = '0x';
-            for (let i = 0; i < 40; i++) address += chars[Math.floor(Math.random() * 16)];
+            for (let i = 0; i < 40; i++) {
+                address += chars[Math.floor(Math.random() * 16)];
+            }
             return address;
         }
 
@@ -307,14 +322,18 @@
         }
 
         function toggleWallet() {
-            if (window.isConnected) disconnectWallet();
-            else connectWallet();
+            if (window.isConnected) {
+                disconnectWallet();
+            } else {
+                connectWallet();
+            }
         }
 
         function connectWallet() {
             showToast('正在连接钱包...', 'info');
             setTimeout(() => {
-                window.currentAccount = generateMockAddress();
+                const address = generateMockAddress();
+                window.currentAccount = address;
                 window.isConnected = true;
                 updateWalletUI();
                 showToast('钱包连接成功!', 'success');
@@ -345,8 +364,9 @@
         }
 
         // ============================================================
-        // 核心模块 4：Toast 通知系统
+        //  Toast
         // ============================================================
+
         function showToast(message, type = 'info') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -359,8 +379,9 @@
         }
 
         // ============================================================
-        // 启动：默认加载配售(首页)
+        //  初始化
         // ============================================================
+
         document.addEventListener('DOMContentLoaded', function() {
             switchTab('home');
         });
