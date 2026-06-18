@@ -1,314 +1,106 @@
-<div id="page-trade" class="page-content">
+<div id="page-home" class="page-container">
     <style>
-        .trade-tabs {
-            display: flex;
-            background: #0c0f1c;
-            border-radius: 14px;
-            padding: 3px;
-            margin: 12px 0;
-            border: 1px solid #2d3355;
-        }
-        .trade-tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 13px;
-            color: #9aa0c0;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .trade-tab.active.buy {
-            background: #4ecca3;
-            color: #fff;
-        }
-        .trade-tab.active.sell {
-            background: #e94560;
-            color: #fff;
-        }
-        .input-field {
-            background: #0d1020;
-            border: 1px solid #394056;
-            border-radius: 14px;
-            padding: 12px 14px;
-            color: #fff;
-            width: 100%;
-            margin: 8px 0;
-            font-size: 15px;
-            outline: none;
-            transition: 0.2s;
-        }
-        .input-field:focus {
-            border-color: #f0b90b;
-        }
-        .slippage-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin: 8px 0;
-            flex-wrap: wrap;
-        }
-        .slippage-btn {
-            padding: 5px 10px;
-            border-radius: 10px;
-            background: #2d325a;
-            border: 1px solid #394056;
-            color: #aaa;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-        .slippage-btn.active {
-            background: #f0b90b;
-            color: #1a1a2e;
-            border-color: #f0b90b;
-        }
-        .price-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            font-size: 13px;
-            color: #a3adc9;
-        }
-        .price-value {
-            color: #4ef0a8;
-            font-weight: 700;
-        }
-        .order-panel {
-            display: flex;
-            gap: 8px;
-            padding: 10px;
-            background: rgba(15, 20, 34, 0.8);
-            border-radius: 12px;
-            border: 1px solid #2a2f52;
-            margin-bottom: 10px;
-        }
+        .card { background: rgba(21,22,36,0.9); border-radius:16px; padding:16px; margin-bottom:15px; border:1px solid #23243a; color:#fff; }
+        .title-section { display:flex; justify-content:space-between; margin-bottom:10px; }
+        .title-left h2 { font-size:18px; } .title-left span { font-size:12px; color:#888; }
+        .progress-ring { position:relative; width:60px; height:60px; display:flex; align-items:center; justify-content:center; }
+        .progress-text { position:absolute; font-size:12px; font-weight:bold; }
+        .status-badge { background-color:#3e1d24; color:#ff6b6b; font-size:11px; padding:4px 12px; border-radius:12px; display:inline-flex; align-items:center; border:1px solid #5e2a30; margin:5px 0 15px 0; }
+        .spinner-icon { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.2); border-top:2px solid #ff4d4d; border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:middle; margin-right:6px; background-color:rgba(255,59,59,0.2); box-shadow:0 0 6px rgba(255,59,59,0.4); }
+        @keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+        .stats-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:15px; }
+        .stat-item { background-color:#0f101e; border-radius:10px; padding:10px; text-align:center; border:1px solid #1f2135; }
+        .stat-num { font-size:16px; font-weight:bold; } .stat-label { font-size:10px; color:#666; margin-top:4px; }
+        .price-row { background-color:#0f101e; border-radius:8px; padding:10px; display:flex; justify-content:space-between; font-size:14px; align-items:center; border:1px solid #1f2135; }
+        .input-wrapper { margin-top:10px; }
+        .input-label { display:flex; justify-content:space-between; font-size:13px; color:#aaa; margin-bottom:5px; }
+        .input-box { background-color:#0a0a14; border-radius:10px; padding:10px 15px; display:flex; justify-content:space-between; align-items:center; border:1px solid #25263a; }
+        .input-box input { background:transparent; border:none; color:#fff; font-size:18px; width:60%; } .input-box input:focus { outline:none; }
+        .input-actions { display:flex; align-items:center; gap:10px; }
+        .max-btn { color:#ff3b3b; font-weight:bold; font-size:12px; cursor:pointer; }
+        .token-tag { display:flex; align-items:center; font-size:14px; }
+        .token-icon { width:16px; height:16px; background:#ffd700; border-radius:50%; margin-right:5px; }
+        .arrow-separator { text-align:center; color:#ff3b3b; margin:5px 0; font-size:20px; }
+        .action-btn { width:100%; background:linear-gradient(90deg,#ff3b3b,#ff5252); border:none; color:white; padding:12px; border-radius:25px; font-size:16px; font-weight:bold; margin-top:15px; cursor:pointer; box-shadow:0 4px 10px rgba(255,59,59,0.3); }
+        .rules { font-size:12px; color:#999; margin-top:15px; } .rules li { margin-bottom:4px; list-style:none; } .rules li::before { content:"● "; color:#666; }
     </style>
 
-    <div class="glass-card">
-        <h2 style="color:#f0b90b;margin-bottom:4px;">📈 买卖 MYK</h2>
-        <div class="order-panel">
-            <div style="flex:1;text-align:center;">
-                <div style="font-size:10px;color:#888;">买入价</div>
-                <div style="font-size:14px;color:#4ecca3;font-weight:700;" id="buyPriceDisplay">--</div>
-                <div style="font-size:10px;color:#666;">1 USDT = <span id="buyRateDisplay">--</span> MYK</div>
-            </div>
-            <div style="width:1px;background:#2a2f52;"></div>
-            <div style="flex:1;text-align:center;">
-                <div style="font-size:10px;color:#888;">卖出价</div>
-                <div style="font-size:14px;color:#e94560;font-weight:700;" id="sellPriceDisplay">--</div>
-                <div style="font-size:10px;color:#666;">1 MYK = <span id="sellRateDisplay">--</span> USDT</div>
+    <div class="card">
+        <div class="title-section">
+            <div class="title-left"><h2>先锋配售</h2><span>XClaw 先锋轮认购，限量 1,000,000,000 枚</span></div>
+            <div class="progress-ring">
+                <svg width="60" height="60" viewBox="0 0 60 60">
+                    <circle cx="30" cy="30" r="25" stroke="#2a2a40" stroke-width="5" fill="none"/>
+                    <circle cx="30" cy="30" r="25" stroke="#ff4d4d" stroke-width="5" fill="none" stroke-dasharray="157" stroke-dashoffset="44"/>
+                </svg>
+                <span class="progress-text">72.07%</span>
             </div>
         </div>
+        <div class="status-badge"><span class="spinner-icon"></span> 认购进行中</div>
+        <div class="stats-grid">
+            <div class="stat-item"><span style="font-size:20px;">👤</span><div class="stat-num">3,380</div><div class="stat-label">认购地址</div></div>
+            <div class="stat-item"><span style="font-size:20px;">💳</span><div class="stat-num">2,162.3</div><div class="stat-label">已认购(BNB)</div></div>
+            <div class="stat-item"><span style="font-size:20px;">🪙</span><div class="stat-num">540,575,000</div><div class="stat-label">已配售(XClaw)</div></div>
+        </div>
+        <div class="price-row"><span>配售价格</span><span><strong>1 BNB = 250,000 XClaw</strong></span></div>
+    </div>
 
-        <div class="trade-tabs" id="tradeTabSwitch">
-            <div class="trade-tab active buy" data-tab="buy">🟢 买入 MYK</div>
-            <div class="trade-tab sell" data-tab="sell">🔴 卖出 MYK</div>
+    <div class="card">
+        <div class="title-left"><h2 style="margin-bottom:10px;">参与配售</h2></div>
+        <div class="input-wrapper">
+            <div class="input-label"><span>认购金额</span><span>余额: <span id="bnbBalance">0</span> BNB</span></div>
+            <div class="input-box">
+                <input type="text" id="amountInput" placeholder="0.0">
+                <div class="input-actions">
+                    <span class="max-btn" onclick="setMaxAmount()">MAX</span>
+                    <div class="token-tag"><div class="token-icon"></div> BNB</div>
+                </div>
+            </div>
         </div>
-
-        <div id="panelBuy">
-            <div class="slippage-row">
-                <span style="color:#aaa;font-size:11px;">滑点:</span>
-                <span class="slippage-btn" data-slip="0.3">0.3%</span>
-                <span class="slippage-btn active" data-slip="0.5">0.5%</span>
-                <span class="slippage-btn" data-slip="1">1%</span>
-                <span class="slippage-btn" data-slip="3">3%</span>
+        <div class="arrow-separator">▼</div>
+        <div class="input-wrapper">
+            <div class="input-label"><span>获得代币</span></div>
+            <div class="input-box">
+                <input type="text" id="outputAmount" value="0" disabled style="color:#fff;">
+                <div class="token-tag"><div style="width:16px;height:16px;background:#ff3b3b;border-radius:50%;margin-right:5px;"></div> XClaw</div>
             </div>
-            <input class="input-field" id="buyUSDTAmount" type="number" placeholder="支付 USDT 数量" value="10" step="0.1" min="0">
-            <div class="price-row">
-                <span>预计获得:</span>
-                <span class="price-value" id="expectedMYK">--</span> MYK
-            </div>
-            <button class="btn btn-green" id="buyMYKBtn">🟢 买入 MYK</button>
-            <div class="info-box" id="buyResult"></div>
         </div>
-
-        <div id="panelSell" style="display:none;">
-            <div class="slippage-row">
-                <span style="color:#aaa;font-size:11px;">滑点:</span>
-                <span class="slippage-btn" data-slip="0.3">0.3%</span>
-                <span class="slippage-btn active" data-slip="0.5">0.5%</span>
-                <span class="slippage-btn" data-slip="1">1%</span>
-                <span class="slippage-btn" data-slip="3">3%</span>
-            </div>
-            <input class="input-field" id="sellMYKAmount" type="number" placeholder="卖出 MYK 数量" value="10" step="0.1" min="0">
-            <div class="price-row">
-                <span>预计获得:</span>
-                <span class="price-value" id="expectedUSDT">--</span> USDT
-            </div>
-            <button class="btn" id="sellMYKBtn" style="background:linear-gradient(135deg,#e94560,#ff6b6b);">🔴 卖出 MYK</button>
-            <div class="info-box" id="sellResult"></div>
-        </div>
+        <button id="confirmBtn" class="action-btn" onclick="confirmPurchase()">确认认购</button>
+        <div class="rules"><li>首次认购最低 0.2 BNB，追加认购最低 0.1 BNB</li><li>单地址累计认购上限 5 BNB</li></div>
     </div>
 
     <script>
-        // 交易页面逻辑（简化版，完整逻辑可参考原MYK面板）
-        const MYK = window.MYK_ADDR;
-        const USDT = window.USDT_ADDR;
-        const ROUTER = window.ROUTER_ADDR;
-        let buySlippage = 0.005;
-        let sellSlippage = 0.005;
-
-        function encodeCall(sig, types = [], values = []) {
-            const web3 = window.web3Instance;
-            if (!web3) return '';
-            const s = web3.eth.abi.encodeFunctionSignature(sig);
-            if (!types.length) return s;
-            const e = web3.eth.abi.encodeParameters(types, values);
-            return s + e.slice(2);
-        }
-
-        function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
-
-        function formatPrice(p) {
-            if (p >= 1) return p.toFixed(2);
-            if (p >= 0.01) return p.toFixed(4);
-            if (p >= 0.0001) return p.toFixed(6);
-            return p.toFixed(8);
-        }
-
-        async function getSwapQuote(amountIn, path) {
-            const web3 = window.web3Instance;
-            if (!web3) return '0';
-            try {
-                const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }];
-                const rc = new web3.eth.Contract(ra, ROUTER);
-                const amounts = await rc.methods.getAmountsOut(amountIn, path).call();
-                return amounts[1];
-            } catch (e) {
-                return '0';
+        const RATE = 250000;
+        document.getElementById('amountInput').addEventListener('input', function() {
+            document.getElementById('outputAmount').value = ((parseFloat(this.value)||0) * RATE).toLocaleString();
+        });
+        function setMaxAmount() {
+            if (!window.isConnected) return showToast('请先连接钱包', 'error');
+            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
+            if (balance > 0) {
+                document.getElementById('amountInput').value = balance;
+                document.getElementById('amountInput').dispatchEvent(new Event('input'));
             }
         }
-
-        async function updateBuyQuote() {
-            const amount = parseFloat(document.getElementById('buyUSDTAmount').value) || 0;
-            if (amount <= 0 || !window.web3Instance) {
-                document.getElementById('expectedMYK').textContent = '--';
-                return;
-            }
-            try {
-                const uw = Web3.utils.toWei(String(amount), 'ether');
-                const mo = await getSwapQuote(uw, [USDT, MYK]);
-                const ms = n(mo) * (1 - buySlippage);
-                document.getElementById('expectedMYK').textContent = ms.toFixed(4);
-            } catch (e) {
-                document.getElementById('expectedMYK').textContent = '--';
-            }
+        function confirmPurchase() {
+            if (!window.isConnected) return showToast('请先连接钱包', 'error');
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            if (!amount || amount <= 0) return showToast('请输入有效的认购金额', 'error');
+            const balance = parseFloat(document.getElementById('bnbBalance').textContent);
+            if (amount > balance) return showToast('余额不足', 'error');
+            if (amount < 0.2) return showToast('首次认购最低 0.2 BNB', 'error');
+            if (amount > 5) return showToast('单地址累计认购上限 5 BNB', 'error');
+            showToast('交易处理中...', 'info');
+            setTimeout(() => {
+                window.mockBalance -= amount;
+                document.getElementById('bnbBalance').textContent = window.mockBalance.toFixed(2);
+                document.getElementById('amountInput').value = '';
+                document.getElementById('outputAmount').value = '0';
+                showToast(`认购成功! 获得 ${(amount * RATE).toLocaleString()} XClaw`, 'success');
+            }, 1500);
         }
-
-        async function updateSellQuote() {
-            const amount = parseFloat(document.getElementById('sellMYKAmount').value) || 0;
-            if (amount <= 0 || !window.web3Instance) {
-                document.getElementById('expectedUSDT').textContent = '--';
-                return;
-            }
-            try {
-                const mw = Web3.utils.toWei(String(amount), 'ether');
-                const uo = await getSwapQuote(mw, [MYK, USDT]);
-                const us = n(uo) * (1 - sellSlippage);
-                document.getElementById('expectedUSDT').textContent = us.toFixed(6);
-            } catch (e) {
-                document.getElementById('expectedUSDT').textContent = '--';
-            }
-        }
-
-        async function updateOrderPanel() {
-            if (!window.web3Instance) return;
-            try {
-                const ra = [{ "constant": true, "inputs": [{ "internalType": "uint256", "name": "amountIn", "type": "uint256" }, { "internalType": "address[]", "name": "path", "type": "address[]" }], "name": "getAmountsOut", "outputs": [{ "internalType": "uint256[]", "name": "amounts", "type": "uint256[]" }], "type": "function" }];
-                const rc = new window.web3Instance.eth.Contract(ra, ROUTER);
-                const oneMYK = Web3.utils.toWei('1', 'ether');
-                const oneUSDT = Web3.utils.toWei('1', 'ether');
-                const sellAmounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call();
-                const sellPrice = n(sellAmounts[1]);
-                const buyAmounts = await rc.methods.getAmountsOut(oneUSDT, [USDT, MYK]).call();
-                const buyRate = n(buyAmounts[1]);
-                document.getElementById('buyRateDisplay').textContent = buyRate.toFixed(4);
-                document.getElementById('sellRateDisplay').textContent = sellPrice.toFixed(6);
-                document.getElementById('buyPriceDisplay').textContent = '$' + sellPrice.toFixed(6);
-                document.getElementById('sellPriceDisplay').textContent = '$' + sellPrice.toFixed(6);
-            } catch (e) {}
-        }
-
-        async function buyMYK() {
-            if (!window.isConnected) { showToast('请先连接钱包', 'error'); return; }
-            const web3 = window.web3Instance;
-            const userAddress = window.userAddress;
-            const amount = parseFloat(document.getElementById('buyUSDTAmount').value);
-            if (!amount || amount <= 0) { showToast('请输入有效的USDT数量', 'error'); return; }
-            const btn = document.getElementById('buyMYKBtn');
-            const el = document.getElementById('buyResult');
-            btn.disabled = true;
-            btn.textContent = '处理中...';
-            el.style.display = 'block';
-            try {
-                const uw = Web3.utils.toWei(String(amount), 'ether');
-                const dl = Math.floor(Date.now() / 1000) + 300;
-                el.innerHTML = '⏳ 授权 USDT...';
-                const aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: encodeCall('approve(address,uint256)', ['address', 'uint256'], [ROUTER, uw]) }] });
-                await waitForReceipt(aTx);
-                el.innerHTML = '⏳ 买入 MYK...';
-                const mo = await getSwapQuote(uw, [USDT, MYK]);
-                const mm = (BigInt(mo) * BigInt(Math.round((1 - buySlippage) * 10000)) / BigInt(10000)).toString();
-                const sTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall('swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)', ['uint256', 'uint256', 'address[]', 'address', 'uint256'], [uw, mm, [USDT, MYK], userAddress, String(dl)]) }] });
-                await waitForReceipt(sTx);
-                el.innerHTML = '✅ 买入成功！';
-                el.className = 'info-box success';
-            } catch (e) {
-                el.innerHTML = '❌ ' + (e.message || '交易失败').slice(0, 200);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '🟢 买入 MYK';
-            }
-        }
-
-        async function waitForReceipt(txHash, maxAttempts = 30) {
-            const web3 = window.web3Instance;
-            for (let i = 0; i < maxAttempts; i++) {
-                try {
-                    const r = await web3.eth.getTransactionReceipt(txHash);
-                    if (r) { if (r.status) return r;
-                        throw new Error('交易失败'); }
-                } catch (e) { if (i === maxAttempts - 1) throw e; }
-                await new Promise(r => setTimeout(r, 2000));
-            }
-            throw new Error('超时');
-        }
-
-        // 事件绑定
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('buyUSDTAmount').addEventListener('input', updateBuyQuote);
-            document.getElementById('sellMYKAmount').addEventListener('input', updateSellQuote);
-            document.getElementById('buyMYKBtn').addEventListener('click', buyMYK);
-            document.getElementById('sellMYKBtn').addEventListener('click', () => showToast('卖出功能开发中...', 'info'));
-
-            // 滑点按钮
-            document.querySelectorAll('#panelBuy .slippage-btn').forEach(b => {
-                b.addEventListener('click', function() {
-                    document.querySelectorAll('#panelBuy .slippage-btn').forEach(x => x.classList.remove('active'));
-                    this.classList.add('active');
-                    buySlippage = parseFloat(this.dataset.slip) / 100;
-                    updateBuyQuote();
-                });
-            });
-
-            // Tab 切换
-            document.querySelectorAll('#tradeTabSwitch .trade-tab').forEach(t => {
-                t.addEventListener('click', function() {
-                    document.querySelectorAll('#tradeTabSwitch .trade-tab').forEach(x => { x.classList.remove('active', 'buy', 'sell'); });
-                    this.classList.add('active');
-                    const tb = this.dataset.tab;
-                    if (tb === 'buy') this.classList.add('buy');
-                    if (tb === 'sell') this.classList.add('sell');
-                    document.getElementById('panelBuy').style.display = tb === 'buy' ? 'block' : 'none';
-                    document.getElementById('panelSell').style.display = tb === 'sell' ? 'block' : 'none';
-                });
-            });
-
-            if (window.isConnected) updateOrderPanel();
+            document.getElementById('bnbBalance').textContent = window.mockBalance.toFixed(2);
         });
     </script>
 </div>
