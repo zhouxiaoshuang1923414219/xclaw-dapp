@@ -179,6 +179,7 @@
             transition: all 0.3s;
             padding: 4px 8px;
             border-radius: 12px;
+            text-decoration: none;
         }
 
         .nav-item.active {
@@ -208,100 +209,6 @@
                 transform: rotate(360deg);
             }
         }
-
-        /* ===== 全局卡片样式（子页面可复用） ===== */
-        .glass-card {
-            background: rgba(18, 22, 40, 0.7);
-            backdrop-filter: blur(16px);
-            border-radius: 20px;
-            padding: 18px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-            margin-bottom: 14px;
-            color: #fff;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #e94560, #b92b4a);
-            border: none;
-            color: white;
-            font-weight: 700;
-            padding: 12px 16px;
-            border-radius: 14px;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 6px 16px rgba(233, 69, 96, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            width: 100%;
-            font-size: 14px;
-        }
-
-        .btn:active {
-            transform: scale(0.97);
-        }
-        .btn:disabled {
-            opacity: 0.5;
-            box-shadow: none;
-            transform: none;
-            cursor: not-allowed;
-        }
-
-        .btn-green {
-            background: linear-gradient(135deg, #4ecca3, #2e8b6a);
-            box-shadow: 0 6px 16px rgba(78, 204, 163, 0.3);
-        }
-
-        .btn-gold {
-            background: linear-gradient(135deg, #f0b90b, #e8a000);
-            box-shadow: 0 6px 16px rgba(240, 185, 11, 0.3);
-            color: #1a1a2e;
-        }
-
-        .btn-blue {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
-        }
-
-        .highlight {
-            color: #4ef0a8;
-            font-weight: 600;
-        }
-
-        .highlight-gold {
-            color: #f0b90b;
-            font-weight: 600;
-        }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 0;
-            font-size: 13px;
-            color: #ccd6f0;
-        }
-
-        .stat-value {
-            color: #4ef0a8;
-            font-weight: 700;
-        }
-
-        .info-box {
-            background: rgba(10, 13, 22, 0.8);
-            border-radius: 12px;
-            padding: 10px 12px;
-            margin-top: 10px;
-            font-size: 13px;
-            border-left: 3px solid #e94560;
-            word-break: break-word;
-            color: #ccd6f0;
-            display: none;
-        }
-
-        .info-box.success {
-            border-left-color: #4ecca3;
-        }
     </style>
 </head>
 <body>
@@ -325,9 +232,9 @@
         <!-- 动态内容容器 -->
         <div id="page-container"></div>
 
-        <!-- 底部导航 -->
+        <!-- 底部导航（映射到现有5个子页面） -->
         <div class="bottom-nav">
-            <div class="nav-item active" onclick="switchTab('trade')">
+            <div class="nav-item active" onclick="switchTab('home')">
                 <span class="nav-icon">📈</span>
                 交易
             </div>
@@ -339,11 +246,11 @@
                 <span class="nav-icon">🎁</span>
                 领取福利
             </div>
-            <div class="nav-item" onclick="switchTab('ecosystem')">
+            <div class="nav-item" onclick="switchTab('openclaw')">
                 <span class="nav-icon">🌐</span>
                 生态
             </div>
-            <div class="nav-item" onclick="switchTab('assets')">
+            <div class="nav-item" onclick="switchTab('predict')">
                 <span class="nav-icon">💼</span>
                 资产管理
             </div>
@@ -367,14 +274,14 @@
         window.ROUTER_ADDR = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
 
         // ============================================================
-        // 页面路由与动态加载
+        // 页面路由（保留现有文件名）
         // ============================================================
         const pageMap = {
-            'trade': 'trade.html',
+            'home': 'home.html',
             'community': 'community.html',
             'rewards': 'rewards.html',
-            'ecosystem': 'ecosystem.html',
-            'assets': 'assets.html'
+            'openclaw': 'openclaw.html',
+            'predict': 'predict.html'
         };
 
         function loadPage(pageName) {
@@ -420,7 +327,7 @@
 
         function switchTab(tabName) {
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            const navIndex = { 'trade': 0, 'community': 1, 'rewards': 2, 'ecosystem': 3, 'assets': 4 };
+            const navIndex = { 'home': 0, 'community': 1, 'rewards': 2, 'openclaw': 3, 'predict': 4 };
             if (navIndex[tabName] !== undefined) {
                 document.querySelectorAll('.nav-item')[navIndex[tabName]].classList.add('active');
             }
@@ -518,7 +425,6 @@
         // 启动
         // ============================================================
         document.addEventListener('DOMContentLoaded', () => {
-            // 检查是否已连接
             if (window.ethereum) {
                 window.ethereum.request({ method: 'eth_accounts' }).then(accounts => {
                     if (accounts.length > 0) {
@@ -529,7 +435,7 @@
                     }
                 }).catch(() => {});
             }
-            switchTab('trade');
+            switchTab('home');
         });
     </script>
 </body>
