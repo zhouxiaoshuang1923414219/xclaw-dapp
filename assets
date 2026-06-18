@@ -1,0 +1,30 @@
+<div id="page-assets" class="page-content">
+    <div class="glass-card">
+        <h2 style="color:#f0b90b;margin-bottom:12px;">💼 资产管理</h2>
+        <div class="stat-row"><span>💰 MYK 余额：</span><span class="stat-value" id="mykBalance">--</span></div>
+        <div class="stat-row"><span>💵 USDT 余额：</span><span class="stat-value" id="usdtBalance">--</span></div>
+        <div class="stat-row"><span>🏊 做市池余额：</span><span class="stat-value" id="poolBalance">--</span></div>
+    </div>
+
+    <div class="glass-card">
+        <h2 style="color:#f0b90b;margin-bottom:12px;">🏊 做市商</h2>
+        <button class="btn btn-green" id="depositPoolBtn">买入 MYK 参与做市</button>
+        <div style="margin-top:8px;">
+            <button class="btn" id="withdrawPoolBtn" style="background:linear-gradient(135deg,#e94560,#ff6b6b);margin-top:6px;">退出做市</button>
+        </div>
+        <div class="info-box" id="poolResult"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('depositPoolBtn').addEventListener('click', () => {
+                if (!window.isConnected) { showToast('请先连接钱包', 'error'); return; }
+                showToast('做市功能开发中...', 'info');
+            });
+            document.getElementById('withdrawPoolBtn').addEventListener('click', () => {
+                if (!window.isConnected) { showToast('请先连接钱包', 'error'); return; }
+                showToast('退出功能开发中...', 'info');
+            });
+        });
+    </script>
+</div>
