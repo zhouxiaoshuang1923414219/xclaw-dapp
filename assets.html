@@ -1,0 +1,40 @@
+<div id="page-assets" class="page-container">
+    <style>
+        .glass-card { background: rgba(18,22,40,0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; margin-bottom: 15px; color: #ccd6f0; }
+        .flex-row { display: flex; justify-content: space-between; align-items: center; }
+        .title-main { color: #f0b90b; font-size: 18px; font-weight: bold; }
+        .desc { color: #a3adc9; font-size: 13px; }
+        .stat-val { font-size: 24px; font-weight: bold; color: #4ecca3; }
+        .asset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+        .asset-item { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.05); }
+        .asset-item .name { color: #888; font-size: 12px; }
+        .asset-item .num { color: #ccd6f0; font-size: 16px; font-weight: bold; margin-top: 4px; }
+        .asset-item .usd { color: #a3adc9; font-size: 11px; }
+        .btn { width:100%; background: linear-gradient(135deg,#4ecca3,#2e8b6a); color: #fff; border:none; padding:12px; border-radius:12px; font-size:15px; font-weight:bold; margin-top:15px; cursor:pointer; box-shadow:0 4px 12px rgba(78,204,163,0.3); }
+    </style>
+
+    <div class="glass-card">
+        <div class="flex-row">
+            <div><div class="title-main">总资产</div><div class="desc">钱包与合约资产汇总</div></div>
+            <div><div class="stat-val">$4,520.32</div><div class="desc" style="text-align:right;color:#4ecca3;">+12.5% 今日</div></div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="title-main" style="font-size:16px; margin-bottom:10px;">资产分布</div>
+        <div class="asset-grid">
+            <div class="asset-item"><div class="name">BNB</div><div class="num">2.5 <span class="usd">($1,250)</span></div></div>
+            <div class="asset-item"><div class="name">XClaw</div><div class="num">50,000 <span class="usd">($2,100)</span></div></div>
+            <div class="asset-item"><div class="name">USDT</div><div class="num">1,170</div></div>
+            <div class="asset-item"><div class="name">LP Token</div><div class="num">0 <span class="usd">($0)</span></div></div>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="flex-row">
+            <div><div class="title-main" style="font-size:16px;">流动性质押</div><div class="desc">APY: 45.2%</div></div>
+            <div><span style="color:#f0b90b; font-weight:bold;">待领取: 12.5 BNB</span></div>
+        </div>
+        <button class="btn">领取质押奖励</button>
+    </div>
+</div>
