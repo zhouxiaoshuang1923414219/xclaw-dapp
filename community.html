@@ -1,40 +1,713 @@
 <div id="page-community" class="page-container">
     <style>
-        .glass-card { background: rgba(18,22,40,0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; margin-bottom: 15px; color: #ccd6f0; }
-        .flex-row { display: flex; justify-content: space-between; align-items: center; }
+        .glass-card { 
+            background: rgba(18,22,40,0.7); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 16px; 
+            padding: 16px; 
+            margin-bottom: 15px; 
+            color: #ccd6f0; 
+        }
         .title-main { color: #f0b90b; font-size: 18px; font-weight: bold; }
-        .desc { color: #a3adc9; font-size: 13px; }
-        .invite-input { background: rgba(0,0,0,0.3); border: 1px solid #394056; border-radius: 12px; padding: 10px 16px; margin-bottom: 12px; font-size: 14px; color: #f0b90b; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; }
-        .action-row { display: flex; gap: 12px; }
-        .action-btn { flex:1; background:rgba(0,0,0,0.3); border:1px solid #394056; border-radius:12px; padding:10px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; color:#ccd6f0; font-size:14px; transition:0.3s; }
-        .action-btn:hover { border-color:#f0b90b; } .action-btn .icon { color:#f0b90b; }
-        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .data-item { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.05); }
-        .data-item .label { font-size: 13px; color: #888; margin-bottom: 4px; }
-        .data-item .val { font-size: 20px; font-weight: bold; color: #4ecca3; }
-        .data-item .unit { font-size: 12px; color: #a3adc9; margin-left: 4px; }
+        .desc { color: #a3adc9; font-size: 14px; margin-bottom: 8px; }
+        .highlight { color: #4ef0a8; font-weight: 700; }
+        .highlight-cyan { color: #4ef0a8; font-weight: 700; }
+        .highlight-green { color: #4ecca3; font-weight: 700; }
+        .badge {
+            color: #000;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+        .badge-gold { background: #f7c744; }
+        .badge-silver { background: #b0b8c0; }
+        .hint-text { color: #f0b90b; font-size: 12px; margin: 4px 0 8px; }
+        .hint-unlock { color: #a3adc9; font-size: 11px; margin: 2px 0 6px; }
+        .hint-unlock span { color: #4ef0a8; font-weight: 600; }
+        .hint-fund { color: #a3adc9; font-size: 10px; margin: 2px 0 6px; }
+        .progress-bar-container {
+            width: 100%;
+            height: 20px;
+            background: #1a1f35;
+            border-radius: 10px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecca3, #f0b90b);
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #ccd6f0;
+            margin: 4px 0;
+        }
+        .stat-value { color: #4ef0a8; font-weight: 700; }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #a3adc9;
+        }
+        .price-value { color: #4ef0a8; font-weight: 700; }
+        
+        /* 解锁卡片样式 */
+        .unlock-card {
+            border: 2px solid #f0b90b;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: border-color 0.3s, opacity 0.3s;
+        }
+        .unlock-card.locked { border: 2px solid #555; opacity: 0.7; }
+        .unlock-card.unlocked { border: 2px solid #4ecca3; opacity: 1; }
+        
+        /* 上下滚动容器 */
+        .vertical-swipe-container {
+            overflow-y: auto;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            max-height: 70vh;
+            padding: 4px;
+        }
+        .vertical-swipe-container::-webkit-scrollbar { display: none; }
+        .vertical-swipe-track {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .vertical-swipe-card {
+            scroll-snap-align: start;
+            min-height: 100%;
+            padding: 4px 0;
+        }
+        
+        /* 滚动指示器 */
+        .swipe-dots-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            position: fixed;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+        .swipe-dot-v {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #555;
+            transition: all 0.3s;
+        }
+        .swipe-dot-v.active {
+            background: #f0b90b;
+            height: 16px;
+            border-radius: 3px;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            background: linear-gradient(135deg, #e94560, #b92b4a);
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 14px 18px;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 8px 18px rgba(233,69,96,0.3);
+            width: 100%;
+            font-size: 14px;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.6; box-shadow: none; transform: none; }
+        .btn-gold {
+            background: linear-gradient(135deg, #f0b90b, #e8a000);
+            box-shadow: 0 8px 18px rgba(240,185,11,0.3);
+        }
+        .info-box {
+            background: #0a0d16;
+            border-radius: 14px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 14px;
+            border-left: 4px solid #e94560;
+            word-break: break-word;
+            color: #ccd6f0;
+        }
     </style>
 
-    <div class="glass-card">
-        <div class="flex-row"><div class="title-main">社区</div></div>
-        <div class="desc" style="margin-bottom:12px;">邀请好友，共建社区，赚取推荐奖励</div>
-        <div class="invite-input">https://dapp.myk...E5Ed</div>
-        <div class="action-row">
-            <button class="action-btn" onclick="copyLink()"><span class="icon">📋</span> 复制链接</button>
-            <button class="action-btn" onclick="showToast('二维码功能开发中', 'info')"><span class="icon">📱</span> 二维码</button>
+    <!-- ========== 权益卡片 - 上下滑动 ========== -->
+    <div class="glass-card" style="padding: 12px 8px;">
+        <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px; text-align: center;">
+            🔓 权益卡片
+        </h2>
+        
+        <!-- 上下滚动容器 -->
+        <div class="vertical-swipe-container" id="verticalSwipeContainer">
+            <div class="vertical-swipe-track">
+                
+                <!-- 卡片1：MIDDLE 权益 -->
+                <div class="vertical-swipe-card">
+                    <div class="unlock-card locked" id="middleCard">
+                        <h2 style="font-size: 1.1rem;">
+                            🔓 MIDDLE 权益
+                            <span class="badge badge-silver" style="font-size: 10px;">权益卡</span>
+                        </h2>
+                        <div class="desc" id="middleStatus" style="font-size: 13px;">🔒 未解锁</div>
+                        <div class="hint-text" style="font-size: 11px;">
+                            解锁规则：已激活直推 ≥ 3 人解锁更多权益
+                        </div>
+                        <div class="desc" style="font-size: 13px;">
+                            权益：享受 <span class="highlight">1.3%</span> 日奖币
+                        </div>
+                        <div class="stat-row" style="font-size: 12px;">
+                            <span>当前已激活直推：<span class="stat-value" id="middleInvitedCount">--</span> 人</span>
+                            <span>需达目标：<span class="stat-value">3</span> 人</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" id="middleProgress" style="width: 0%; background: linear-gradient(90deg, #f0b90b, #e94560);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 卡片2：第一社区权益 FIRST -->
+                <div class="vertical-swipe-card">
+                    <div class="unlock-card locked" id="community1Card">
+                        <h2 style="font-size: 1.1rem;">
+                            第一社区权益
+                            <span class="badge badge-gold" style="font-size: 10px;">FIRST</span>
+                        </h2>
+                        <div class="desc" id="community1Status" style="font-size: 13px;">🔒 未解锁</div>
+                        <div class="hint-unlock" id="community1Unlock">
+                            解锁规则：支付 0.5 USDT 获取 FIRST 身份 (<span>永久</span>)
+                        </div>
+                        <div class="hint-fund">
+                            资金用途：社区建设 + 去中心化基金合约自动添加LP维持市值
+                        </div>
+                        <div class="desc" style="font-size: 13px;">
+                            权益：享受 <span class="highlight">1.6%</span> 日奖币 + <span class="highlight-green">1.6%/天 × 90天</span>
+                        </div>
+                        <div class="hint-text" style="font-size: 11px; color: #f0b90b;">
+                            🏆 团队奖励：伞下无限代业绩 10% 奖励
+                        </div>
+                        <button class="btn btn-gold upgrade-btn" data-amount="0.5" style="margin-top: 10px; font-size: 14px;">
+                            🔓 立即解锁权益
+                        </button>
+                        <div class="info-box upgrade-result" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- 卡片3：第二社区权益 SECOND -->
+                <div class="vertical-swipe-card">
+                    <div class="unlock-card locked" id="community2Card">
+                        <h2 style="font-size: 1.1rem;">
+                            第二社区权益
+                            <span class="badge badge-gold" style="font-size: 10px;">SECOND</span>
+                        </h2>
+                        <div class="desc" id="community2Status" style="font-size: 13px;">🔒 未解锁</div>
+                        <div class="hint-unlock" id="community2Unlock">
+                            解锁规则：支付 1 USDT 获取 SECOND 身份 (<span>永久</span>)
+                        </div>
+                        <div class="hint-fund">
+                            资金用途：社区建设 + 去中心化基金合约自动添加LP维持市值
+                        </div>
+                        <div class="desc" style="font-size: 13px;">
+                            权益：享受 <span class="highlight">1.6%</span> 日奖币 + <span class="highlight-green">1.6%/天 × 90天</span>
+                        </div>
+                        <div class="hint-text" style="font-size: 11px; color: #f0b90b;">
+                            🏆 团队奖励：享受第一社区权益 + 最高拿 <span class="highlight-cyan">第二层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励
+                        </div>
+                        <button class="btn btn-gold upgrade-btn" data-amount="1" style="margin-top: 10px; font-size: 14px;">
+                            🔓 立即解锁权益
+                        </button>
+                        <div class="info-box upgrade-result" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- 卡片4：第三社区权益 THIRD -->
+                <div class="vertical-swipe-card">
+                    <div class="unlock-card locked" id="community3Card">
+                        <h2 style="font-size: 1.1rem;">
+                            第三社区权益
+                            <span class="badge badge-gold" style="font-size: 10px;">THIRD</span>
+                        </h2>
+                        <div class="desc" id="community3Status" style="font-size: 13px;">🔒 未解锁</div>
+                        <div class="hint-unlock" id="community3Unlock">
+                            解锁规则：支付 2 USDT 获取 THIRD 身份 (<span>永久</span>)
+                        </div>
+                        <div class="hint-fund">
+                            资金用途：社区建设 + 去中心化基金合约自动添加LP维持市值
+                        </div>
+                        <div class="desc" style="font-size: 13px;">
+                            权益：享受 <span class="highlight">1.6%</span> 日奖币 + <span class="highlight-green">1.6%/天 × 90天</span>
+                        </div>
+                        <div class="hint-text" style="font-size: 11px; color: #f0b90b;">
+                            🏆 团队奖励：享受第一社区权益 + 最高拿 <span class="highlight-cyan">第三层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励
+                        </div>
+                        <button class="btn btn-gold upgrade-btn" data-amount="2" style="margin-top: 10px; font-size: 14px;">
+                            🔓 立即解锁权益
+                        </button>
+                        <div class="info-box upgrade-result" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- 卡片5：第四社区权益 FOURTH -->
+                <div class="vertical-swipe-card">
+                    <div class="unlock-card locked" id="community4Card">
+                        <h2 style="font-size: 1.1rem;">
+                            第四社区权益
+                            <span class="badge badge-gold" style="font-size: 10px;">FOURTH</span>
+                        </h2>
+                        <div class="desc" id="community4Status" style="font-size: 13px;">🔒 未解锁</div>
+                        <div class="hint-unlock" id="community4Unlock">
+                            解锁规则：MYK销毁累计 ≥ 500U 获取 FOURTH (<span>永久</span>)
+                        </div>
+                        <div class="hint-fund">
+                            资金用途：社区建设 + 去中心化基金合约自动添加LP维持市值
+                        </div>
+                        <div class="desc" style="font-size: 13px;">
+                            权益：享受 <span class="highlight">1.6%</span> 日奖币，C4分红池 <span class="highlight-green">35%</span>
+                        </div>
+                        <div class="hint-text" style="font-size: 11px; color: #f0b90b;">
+                            🏆 团队奖励：享受第一社区权益 + 最高拿 <span class="highlight-cyan">第四层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励
+                        </div>
+                        <button class="btn btn-gold upgrade-btn" data-amount="500" style="margin-top: 10px; font-size: 14px;">
+                            🔥 销毁MYK解锁FOURTH
+                        </button>
+                        <div class="info-box upgrade-result" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- 卡片6：第五社区权益 FIFTH+ -->
+                <div class="vertical-swipe-card">
+                    <div class="unlock-card locked" id="community5Card">
+                        <h2 style="font-size: 1.1rem;">
+                            第五社区权益
+                            <span class="badge badge-gold" style="font-size: 10px;">FIFTH+</span>
+                        </h2>
+                        <div class="desc" id="community5Status" style="font-size: 13px;">🔒 未解锁</div>
+                        <div class="hint-unlock" id="community5Unlock">
+                            解锁规则：MYK销毁累计 ≥ 1000U 获取 FIFTH (<span>永久</span>)
+                        </div>
+                        <div class="hint-fund">
+                            资金用途：社区建设 + 去中心化基金合约自动添加LP维持市值
+                        </div>
+                        <div class="desc" style="font-size: 13px;">
+                            权益：享受 <span class="highlight">1.6%</span> 日奖币，C5分红 + <span class="highlight-green">永久有效</span>
+                        </div>
+                        <div class="hint-text" style="font-size: 11px; color: #f0b90b;">
+                            🏆 团队奖励：享受第一社区权益 + 最高拿 <span class="highlight-cyan">第五层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励
+                        </div>
+                        <div class="hint-text" style="font-size: 10px; color: #f0b90b;">
+                            SIXTH：MYK销毁累计 ≥ 2000U
+                        </div>
+                        <div class="price-row" style="margin-top: 8px;">
+                            <span>当前等值MYK (含0.5%手续费)：<span class="price-value" id="fifthMykAmount">--</span> MYK</span>
+                        </div>
+                        <button class="btn btn-gold upgrade-btn" data-amount="1000" style="margin-top: 10px; font-size: 14px;">
+                            🔥 销毁MYK解锁FIFTH
+                        </button>
+                        <div class="info-box upgrade-result" style="display: none;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 右侧滚动指示器 -->
+        <div class="swipe-dots-vertical" id="swipeDotsVertical">
+            <div class="swipe-dot-v active" data-index="0"></div>
+            <div class="swipe-dot-v" data-index="1"></div>
+            <div class="swipe-dot-v" data-index="2"></div>
+            <div class="swipe-dot-v" data-index="3"></div>
+            <div class="swipe-dot-v" data-index="4"></div>
+            <div class="swipe-dot-v" data-index="5"></div>
         </div>
     </div>
 
-    <div class="glass-card">
-        <div class="flex-row"><div class="title-main">社区数据</div><span class="desc" style="cursor:pointer;">查看直推 ›</span></div>
-        <div class="data-grid" style="margin-top:12px;">
-            <div class="data-item"><div class="label">直推人数</div><div class="val">0</div></div>
-            <div class="data-item"><div class="label">团队人数</div><div class="val">0</div></div>
-            <div class="data-item"><div class="label">团队认购</div><div class="val">0<span class="unit">BNB</span></div></div>
-            <div class="data-item"><div class="label">小区认购</div><div class="val">0<span class="unit">BNB</span></div></div>
-        </div>
-    </div>
     <script>
-        function copyLink(){ const link='https://dapp.myk.io/ref/0x'+(window.currentAccount?window.currentAccount.substring(2,8):'123456'); if(navigator.clipboard){navigator.clipboard.writeText(link).then(()=>showToast('链接已复制','success'));}else{const ta=document.createElement('textarea'); ta.value=link; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('链接已复制','success');} }
+    (function() {
+        var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
+        var RP = '0xD9772cb247913f0d61D2Ae5093Ad8dDd9a197f53';
+        var GOV = '0x4Ee5EdB6625a183D04A1595b430C848A12b47CC9';
+        var USDT = '0x55d398326f99059fF775485246999027B3197955';
+        var ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+        var isProcessing = false;
+
+        function $(id) { return document.getElementById(id); }
+        function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
+
+        function encodeCall(sig, types, values) {
+            var s = web3.eth.abi.encodeFunctionSignature(sig);
+            if (!types || !types.length) return s;
+            var e = web3.eth.abi.encodeParameters(types, values);
+            return s + e.slice(2);
+        }
+
+        function parseError(e) {
+            var m = (e && e.message) || '';
+            var mc = m.match(/execution reverted:\s*(.+?)(?:"|$)/);
+            if (mc) return mc[1].trim();
+            var m2 = m.match(/reason="([^"]+)"/);
+            if (m2) return m2[1];
+            return m.slice(0, 200);
+        }
+
+        function lock() {
+            if (isProcessing) { alert('请等待当前操作完成'); return false; }
+            isProcessing = true;
+            return true;
+        }
+        function unlock() { isProcessing = false; }
+
+        async function waitForTransaction(txHash) {
+            for (var i = 0; i < 30; i++) {
+                try {
+                    var r = await web3.eth.getTransactionReceipt(txHash);
+                    if (r) {
+                        if (r.status) return r;
+                        else throw new Error('交易失败');
+                    }
+                } catch (e) {
+                    if (i === 29) throw e;
+                }
+                await new Promise(function(r) { setTimeout(r, 2000); });
+            }
+            throw new Error('超时');
+        }
+
+        // ===== 获取现货价格 =====
+        function getSpotPrice() {
+            if (typeof window.spotPrice !== 'undefined') {
+                return parseFloat(Web3.utils.fromWei(window.spotPrice + '', 'ether'));
+            }
+            return 0;
+        }
+
+        // ===== 获取用户 Governance 等级 =====
+        async function fetchUserGovTier() {
+            if (!web3 || !window.currentAccount) return 0;
+            try {
+                var data = encodeCall('getCommunityTier(address)', ['address'], [window.currentAccount]);
+                var result = await web3.eth.call({ to: GOV, data: data });
+                return parseInt(web3.eth.abi.decodeParameter('uint8', result));
+            } catch (e) {
+                try {
+                    var data2 = encodeCall('getCommunityTier(address)', ['address'], [window.currentAccount]);
+                    var result2 = await web3.eth.call({ to: GOV, data: data2 });
+                    return parseInt(web3.eth.abi.decodeParameter('uint256', result2));
+                } catch (e2) {}
+            }
+            return 0;
+        }
+
+        // ===== 获取用户 RewardPool 基础信息 =====
+        async function fetchUserBasic() {
+            if (!web3 || !window.currentAccount) return null;
+            try {
+                var data = encodeCall('getUserBasic(address)', ['address'], [window.currentAccount]);
+                var result = await web3.eth.call({ to: RP, data: data });
+                var u = web3.eth.abi.decodeParameters(
+                    ['address', 'uint256', 'uint256', 'uint8', 'uint256', 'bool', 'uint256', 'uint256'],
+                    result
+                );
+                return {
+                    referrer: u[0],
+                    invited: parseInt(u[1]),
+                    activatedInvited: parseInt(u[2]),
+                    role: parseInt(u[3]),
+                    activatedAt: parseInt(u[4]),
+                    isActive: u[5],
+                    pendingActivationMYK: u[6],
+                    activityBalance: u[7]
+                };
+            } catch (e) {
+                try {
+                    var data2 = encodeCall('users(address)', ['address'], [window.currentAccount]);
+                    var result2 = await web3.eth.call({ to: RP, data: data2 });
+                    var u2 = web3.eth.abi.decodeParameters(
+                        ['address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint8', 'bool'],
+                        result2
+                    );
+                    return {
+                        referrer: u2[0],
+                        invited: parseInt(u2[1]),
+                        activatedInvited: parseInt(u2[1]),
+                        role: parseInt(u2[7]),
+                        activatedAt: parseInt(u2[4]),
+                        isActive: u2[8]
+                    };
+                } catch (e2) {}
+            }
+            return null;
+        }
+
+        // ===== 刷新权益卡片状态 =====
+        async function refreshIdentityCard() {
+            if (!web3 || !window.currentAccount) return;
+
+            try {
+                var basic = await fetchUserBasic();
+                if (!basic) return;
+                var govTier = await fetchUserGovTier();
+
+                // MIDDLE 卡片
+                var activatedInvited = basic.activatedInvited || 0;
+                $('middleInvitedCount').textContent = activatedInvited;
+                var progress = Math.min(100, (activatedInvited / 3) * 100);
+                $('middleProgress').style.width = progress.toFixed(1) + '%';
+
+                if (basic.role === 2) {
+                    $('middleCard').classList.remove('locked');
+                    $('middleCard').classList.add('unlocked');
+                    $('middleStatus').textContent = '🔓 已解锁';
+                    $('middleStatus').style.color = '#4ecca3';
+                } else {
+                    $('middleCard').classList.add('locked');
+                    $('middleCard').classList.remove('unlocked');
+                    if (activatedInvited >= 3 && basic.role === 1) {
+                        $('middleStatus').textContent = '⚠️ 条件满足，请检查锁仓状态';
+                        $('middleStatus').style.color = '#f0b90b';
+                    } else {
+                        $('middleStatus').textContent = '🔒 未解锁';
+                        $('middleStatus').style.color = '#a3adc9';
+                    }
+                }
+
+                // 社区卡片 1-5
+                var tierCards = {
+                    1: ['community1Card', 'community1Status'],
+                    2: ['community2Card', 'community2Status'],
+                    3: ['community3Card', 'community3Status'],
+                    4: ['community4Card', 'community4Status'],
+                    5: ['community5Card', 'community5Status']
+                };
+
+                // 先全部重置为锁定
+                for (var t = 1; t <= 5; t++) {
+                    var ids = tierCards[t];
+                    if (ids) {
+                        $(ids[0]).classList.add('locked');
+                        $(ids[0]).classList.remove('unlocked');
+                        $(ids[1]).textContent = '🔒 未解锁';
+                        $(ids[1]).style.color = '#a3adc9';
+                    }
+                }
+
+                // 解锁已达到的等级
+                if (govTier >= 1 && govTier <= 6) {
+                    var tier = govTier >= 5 ? 5 : govTier;
+                    var ids = tierCards[tier];
+                    if (ids) {
+                        $(ids[0]).classList.remove('locked');
+                        $(ids[0]).classList.add('unlocked');
+                        $(ids[1]).textContent = '🔓 已解锁';
+                        $(ids[1]).style.color = '#4ecca3';
+                    }
+                }
+
+                // 更新 FIFTH MYK 等值
+                updateFifthMykSuggestion();
+
+            } catch (e) {
+                console.error('refreshIdentityCard error:', e);
+            }
+        }
+
+        function updateFifthMykSuggestion() {
+            var sp = getSpotPrice();
+            if (sp > 0) {
+                $('fifthMykAmount').textContent = (1000 / sp * 1.055).toFixed(4);
+            }
+        }
+
+        // ===== USDT 升级 (FIRST~THIRD) =====
+        async function upgradeWithUSDT(amount) {
+            var userAddress = window.currentAccount;
+            if (!userAddress) { alert('请先连接钱包'); return; }
+            if (!lock()) return;
+
+            var btn = document.querySelector('.upgrade-btn[data-amount="' + amount + '"]');
+            var el = btn ? btn.nextElementSibling : null;
+            if (!btn || !el) return;
+
+            btn.disabled = true;
+            btn.textContent = '处理中...';
+            el.style.display = 'block';
+
+            try {
+                var fee = Web3.utils.toWei(String(amount), 'ether');
+
+                el.innerHTML = '⏳ 正在授权 ' + amount + ' USDT...';
+                var approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, fee]);
+                var aTx = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{ from: userAddress, to: USDT, data: approveData }]
+                });
+                el.innerHTML = '⏳ 等待授权确认...';
+                await waitForTransaction(aTx);
+
+                el.innerHTML = '⏳ 升级中（含推荐奖励分发）...';
+                var upgradeData = encodeCall('upgradeWithUSDT(uint256)', ['uint256'], [fee]);
+                var uTx = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: upgradeData }]
+                });
+                el.innerHTML = '⏳ 等待升级确认...';
+                await waitForTransaction(uTx);
+
+                el.innerHTML = '✅ 解锁成功！';
+                el.style.borderLeftColor = '#f0b90b';
+                el.style.background = 'rgba(240,185,11,0.1)';
+                btn.style.display = 'none';
+                setTimeout(function() { refreshIdentityCard(); }, 3000);
+            } catch (e) {
+                var m = parseError(e);
+                el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1)
+                    ? '⚠️ 交易已取消'
+                    : (m.indexOf('insufficient') !== -1)
+                    ? '⚠️ 余额不足'
+                    : '❌ ' + m;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔓 立即解锁权益';
+                unlock();
+            }
+        }
+
+        // ===== MYK 销毁升级 (FOURTH~SIXTH) =====
+        async function burnForTier(amount) {
+            var userAddress = window.currentAccount;
+            if (!userAddress) { alert('请先连接钱包'); return; }
+            if (!lock()) return;
+
+            var btn = document.querySelector('.upgrade-btn[data-amount="' + amount + '"]');
+            var el = btn ? btn.nextElementSibling : null;
+            if (!btn || !el) return;
+
+            btn.disabled = true;
+            btn.textContent = '处理中...';
+            el.style.display = 'block';
+
+            try {
+                var sp = getSpotPrice();
+                if (sp <= 0) { alert('无法获取现货价格'); unlock(); return; }
+
+                var mykAmount = Web3.utils.toWei(String((amount / sp) * 1.055), 'ether');
+                var mykFormatted = parseFloat(Web3.utils.fromWei(mykAmount, 'ether')).toFixed(4);
+
+                el.innerHTML = '⏳ 将销毁 ' + mykFormatted + ' MYK (等值' + amount + 'U + 0.5%手续费，可累计)';
+
+                el.innerHTML = '⏳ 授权 MYK...';
+                var approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, mykAmount]);
+                var aTx = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{ from: userAddress, to: MYK, data: approveData }]
+                });
+                el.innerHTML = '⏳ 等待授权确认...';
+                await waitForTransaction(aTx);
+
+                el.innerHTML = '⏳ 销毁中...';
+                var burnData = encodeCall('burnForTier(uint256)', ['uint256'], [mykAmount]);
+                var bTx = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: burnData }]
+                });
+                el.innerHTML = '⏳ 等待销毁确认...';
+                await waitForTransaction(bTx);
+
+                el.innerHTML = '✅ 解锁成功！';
+                el.style.borderLeftColor = '#f0b90b';
+                el.style.background = 'rgba(240,185,11,0.1)';
+                btn.style.display = 'none';
+                setTimeout(function() { refreshIdentityCard(); }, 3000);
+            } catch (e) {
+                var m = parseError(e);
+                el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1)
+                    ? '⚠️ 交易已取消'
+                    : (m.indexOf('insufficient') !== -1)
+                    ? '⚠️ 余额不足'
+                    : '❌ ' + m;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = amount >= 500 ? '🔥 销毁MYK解锁' : '🔓 立即解锁权益';
+                unlock();
+            }
+        }
+
+        // ===== 升级按钮事件 =====
+        function setupUpgradeButtons() {
+            document.querySelectorAll('.upgrade-btn').forEach(function(b) {
+                b.addEventListener('click', function() {
+                    var amt = parseFloat(this.dataset.amount);
+                    if (amt >= 500) {
+                        burnForTier(amt);
+                    } else {
+                        upgradeWithUSDT(amt);
+                    }
+                });
+            });
+        }
+
+        // ===== 上下滚动指示器 =====
+        function setupVerticalSwipeDots() {
+            var container = $('verticalSwipeContainer');
+            var dots = document.querySelectorAll('.swipe-dot-v');
+
+            container.addEventListener('scroll', function() {
+                var cardHeight = container.clientHeight;
+                var scrollTop = container.scrollTop;
+                var index = Math.round(scrollTop / cardHeight);
+                index = Math.max(0, Math.min(5, index));
+
+                dots.forEach(function(d, i) {
+                    d.classList.toggle('active', i === index);
+                });
+            });
+        }
+
+        // ===== 初始化和自动刷新 =====
+        function init() {
+            setupUpgradeButtons();
+            setupVerticalSwipeDots();
+            updateFifthMykSuggestion();
+
+            if (typeof web3 !== 'undefined' && web3 && window.currentAccount) {
+                refreshIdentityCard();
+            }
+
+            // 监听钱包连接事件
+            document.addEventListener('walletConnected', function() {
+                refreshIdentityCard();
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        // 30秒自动刷新状态
+        setInterval(function() {
+            if (typeof web3 !== 'undefined' && web3 && window.currentAccount) {
+                refreshIdentityCard();
+            }
+        }, 30000);
+    })();
     </script>
 </div>
