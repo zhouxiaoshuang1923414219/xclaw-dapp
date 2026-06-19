@@ -87,12 +87,69 @@
             background: linear-gradient(135deg, #f0b90b, #e8a000);
             box-shadow: 0 8px 18px rgba(240,185,11,0.3);
         }
+        .tab-container {
+            display: flex; background: #0c0f1c; border-radius: 16px;
+            padding: 4px; margin: 12px 0; border: 1px solid #2d3355;
+        }
+        .tab {
+            flex: 1; text-align: center; padding: 10px; border-radius: 14px;
+            font-weight: 600; color: #9aa0c0; cursor: pointer; transition: 0.2s;
+        }
+        .tab.active { background: #e94560; color: white; }
+        .input-field {
+            background: #0d1020; border: 1px solid #394056;
+            border-radius: 16px; padding: 14px 16px; color: white;
+            width: 100%; margin: 10px 0 12px; font-size: 15px; outline: none;
+        }
+        .input-field:focus { border-color: #e94560; }
         .info-box {
             background: #0a0d16; border-radius: 14px; padding: 12px;
             margin-top: 12px; font-size: 14px; border-left: 4px solid #e94560;
             word-break: break-word; color: #ccd6f0;
         }
     </style>
+
+    <!-- ========== 激活初级卡片 ========== -->
+    <div class="glass-card">
+        <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px;">
+            🥉 激活初级 <span class="badge">PRIMARY</span>
+        </h2>
+
+        <!-- 激活方式标签切换 -->
+        <div class="tab-container" id="activateTabSwitch">
+            <div class="tab active" data-tab="usdt">💵 USDT激活</div>
+            <div class="tab" data-tab="myk">💎 MYK激活</div>
+        </div>
+
+        <!-- USDT 激活面板 -->
+        <div id="panelUSDT">
+            <div class="desc">
+                支付 <span class="highlight">2 USDT</span>，获得 <span class="highlight">1.0%</span> 日奖币
+            </div>
+            <div class="hint-text">
+                推荐人由链上绑定关系自动识别
+            </div>
+            <button class="btn" id="activateUSDTBtn">
+                💵 支付2 USDT激活
+            </button>
+            <div class="info-box" id="activateUSDTResult" style="display:none;"></div>
+        </div>
+
+        <!-- MYK 激活面板 -->
+        <div id="panelMYK" style="display:none;">
+            <div class="desc">
+                支付 <span class="highlight">2 USDT</span> 等值MYK，获得 <span class="highlight">1.0%</span> 日奖币
+            </div>
+            <div class="price-row">
+                <span>建议：<span class="price-value" id="suggestedMYK">--</span> MYK <span class="price-source-tag">(实时价)</span></span>
+            </div>
+            <input class="input-field" id="mykAmount" type="number" placeholder="MYK数量" value="150" step="0.1" min="0">
+            <button class="btn" id="activateMYKBtn">
+                💸 支付MYK激活
+            </button>
+            <div class="info-box" id="activateMYKResult" style="display:none;"></div>
+        </div>
+    </div>
 
     <!-- ========== 权益卡片 ========== -->
     <div class="glass-card" style="padding: 12px 8px;">
@@ -228,11 +285,9 @@
                         <div class="hint-text" style="font-size:11px;color:#f0b90b;">
                             🏆 团队奖励：享受第一社区权益 + 最高拿 <span class="highlight-cyan">第四层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励
                         </div>
-                        <!-- 【修复】新增 SIXTH 升级提示 -->
                         <div class="hint-text" style="font-size:10px;color:#f0b90b;">
-                            FOURTH：MYK销毁累计 ≥ 1000U
+                            SIXTH：MYK销毁累计 ≥ 2000U
                         </div>
-                        <!-- 【修复】新增价格显示行 -->
                         <div class="price-row" style="margin-top:8px;">
                             <span>当前等值MYK (含0.5%手续费)：<span class="price-value" id="fourthMykAmount">--</span> MYK</span>
                         </div>
@@ -309,6 +364,7 @@
         var isProcessing = false;
         var cachedSpotPrice = 0;
         var cachedSpotPriceWei = '1000000000000000000';
+        var cachedActivationPrice = 0;
 
         function $(id) { return document.getElementById(id); }
         function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
@@ -346,14 +402,16 @@
             throw new Error('超时');
         }
 
-        async function fetchSpotPrice() {
-            if (!web3) return 0;
+        // ===== 获取实时价格（含激活价格） =====
+        async function fetchPrices() {
+            if (!web3) return;
             try {
+                // 获取合约激活价格
                 try {
-                    var result = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
-                    cachedSpotPriceWei = result;
-                    cachedSpotPrice = n(result);
-                    return cachedSpotPrice;
+                    var priceResult = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
+                    cachedActivationPrice = n(priceResult);
+                    cachedSpotPriceWei = priceResult;
+                    cachedSpotPrice = n(priceResult);
                 } catch (e1) {
                     try {
                         var ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
@@ -362,7 +420,7 @@
                         var amounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call();
                         cachedSpotPriceWei = Web3.utils.toWei(String(n(amounts[1])), 'ether');
                         cachedSpotPrice = n(amounts[1]);
-                        return cachedSpotPrice;
+                        cachedActivationPrice = cachedSpotPrice;
                     } catch (e2) {
                         try {
                             var pa = [{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];
@@ -376,16 +434,148 @@
                             else { rU = r1; rM = r0; }
                             cachedSpotPriceWei = ((rU * BigInt(10 ** 18)) / rM).toString();
                             cachedSpotPrice = parseFloat(Web3.utils.fromWei(cachedSpotPriceWei, 'ether'));
-                            return cachedSpotPrice;
+                            cachedActivationPrice = cachedSpotPrice;
                         } catch (e3) {}
                     }
                 }
+                updateActivateSuggestion();
+                updateAllMykSuggestions();
             } catch (e) {}
-            return 0;
         }
 
         function getSpotPrice() { return cachedSpotPrice; }
 
+        // ===== 更新 MYK 激活建议量 =====
+        function updateActivateSuggestion() {
+            var price = cachedActivationPrice;
+            if (price > 0) {
+                var suggested = (2 / price * 1.05).toFixed(4);
+                $('suggestedMYK').textContent = suggested;
+                $('mykAmount').value = suggested;
+                $('mykAmount').setAttribute('data-default', suggested);
+            }
+        }
+
+        // ===== 激活标签切换 =====
+        function setupActivateTabs() {
+            document.querySelectorAll('#activateTabSwitch .tab').forEach(function(t) {
+                t.addEventListener('click', function() {
+                    document.querySelectorAll('#activateTabSwitch .tab').forEach(function(x) { x.classList.remove('active'); });
+                    this.classList.add('active');
+                    var tb = this.dataset.tab;
+                    $('panelUSDT').style.display = tb === 'usdt' ? 'block' : 'none';
+                    $('panelMYK').style.display = tb === 'myk' ? 'block' : 'none';
+                    if (tb === 'myk') updateActivateSuggestion();
+                });
+            });
+        }
+
+        // ===== USDT 激活 =====
+        async function activateUSDT() {
+            var userAddress = window.currentAccount;
+            if (!userAddress) { alert('请先连接钱包'); return; }
+            if (!lock()) return;
+
+            var b = $('activateUSDTBtn');
+            var el = $('activateUSDTResult');
+            el.style.display = 'block';
+            el.innerHTML = '⏳ 授权USDT...';
+            b.disabled = true;
+
+            try {
+                var fee = Web3.utils.toWei('2', 'ether');
+                var approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [RP, fee]);
+                var aTx = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{ from: userAddress, to: USDT, data: approveData }]
+                });
+                el.innerHTML = '⏳ 等待授权确认...';
+                await waitForTransaction(aTx);
+
+                el.innerHTML = '⏳ 激活中...';
+                var activateData = encodeCall('activateWithUSDT()');
+                var acTx = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{ from: userAddress, to: RP, data: activateData }]
+                });
+                el.innerHTML = '⏳ 等待激活确认...';
+                await waitForTransaction(acTx);
+
+                el.innerHTML = '✅ 激活成功！已获得2 USDT等值MYK空投奖励';
+                el.style.borderLeftColor = '#4ecca3';
+                el.style.background = 'rgba(78,204,163,0.1)';
+                setTimeout(function() { refreshIdentityCard(); }, 3000);
+            } catch (e) {
+                var m = parseError(e);
+                el.innerHTML = m.includes('referrer') ? '⚠️ 推荐人无效或未绑定，请检查链上绑定关系' : '❌ ' + m;
+            } finally {
+                b.disabled = false;
+                unlock();
+            }
+        }
+
+        // ===== MYK 激活 =====
+        async function activateMYK() {
+            var userAddress = window.currentAccount;
+            if (!userAddress) { alert('请先连接钱包'); return; }
+            if (!lock()) return;
+
+            var b = $('activateMYKBtn');
+            var el = $('activateMYKResult');
+            var am = $('mykAmount').value;
+
+            if (!am || parseFloat(am) <= 0) { alert('请输入有效的MYK数量'); return; }
+
+            b.disabled = true;
+            b.textContent = '处理中...';
+            el.style.display = 'block';
+
+            try {
+                el.innerHTML = '⏳ 获取实时价格...';
+                var rawPrice = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
+                var contractPrice = n(rawPrice);
+
+                if (contractPrice <= 0) throw new Error('无法获取合约价格');
+
+                var requiredMYK = (2 / contractPrice * 1.05).toFixed(4);
+                $('suggestedMYK').textContent = requiredMYK;
+                $('mykAmount').setAttribute('data-default', requiredMYK);
+
+                var userAmount = parseFloat($('mykAmount').value || am);
+                if (userAmount < parseFloat(requiredMYK)) {
+                    $('mykAmount').value = requiredMYK;
+                    el.innerHTML = '⚠️ 需至少 ' + requiredMYK + ' MYK，已自动填入，请再次点击';
+                    el.style.borderLeftColor = '#f0b90b';
+                    el.style.background = 'rgba(240,185,11,0.1)';
+                    b.disabled = false;
+                    b.textContent = '💸 支付MYK激活';
+                    unlock();
+                    return;
+                }
+
+                b.textContent = '激活中...';
+                el.innerHTML = '⏳ 激活中...';
+                var mw = Web3.utils.toWei($('mykAmount').value, 'ether');
+                var transferData = encodeCall('transfer(address,uint256)', ['address', 'uint256'], [RP, mw]);
+                await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{ from: userAddress, to: MYK, data: transferData }]
+                });
+
+                el.innerHTML = '✅ 激活成功！';
+                el.style.borderLeftColor = '#4ecca3';
+                el.style.background = 'rgba(78,204,163,0.1)';
+                setTimeout(function() { refreshIdentityCard(); }, 3000);
+            } catch (e) {
+                el.innerHTML = '❌ ' + parseError(e);
+            } finally {
+                b.disabled = false;
+                b.textContent = '💸 支付MYK激活';
+                unlock();
+            }
+        }
+
+        // ===== 获取用户 Governance 等级 =====
         async function fetchUserGovTier() {
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) return 0;
@@ -506,20 +696,17 @@
         }
 
         async function refreshIdentityCard() {
-            await fetchSpotPrice();
+            await fetchPrices();
             await fetchUserStats();
             await fetchCommunityExpiry();
             updateAllMykSuggestions();
         }
 
-        // 【修复】更新所有 MYK 销毁卡片的等值显示
         function updateAllMykSuggestions() {
             var sp = getSpotPrice();
             if (sp > 0) {
-                // 第四社区：500U
                 var fourthEl = $('fourthMykAmount');
                 if (fourthEl) { fourthEl.textContent = (500 / sp * 1.055).toFixed(4); }
-                // 第五社区：1000U
                 var fifthEl = $('fifthMykAmount');
                 if (fifthEl) { fifthEl.textContent = (1000 / sp * 1.055).toFixed(4); }
             } else {
@@ -570,7 +757,8 @@
             btn.disabled = true; btn.textContent = '处理中...'; el.style.display = 'block';
             try {
                 el.innerHTML = '⏳ 获取实时价格...';
-                var sp = await fetchSpotPrice();
+                await fetchPrices();
+                var sp = getSpotPrice();
                 if (sp <= 0) { alert('无法获取现货价格，请稍后重试'); unlock(); btn.disabled = false; btn.textContent = amount >= 500 ? '🔥 销毁MYK解锁' : '🔓 立即解锁权益'; return; }
                 var mykAmount = Web3.utils.toWei(String((amount / sp) * 1.055), 'ether');
                 var mykFormatted = parseFloat(Web3.utils.fromWei(mykAmount, 'ether')).toFixed(4);
@@ -618,10 +806,15 @@
         }
 
         function init() {
+            setupActivateTabs();
             setupUpgradeButtons();
             setupSwipeDots();
+
+            $('activateUSDTBtn').addEventListener('click', activateUSDT);
+            $('activateMYKBtn').addEventListener('click', activateMYK);
+
             if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshIdentityCard(); }
-            else { if (typeof web3 !== 'undefined' && web3) { fetchSpotPrice().then(function() { updateAllMykSuggestions(); }); } }
+            else { if (typeof web3 !== 'undefined' && web3) { fetchPrices(); } }
             document.addEventListener('walletConnected', function() { refreshIdentityCard(); });
         }
 
