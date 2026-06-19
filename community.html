@@ -94,6 +94,15 @@
         }
     </style>
 
+    <!-- ========== 权益卡片 ========== -->
+    <div class="glass-card" style="padding: 12px 8px;">
+        <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px; text-align: center;">
+            🔓 权益卡片
+        </h2>
+        
+        <div class="vertical-swipe-container" id="swipeContainer">
+            <div class="vertical-swipe-track">
+                
                 <!-- 卡片1：MIDDLE 权益 -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="middleCard">
@@ -219,6 +228,14 @@
                         <div class="hint-text" style="font-size:11px;color:#f0b90b;">
                             🏆 团队奖励：享受第一社区权益 + 最高拿 <span class="highlight-cyan">第四层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励
                         </div>
+                        <!-- 【修复】新增 SIXTH 升级提示 -->
+                        <div class="hint-text" style="font-size:10px;color:#f0b90b;">
+                            SIXTH：MYK销毁累计 ≥ 2000U
+                        </div>
+                        <!-- 【修复】新增价格显示行 -->
+                        <div class="price-row" style="margin-top:8px;">
+                            <span>当前等值MYK (含0.5%手续费)：<span class="price-value" id="fourthMykAmount">--</span> MYK</span>
+                        </div>
                         <button class="btn btn-gold upgrade-btn" data-amount="500" style="margin-top:10px;font-size:14px;">
                             🔥 销毁MYK解锁FOURTH
                         </button>
@@ -274,7 +291,6 @@
 
     <script>
     (function() {
-        // ===== 合约地址 =====
         var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
         var RP = '0xD9772cb247913f0d61D2Ae5093Ad8dDd9a197f53';
         var GOV = '0x4Ee5EdB6625a183D04A1595b430C848A12b47CC9';
@@ -394,8 +410,7 @@
                 var data = encodeCall('getUserBasic(address)', ['address'], [userAddress]);
                 var result = await web3.eth.call({ to: RP, data: data });
                 var u = web3.eth.abi.decodeParameters(
-                    ['address', 'uint256', 'uint256', 'uint8', 'uint256', 'bool', 'uint256', 'uint256'],
-                    result
+                    ['address', 'uint256', 'uint256', 'uint8', 'uint256', 'bool', 'uint256', 'uint256'], result
                 );
                 return {
                     referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]),
@@ -407,8 +422,7 @@
                     var data2 = encodeCall('users(address)', ['address'], [userAddress]);
                     var result2 = await web3.eth.call({ to: RP, data: data2 });
                     var u2 = web3.eth.abi.decodeParameters(
-                        ['address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint8', 'bool'],
-                        result2
+                        ['address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint8', 'bool'], result2
                     );
                     return {
                         referrer: u2[0], invited: parseInt(u2[1]), activatedInvited: parseInt(u2[1]),
@@ -495,13 +509,25 @@
             await fetchSpotPrice();
             await fetchUserStats();
             await fetchCommunityExpiry();
-            updateFifthMykSuggestion();
+            updateAllMykSuggestions();
         }
 
-        function updateFifthMykSuggestion() {
+        // 【修复】更新所有 MYK 销毁卡片的等值显示
+        function updateAllMykSuggestions() {
             var sp = getSpotPrice();
-            if (sp > 0) { $('fifthMykAmount').textContent = (1000 / sp * 1.055).toFixed(4); }
-            else { $('fifthMykAmount').textContent = '价格加载中...'; }
+            if (sp > 0) {
+                // 第四社区：500U
+                var fourthEl = $('fourthMykAmount');
+                if (fourthEl) { fourthEl.textContent = (500 / sp * 1.055).toFixed(4); }
+                // 第五社区：1000U
+                var fifthEl = $('fifthMykAmount');
+                if (fifthEl) { fifthEl.textContent = (1000 / sp * 1.055).toFixed(4); }
+            } else {
+                var fourthEl2 = $('fourthMykAmount');
+                if (fourthEl2) { fourthEl2.textContent = '价格加载中...'; }
+                var fifthEl2 = $('fifthMykAmount');
+                if (fifthEl2) { fifthEl2.textContent = '价格加载中...'; }
+            }
         }
 
         async function upgradeWithUSDT(amount) {
@@ -595,7 +621,7 @@
             setupUpgradeButtons();
             setupSwipeDots();
             if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshIdentityCard(); }
-            else { if (typeof web3 !== 'undefined' && web3) { fetchSpotPrice().then(function() { updateFifthMykSuggestion(); }); } }
+            else { if (typeof web3 !== 'undefined' && web3) { fetchSpotPrice().then(function() { updateAllMykSuggestions(); }); } }
             document.addEventListener('walletConnected', function() { refreshIdentityCard(); });
         }
 
