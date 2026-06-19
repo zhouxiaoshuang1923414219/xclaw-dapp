@@ -49,7 +49,7 @@
         <div class="flex-row">
             <div>
                 <div class="title-main">💰 总资产</div>
-                <div class="desc">钱包与合约资产汇总</div>
+                <div class="desc">资产分布4项美金价值汇总</div>
             </div>
             <div>
                 <div class="stat-val" id="totalAssetValue">$--</div>
@@ -74,7 +74,7 @@
                 <div class="num" id="mykBalance">--</div>
                 <div class="usd" id="mykUsdValue">≈ $--</div>
             </div>
-            <!-- 可领MYK（每日升级奖励 + 持币奖励） -->
+            <!-- 可领MYK -->
             <div class="asset-item">
                 <div class="name"> 可领MYK</div>
                 <div class="num" id="claimableMYK">--</div>
@@ -160,36 +160,6 @@
             return 0;
         }
 
-        async function fetchUserBasic() {
-            var userAddress = window.currentAccount;
-            if (!web3 || !userAddress) return null;
-            try {
-                var data = encodeCall('getUserBasic(address)', ['address'], [userAddress]);
-                var result = await web3.eth.call({ to: RP, data: data });
-                var u = web3.eth.abi.decodeParameters(
-                    ['address','uint256','uint256','uint8','uint256','bool','uint256','uint256'], result
-                );
-                return {
-                    referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]),
-                    role: parseInt(u[3]), activatedAt: parseInt(u[4]), isActive: u[5],
-                    pendingActivationMYK: u[6], activityBalance: u[7]
-                };
-            } catch (e) {
-                try {
-                    var data2 = encodeCall('users(address)', ['address'], [userAddress]);
-                    var result2 = await web3.eth.call({ to: RP, data: data2 });
-                    var u2 = web3.eth.abi.decodeParameters(
-                        ['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], result2
-                    );
-                    return {
-                        referrer: u2[0], invited: parseInt(u2[1]), activatedInvited: parseInt(u2[1]),
-                        role: parseInt(u2[7]), activatedAt: parseInt(u2[4]), isActive: u2[8]
-                    };
-                } catch (e2) {}
-            }
-            return null;
-        }
-
         async function fetchDailyBonusClaimable() {
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) return 0;
@@ -199,8 +169,7 @@
                 var info = web3.eth.abi.decodeParameters(
                     ['uint256','uint256','uint256','uint256','uint256','bool','uint256'], result
                 );
-                var isActive = info[5];
-                if (!isActive) return 0;
+                if (!info[5]) return 0;
                 return n(info[6]);
             } catch (e) {
                 try {
@@ -222,43 +191,28 @@
             try {
                 var isActive = false, isRecent = false;
                 try {
-                    var iaResult = await web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [userAddress]) });
-                    isActive = web3.eth.abi.decodeParameter('bool', iaResult);
+                    isActive = web3.eth.abi.decodeParameter('bool', await web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [userAddress]) }));
                 } catch (e) {}
                 try {
-                    var irResult = await web3.eth.call({ to: RP, data: encodeCall('isRecentPancakeBuyer(address)', ['address'], [userAddress]) });
-                    isRecent = web3.eth.abi.decodeParameter('bool', irResult);
+                    isRecent = web3.eth.abi.decodeParameter('bool', await web3.eth.call({ to: RP, data: encodeCall('isRecentPancakeBuyer(address)', ['address'], [userAddress]) }));
                 } catch (e) {}
                 if (!isActive || !isRecent) return 0;
-                var crData = encodeCall('getClaimableDailyReward(address)', ['address'], [userAddress]);
-                var crResult = await web3.eth.call({ to: RP, data: crData });
-                var claimable = n(web3.eth.abi.decodeParameter('uint256', crResult));
+                var claimable = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getClaimableDailyReward(address)', ['address'], [userAddress]) })));
                 if (claimable <= 0) return 0;
-                var biData = encodeCall('getLastPancakeBuyInfo(address)', ['address'], [userAddress]);
-                var biResult = await web3.eth.call({ to: RP, data: biData });
-                var bi = web3.eth.abi.decodeParameters(['uint256','uint256','uint256'], biResult);
-                var buyTimestamp = parseInt(bi[2]);
-                var buyDay = Math.floor(buyTimestamp / SNAPSHOT_PERIOD);
-                if (buyDay >= getCurrentDay()) return 0;
+                var bi = web3.eth.abi.decodeParameters(['uint256','uint256','uint256'], await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyInfo(address)', ['address'], [userAddress]) }));
+                if (Math.floor(parseInt(bi[2]) / SNAPSHOT_PERIOD) >= getCurrentDay()) return 0;
                 return claimable;
             } catch (e) {}
             return 0;
         }
 
         async function fetchCommunityDividend() {
-            var userAddress = window.currentAccount;
-            if (!web3 || !userAddress) return 0;
+            if (!web3) return 0;
             try {
-                var data = encodeCall('getDividendInfo()');
-                var result = await web3.eth.call({ to: GOV, data: data });
-                var info = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256'], result);
-                var totalDividend = BigInt(info[0]) + BigInt(info[1]) + BigInt(info[2]);
-                return n(totalDividend.toString());
+                var info = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256'], await web3.eth.call({ to: GOV, data: encodeCall('getDividendInfo()') }));
+                return n((BigInt(info[0]) + BigInt(info[1]) + BigInt(info[2])).toString());
             } catch (e) {
-                try {
-                    var gbResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) });
-                    return n(web3.eth.abi.decodeParameter('uint256', gbResult));
-                } catch (e2) {}
+                try { return n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) }))); } catch (e2) {}
             }
             return 0;
         }
@@ -268,87 +222,75 @@
             if (!web3 || !userAddress) return;
             try {
                 try {
-                    var biData = encodeCall('getLastPancakeBuyInfo(address)', ['address'], [userAddress]);
-                    var biResult = await web3.eth.call({ to: RP, data: biData });
-                    var bi = web3.eth.abi.decodeParameters(['uint256','uint256','uint256'], biResult);
-                    var buyValue = n(bi[1]);
-                    var buyAmount = n(bi[0]);
-                    if (buyValue > 0) {
-                        $('recentBuy').textContent = '+' + buyAmount.toFixed(2) + ' ($' + buyValue.toFixed(2) + ')';
-                    } else {
-                        $('recentBuy').textContent = '暂无';
-                    }
-                } catch (e) { $('recentBuy').textContent = '--'; }
+                    var bi = web3.eth.abi.decodeParameters(['uint256','uint256','uint256'], await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyInfo(address)', ['address'], [userAddress]) }));
+                    var rb = $('recentBuy'); if (rb) rb.textContent = n(bi[1]) > 0 ? '+' + n(bi[0]).toFixed(2) + ' ($' + n(bi[1]).toFixed(2) + ')' : '暂无';
+                } catch (e) { var rb2 = $('recentBuy'); if (rb2) rb2.textContent = '--'; }
                 try {
-                    var ctResult = await web3.eth.call({ to: RP, data: encodeCall('getTotalDailyRewardClaimed(address)', ['address'], [userAddress]) });
-                    $('recentHoldingReward').textContent = n(web3.eth.abi.decodeParameter('uint256', ctResult)).toFixed(4);
-                } catch (e) { $('recentHoldingReward').textContent = '--'; }
+                    var rhr = $('recentHoldingReward'); if (rhr) rhr.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getTotalDailyRewardClaimed(address)', ['address'], [userAddress]) }))).toFixed(4);
+                } catch (e) { var rhr2 = $('recentHoldingReward'); if (rhr2) rhr2.textContent = '--'; }
                 try {
-                    var bonusData = encodeCall('getDailyBonusInfo(address)', ['address'], [userAddress]);
-                    var bonusResult = await web3.eth.call({ to: RP, data: bonusData });
-                    var bonusInfo = web3.eth.abi.decodeParameters(
-                        ['uint256','uint256','uint256','uint256','uint256','bool','uint256'], bonusResult
-                    );
-                    $('recentBonusReward').textContent = n(bonusInfo[4]).toFixed(4);
-                } catch (e) { $('recentBonusReward').textContent = '--'; }
+                    var bonusInfo = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','uint256','bool','uint256'], await web3.eth.call({ to: RP, data: encodeCall('getDailyBonusInfo(address)', ['address'], [userAddress]) }));
+                    var rbr = $('recentBonusReward'); if (rbr) rbr.textContent = n(bonusInfo[4]).toFixed(4);
+                } catch (e) { var rbr2 = $('recentBonusReward'); if (rbr2) rbr2.textContent = '--'; }
             } catch (e) {}
         }
 
         async function refreshAllData() {
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) {
-                $('usdtBalance').textContent = '--';
-                $('usdtUsdValue').textContent = '≈ $--';
-                $('mykBalance').textContent = '--';
-                $('mykUsdValue').textContent = '≈ $--';
-                $('claimableMYK').textContent = '--';
-                $('claimableUsdValue').textContent = '≈ $--';
-                $('communityDividend').textContent = '--';
-                $('dividendUsdValue').textContent = '≈ $--';
-                $('totalAssetValue').textContent = '$--';
+                ['usdtBalance','usdtUsdValue','mykBalance','mykUsdValue','claimableMYK','claimableUsdValue','communityDividend','dividendUsdValue'].forEach(function(id) {
+                    var el = $(id); if (el) el.textContent = id.indexOf('UsdValue') !== -1 ? '≈ $--' : '--';
+                });
+                var tv = $('totalAssetValue'); if (tv) tv.textContent = '$--';
                 return;
             }
             try {
                 var sp = await fetchSpotPrice();
                 var usdtBal = 0, mykBal = 0;
+                var usdtUsd = 0, mykUsd = 0, claimableUsd = 0, dividendUsd = 0;
+
+                // 1. USDT 余额
                 try {
-                    var usdtResult = await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
-                    usdtBal = n(web3.eth.abi.decodeParameter('uint256', usdtResult));
-                    $('usdtBalance').textContent = usdtBal.toFixed(4);
-                    $('usdtUsdValue').textContent = '≈ $' + usdtBal.toFixed(2);
+                    usdtBal = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) })));
+                    usdtUsd = usdtBal;
+                    var ub = $('usdtBalance'); if (ub) ub.textContent = usdtBal.toFixed(4);
+                    var uuv = $('usdtUsdValue'); if (uuv) uuv.textContent = '≈ $' + usdtBal.toFixed(2);
                 } catch (e) {
-                    $('usdtBalance').textContent = '--';
-                    $('usdtUsdValue').textContent = '≈ $--';
+                    var ub2 = $('usdtBalance'); if (ub2) ub2.textContent = '--';
+                    var uuv2 = $('usdtUsdValue'); if (uuv2) uuv2.textContent = '≈ $--';
                 }
+
+                // 2. MYK 余额
                 try {
-                    var mykResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
-                    mykBal = n(web3.eth.abi.decodeParameter('uint256', mykResult));
-                    var mykUsd = sp > 0 ? mykBal * sp : 0;
-                    $('mykBalance').textContent = mykBal.toFixed(4);
-                    $('mykUsdValue').textContent = '≈ $' + mykUsd.toFixed(2);
+                    mykBal = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) })));
+                    mykUsd = sp > 0 ? mykBal * sp : 0;
+                    var mb = $('mykBalance'); if (mb) mb.textContent = mykBal.toFixed(4);
+                    var muv = $('mykUsdValue'); if (muv) muv.textContent = '≈ $' + mykUsd.toFixed(2);
                 } catch (e) {
-                    $('mykBalance').textContent = '--';
-                    $('mykUsdValue').textContent = '≈ $--';
+                    var mb2 = $('mykBalance'); if (mb2) mb2.textContent = '--';
+                    var muv2 = $('mykUsdValue'); if (muv2) muv2.textContent = '≈ $--';
                 }
+
+                // 3. 可领MYK = 每日升级奖励 + 持币奖励
                 var dailyBonusUSDT = await fetchDailyBonusClaimable();
                 var holdingMYK = await fetchHoldingRewardClaimable();
-                var dailyBonusMYK = sp > 0 ? dailyBonusUSDT / sp : 0;
-                var totalClaimable = dailyBonusMYK + holdingMYK;
-                var claimableUsd = totalClaimable * sp;
-                $('claimableMYK').textContent = totalClaimable.toFixed(4);
-                $('claimableUsdValue').textContent = '≈ $' + claimableUsd.toFixed(2);
+                var totalClaimable = (sp > 0 ? dailyBonusUSDT / sp : 0) + holdingMYK;
+                claimableUsd = totalClaimable * sp;
+                var cm = $('claimableMYK'); if (cm) cm.textContent = totalClaimable.toFixed(4);
+                var cuv = $('claimableUsdValue'); if (cuv) cuv.textContent = '≈ $' + claimableUsd.toFixed(2);
+
+                // 4. 社区分红
                 var dividend = await fetchCommunityDividend();
-                var dividendUsd = dividend * sp;
-                $('communityDividend').textContent = dividend.toFixed(4);
-                $('dividendUsdValue').textContent = '≈ $' + dividendUsd.toFixed(2);
-                // 总资产 = USDT价值 + MYK价值
-                var mykValue = sp > 0 ? mykBal * sp : 0;
-                var totalValue = usdtBal + mykValue;
-                $('totalAssetValue').textContent = '$' + totalValue.toFixed(2);
+                dividendUsd = dividend * sp;
+                var cd = $('communityDividend'); if (cd) cd.textContent = dividend.toFixed(4);
+                var duv = $('dividendUsdValue'); if (duv) duv.textContent = '≈ $' + dividendUsd.toFixed(2);
+
+                // 总资产 = 4项美金价值汇总
+                var totalValue = usdtUsd + mykUsd + claimableUsd + dividendUsd;
+                var tv = $('totalAssetValue'); if (tv) tv.textContent = '$' + totalValue.toFixed(2);
+
                 await fetchRecentTransactions();
-            } catch (e) {
-                console.error('refreshAllData error:', e);
-            }
+            } catch (e) { console.error('refreshAllData error:', e); }
         }
 
         function init() {
@@ -367,11 +309,8 @@
             document.addEventListener('walletConnected', function() { refreshAllData(); });
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
+        else { init(); }
     })();
     </script>
 </div>
