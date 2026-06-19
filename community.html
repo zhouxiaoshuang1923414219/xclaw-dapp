@@ -49,9 +49,10 @@
             border: 2px solid #f0b90b; border-radius: 20px;
             padding: 16px; margin-bottom: 12px;
             transition: border-color 0.3s, opacity 0.3s;
+            background: #0a0d14;
         }
-        .unlock-card.locked { border: 2px solid #555; opacity: 0.7; }
-        .unlock-card.unlocked { border: 2px solid #4ecca3; opacity: 1; }
+        .unlock-card.locked { border: 2px solid #555; opacity: 0.7; background: #080b10; }
+        .unlock-card.unlocked { border: 2px solid #4ecca3; opacity: 1; background: #0a0d14; }
         
         .vertical-swipe-container {
             overflow-y: auto; scroll-snap-type: y mandatory;
@@ -92,6 +93,16 @@
             word-break: break-word; color: #ccd6f0;
         }
     </style>
+
+    <!-- ========== 权益卡片 ========== -->
+    <div class="glass-card" style="padding: 12px 8px;">
+        <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px; text-align: center;">
+            🔓 权益卡片
+        </h2>
+        
+        <div class="vertical-swipe-container" id="swipeContainer">
+            <div class="vertical-swipe-track">
+                
                 <!-- 卡片1：MIDDLE 权益 -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="middleCard">
@@ -289,7 +300,6 @@
         };
 
         var isProcessing = false;
-        // 内部缓存价格
         var cachedSpotPrice = 0;
         var cachedSpotPriceWei = '1000000000000000000';
 
@@ -329,21 +339,15 @@
             throw new Error('超时');
         }
 
-        // ===== 【修复】独立价格获取（三级降级策略，与原文件完全一致） =====
         async function fetchSpotPrice() {
             if (!web3) return 0;
             try {
-                // 第一级：RewardPool.getCurrentPrice()
                 try {
-                    var result = await web3.eth.call({
-                        to: RP,
-                        data: encodeCall('getCurrentPrice()')
-                    });
+                    var result = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
                     cachedSpotPriceWei = result;
                     cachedSpotPrice = n(result);
                     return cachedSpotPrice;
                 } catch (e1) {
-                    // 第二级：Router.getAmountsOut(1 MYK → USDT)
                     try {
                         var ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
                         var rc = new web3.eth.Contract(ra, ROUTER);
@@ -353,7 +357,6 @@
                         cachedSpotPrice = n(amounts[1]);
                         return cachedSpotPrice;
                     } catch (e2) {
-                        // 第三级：Pair.getReserves() 反推
                         try {
                             var pa = [{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];
                             var pc = new web3.eth.Contract(pa, PAIR);
@@ -367,23 +370,15 @@
                             cachedSpotPriceWei = ((rU * BigInt(10 ** 18)) / rM).toString();
                             cachedSpotPrice = parseFloat(Web3.utils.fromWei(cachedSpotPriceWei, 'ether'));
                             return cachedSpotPrice;
-                        } catch (e3) {
-                            console.log('价格获取全部失败');
-                        }
+                        } catch (e3) {}
                     }
                 }
-            } catch (e) {
-                console.error('fetchSpotPrice error:', e);
-            }
+            } catch (e) {}
             return 0;
         }
 
-        // 获取缓存价格（不发起新请求）
-        function getSpotPrice() {
-            return cachedSpotPrice;
-        }
+        function getSpotPrice() { return cachedSpotPrice; }
 
-        // ===== 获取用户 Governance 等级 =====
         async function fetchUserGovTier() {
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) return 0;
@@ -401,7 +396,6 @@
             return 0;
         }
 
-        // ===== 获取用户 RewardPool 基础信息 =====
         async function fetchUserBasic() {
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) return null;
@@ -413,14 +407,9 @@
                     result
                 );
                 return {
-                    referrer: u[0],
-                    invited: parseInt(u[1]),
-                    activatedInvited: parseInt(u[2]),
-                    role: parseInt(u[3]),
-                    activatedAt: parseInt(u[4]),
-                    isActive: u[5],
-                    pendingActivationMYK: u[6],
-                    activityBalance: u[7]
+                    referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]),
+                    role: parseInt(u[3]), activatedAt: parseInt(u[4]), isActive: u[5],
+                    pendingActivationMYK: u[6], activityBalance: u[7]
                 };
             } catch (e) {
                 try {
@@ -431,25 +420,19 @@
                         result2
                     );
                     return {
-                        referrer: u2[0],
-                        invited: parseInt(u2[1]),
-                        activatedInvited: parseInt(u2[1]),
-                        role: parseInt(u2[7]),
-                        activatedAt: parseInt(u2[4]),
-                        isActive: u2[8]
+                        referrer: u2[0], invited: parseInt(u2[1]), activatedInvited: parseInt(u2[1]),
+                        role: parseInt(u2[7]), activatedAt: parseInt(u2[4]), isActive: u2[8]
                     };
                 } catch (e2) {}
             }
             return null;
         }
 
-        // ===== 刷新社区过期时间 =====
         async function fetchCommunityExpiry() {
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) return;
             try {
                 var userTier = await fetchUserGovTier();
-
                 for (var cardId in CARD_EXPIRY_MAP) {
                     if (!CARD_EXPIRY_MAP.hasOwnProperty(cardId)) continue;
                     var elId = CARD_EXPIRY_MAP[cardId];
@@ -459,7 +442,6 @@
                     if (!span) continue;
                     span.textContent = '永久';
                 }
-
                 var tierCards = {
                     1: ['community1Card', 'community1Status'],
                     2: ['community2Card', 'community2Status'],
@@ -468,49 +450,37 @@
                     5: ['community5Card', 'community5Status'],
                     6: ['community5Card', 'community5Status']
                 };
-
                 for (var t = 1; t <= 6; t++) {
                     var ids = tierCards[t];
                     if (!ids) continue;
                     if (ids[0] && ids[1]) {
-                        var cardEl = $(ids[0]);
-                        var statusEl = $(ids[1]);
+                        var cardEl = $(ids[0]), statusEl = $(ids[1]);
                         if (cardEl) { cardEl.classList.add('locked'); cardEl.classList.remove('unlocked'); }
                         if (statusEl) { statusEl.textContent = '🔒未解锁'; statusEl.style.color = '#a3adc9'; }
                     }
                 }
-
                 if (userTier >= 1 && userTier <= 6) {
                     var tier = userTier >= 5 ? 5 : userTier;
                     var ids2 = tierCards[tier];
                     if (ids2) {
-                        var cardEl2 = $(ids2[0]);
-                        var statusEl2 = $(ids2[1]);
+                        var cardEl2 = $(ids2[0]), statusEl2 = $(ids2[1]);
                         if (cardEl2) { cardEl2.classList.remove('locked'); cardEl2.classList.add('unlocked'); }
                         if (statusEl2) { statusEl2.textContent = '🔓已解锁'; statusEl2.style.color = '#4ecca3'; }
                     }
                 }
-            } catch (e) {
-                console.error('fetchCommunityExpiry error:', e);
-            }
+            } catch (e) {}
         }
 
-        // ===== 刷新用户统计（MIDDLE卡片） =====
         async function fetchUserStats() {
             var userAddress = window.currentAccount;
             if (!userAddress || !web3) return;
             try {
                 var basic = await fetchUserBasic();
-                if (!basic) {
-                    $('middleInvitedCount').textContent = '--';
-                    return;
-                }
-
+                if (!basic) { $('middleInvitedCount').textContent = '--'; return; }
                 var activatedInvited = basic.activatedInvited || 0;
                 $('middleInvitedCount').textContent = activatedInvited;
                 var progress = Math.min(100, (activatedInvited / 3) * 100);
                 $('middleProgress').style.width = progress.toFixed(1) + '%';
-
                 if (basic.role === 2) {
                     $('middleCard').classList.remove('locked');
                     $('middleCard').classList.add('unlocked');
@@ -527,12 +497,9 @@
                         $('middleStatus').style.color = '#a3adc9';
                     }
                 }
-            } catch (e) {
-                $('middleInvitedCount').textContent = '--';
-            }
+            } catch (e) { $('middleInvitedCount').textContent = '--'; }
         }
 
-        // ===== 刷新权益卡片状态 =====
         async function refreshIdentityCard() {
             await fetchSpotPrice();
             await fetchUserStats();
@@ -540,146 +507,82 @@
             updateFifthMykSuggestion();
         }
 
-        // ===== 【修复】更新 FIFTH MYK 等值 =====
         function updateFifthMykSuggestion() {
             var sp = getSpotPrice();
-            if (sp > 0) {
-                $('fifthMykAmount').textContent = (1000 / sp * 1.055).toFixed(4);
-            } else {
-                $('fifthMykAmount').textContent = '价格加载中...';
-            }
+            if (sp > 0) { $('fifthMykAmount').textContent = (1000 / sp * 1.055).toFixed(4); }
+            else { $('fifthMykAmount').textContent = '价格加载中...'; }
         }
 
-        // ===== USDT 升级 =====
         async function upgradeWithUSDT(amount) {
             var userAddress = window.currentAccount;
             if (!userAddress) { alert('请先连接钱包'); return; }
             if (!lock()) return;
-
             var btn = document.querySelector('.upgrade-btn[data-amount="' + amount + '"]');
             var el = btn ? btn.nextElementSibling : null;
             if (!btn || !el) return;
-
-            btn.disabled = true;
-            btn.textContent = '处理中...';
-            el.style.display = 'block';
-
+            btn.disabled = true; btn.textContent = '处理中...'; el.style.display = 'block';
             try {
                 var fee = Web3.utils.toWei(String(amount), 'ether');
                 el.innerHTML = '⏳ 正在授权 ' + amount + ' USDT...';
                 var approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, fee]);
-                var aTx = await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{ from: userAddress, to: USDT, data: approveData }]
-                });
+                var aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: approveData }] });
                 el.innerHTML = '⏳ 等待授权确认...';
                 await waitForTransaction(aTx);
-
                 el.innerHTML = '⏳ 升级中（含推荐奖励分发）...';
                 var upgradeData = encodeCall('upgradeWithUSDT(uint256)', ['uint256'], [fee]);
-                var uTx = await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: upgradeData }]
-                });
+                var uTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: upgradeData }] });
                 el.innerHTML = '⏳ 等待升级确认...';
                 await waitForTransaction(uTx);
-
                 el.innerHTML = '✅ 解锁成功！';
-                el.style.borderLeftColor = '#f0b90b';
-                el.style.background = 'rgba(240,185,11,0.1)';
+                el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
                 btn.style.display = 'none';
                 setTimeout(function() { refreshIdentityCard(); }, 3000);
             } catch (e) {
                 var m = parseError(e);
-                el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1)
-                    ? '⚠️ 交易已取消'
-                    : (m.indexOf('insufficient') !== -1)
-                    ? '⚠️ 余额不足'
-                    : '❌ ' + m;
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '🔓 立即解锁权益';
-                unlock();
-            }
+                el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : (m.indexOf('insufficient') !== -1) ? '⚠️ 余额不足' : '❌ ' + m;
+            } finally { btn.disabled = false; btn.textContent = '🔓 立即解锁权益'; unlock(); }
         }
 
-        // ===== 【修复】MYK 销毁升级 - 使用内部缓存价格 =====
         async function burnForTier(amount) {
             var userAddress = window.currentAccount;
             if (!userAddress) { alert('请先连接钱包'); return; }
             if (!lock()) return;
-
             var btn = document.querySelector('.upgrade-btn[data-amount="' + amount + '"]');
             var el = btn ? btn.nextElementSibling : null;
             if (!btn || !el) return;
-
-            btn.disabled = true;
-            btn.textContent = '处理中...';
-            el.style.display = 'block';
-
+            btn.disabled = true; btn.textContent = '处理中...'; el.style.display = 'block';
             try {
-                // 先获取实时价格
                 el.innerHTML = '⏳ 获取实时价格...';
                 var sp = await fetchSpotPrice();
-                if (sp <= 0) {
-                    alert('无法获取现货价格，请稍后重试');
-                    unlock();
-                    btn.disabled = false;
-                    btn.textContent = amount >= 500 ? '🔥 销毁MYK解锁' : '🔓 立即解锁权益';
-                    return;
-                }
-
-                // 计算所需 MYK：(amount / sp) * 1.055
+                if (sp <= 0) { alert('无法获取现货价格，请稍后重试'); unlock(); btn.disabled = false; btn.textContent = amount >= 500 ? '🔥 销毁MYK解锁' : '🔓 立即解锁权益'; return; }
                 var mykAmount = Web3.utils.toWei(String((amount / sp) * 1.055), 'ether');
                 var mykFormatted = parseFloat(Web3.utils.fromWei(mykAmount, 'ether')).toFixed(4);
-
                 el.innerHTML = '⏳ 将销毁 ' + mykFormatted + ' MYK (等值' + amount + 'U + 0.5%手续费，可累计)';
-
-                // 授权 MYK
                 el.innerHTML = '⏳ 授权 MYK...';
                 var approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, mykAmount]);
-                var aTx = await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{ from: userAddress, to: MYK, data: approveData }]
-                });
+                var aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: approveData }] });
                 el.innerHTML = '⏳ 等待授权确认...';
                 await waitForTransaction(aTx);
-
-                // 销毁 MYK
                 el.innerHTML = '⏳ 销毁中...';
                 var burnData = encodeCall('burnForTier(uint256)', ['uint256'], [mykAmount]);
-                var bTx = await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: burnData }]
-                });
+                var bTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: burnData }] });
                 el.innerHTML = '⏳ 等待销毁确认...';
                 await waitForTransaction(bTx);
-
                 el.innerHTML = '✅ 解锁成功！';
-                el.style.borderLeftColor = '#f0b90b';
-                el.style.background = 'rgba(240,185,11,0.1)';
+                el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
                 btn.style.display = 'none';
                 setTimeout(function() { refreshIdentityCard(); }, 3000);
             } catch (e) {
                 var m = parseError(e);
-                el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1)
-                    ? '⚠️ 交易已取消'
-                    : (m.indexOf('insufficient') !== -1)
-                    ? '⚠️ 余额不足'
-                    : '❌ ' + m;
-            } finally {
-                btn.disabled = false;
-                btn.textContent = amount >= 500 ? '🔥 销毁MYK解锁' : '🔓 立即解锁权益';
-                unlock();
-            }
+                el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : (m.indexOf('insufficient') !== -1) ? '⚠️ 余额不足' : '❌ ' + m;
+            } finally { btn.disabled = false; btn.textContent = amount >= 500 ? '🔥 销毁MYK解锁' : '🔓 立即解锁权益'; unlock(); }
         }
 
         function setupUpgradeButtons() {
             document.querySelectorAll('.upgrade-btn').forEach(function(b) {
                 b.addEventListener('click', function() {
                     var amt = parseFloat(this.dataset.amount);
-                    if (amt >= 500) { burnForTier(amt); }
-                    else { upgradeWithUSDT(amt); }
+                    if (amt >= 500) { burnForTier(amt); } else { upgradeWithUSDT(amt); }
                 });
             });
         }
@@ -697,38 +600,18 @@
             });
         }
 
-        // ===== 初始化 =====
         function init() {
             setupUpgradeButtons();
             setupSwipeDots();
-
-            if (typeof web3 !== 'undefined' && web3 && window.currentAccount) {
-                refreshIdentityCard();
-            } else {
-                // 即使未连接也尝试获取价格
-                if (typeof web3 !== 'undefined' && web3) {
-                    fetchSpotPrice().then(function() {
-                        updateFifthMykSuggestion();
-                    });
-                }
-            }
-
-            document.addEventListener('walletConnected', function() {
-                refreshIdentityCard();
-            });
+            if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshIdentityCard(); }
+            else { if (typeof web3 !== 'undefined' && web3) { fetchSpotPrice().then(function() { updateFifthMykSuggestion(); }); } }
+            document.addEventListener('walletConnected', function() { refreshIdentityCard(); });
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
+        else { init(); }
 
-        setInterval(function() {
-            if (typeof web3 !== 'undefined' && web3 && window.currentAccount) {
-                refreshIdentityCard();
-            }
-        }, 60000);
+        setInterval(function() { if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshIdentityCard(); } }, 60000);
     })();
     </script>
 </div>
