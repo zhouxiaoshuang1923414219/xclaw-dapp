@@ -16,8 +16,13 @@
         .highlight-cyan { color: #4ef0a8; font-weight: 700; }
         .highlight-green { color: #4ecca3; font-weight: 700; }
         .badge {
-            color: #000; padding: 2px 12px; border-radius: 20px;
-            font-size: 12px; font-weight: 700; margin-left: 6px;
+            background: #cd7f32;
+            color: #000;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 6px;
         }
         .badge-gold { background: #f7c744; }
         .badge-silver { background: #b0b8c0; }
@@ -57,7 +62,7 @@
         .vertical-swipe-container {
             overflow-y: auto; scroll-snap-type: y mandatory;
             -webkit-overflow-scrolling: touch; scrollbar-width: none;
-            max-height: 65vh; padding: 4px;
+            max-height: 55vh; padding: 4px;
         }
         .vertical-swipe-container::-webkit-scrollbar { display: none; }
         .vertical-swipe-track { display: flex; flex-direction: column; gap: 0; }
@@ -111,8 +116,9 @@
 
     <!-- ========== 激活初级卡片 ========== -->
     <div class="glass-card">
-        <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px;">
-            🥉 激活初级 <span class="badge">PRIMARY</span>
+        <h2 style="font-size: 1.1rem; color: #f0b90b; display: flex; align-items: center; margin-bottom: 4px;">
+            🥉 激活初级
+            <span class="badge" style="margin-left: 8px;">PRIMARY</span>
         </h2>
 
         <div class="tab-container" id="activateTabSwitch">
@@ -401,7 +407,6 @@
             throw new Error('超时');
         }
 
-        // ===== 【修复】获取实时价格（含激活价格） =====
         async function fetchPrices() {
             if (!web3) return;
             try {
@@ -444,7 +449,6 @@
         function getSpotPrice() { return cachedSpotPrice; }
         function getActivationPrice() { return cachedActivationPrice; }
 
-        // ===== 更新 MYK 激活建议量 =====
         function updateActivateSuggestion() {
             var price = getActivationPrice();
             if (price > 0) {
@@ -455,7 +459,6 @@
             }
         }
 
-        // ===== 激活标签切换 =====
         function setupActivateTabs() {
             document.querySelectorAll('#activateTabSwitch .tab').forEach(function(t) {
                 t.addEventListener('click', function() {
@@ -469,128 +472,67 @@
             });
         }
 
-        // ===== 【修复】USDT 激活 - 激活后完整刷新 =====
         async function activateUSDT() {
             var userAddress = window.currentAccount;
             if (!userAddress) { alert('请先连接钱包'); return; }
             if (!lock()) return;
-
             var b = $('activateUSDTBtn');
             var el = $('activateUSDTResult');
-            el.style.display = 'block';
-            el.innerHTML = '⏳ 授权USDT...';
-            b.disabled = true;
-
+            el.style.display = 'block'; el.innerHTML = '⏳ 授权USDT...'; b.disabled = true;
             try {
                 var fee = Web3.utils.toWei('2', 'ether');
                 var approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [RP, fee]);
-                var aTx = await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{ from: userAddress, to: USDT, data: approveData }]
-                });
-                el.innerHTML = '⏳ 等待授权确认...';
-                await waitForTransaction(aTx);
-
+                var aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: approveData }] });
+                el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx);
                 el.innerHTML = '⏳ 激活中...';
                 var activateData = encodeCall('activateWithUSDT()');
-                var acTx = await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{ from: userAddress, to: RP, data: activateData }]
-                });
-                el.innerHTML = '⏳ 等待激活确认...';
-                await waitForTransaction(acTx);
-
+                var acTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: RP, data: activateData }] });
+                el.innerHTML = '⏳ 等待激活确认...'; await waitForTransaction(acTx);
                 el.innerHTML = '✅ 激活成功！已获得2 USDT等值MYK空投奖励';
-                el.style.borderLeftColor = '#4ecca3';
-                el.style.background = 'rgba(78,204,163,0.1)';
-                // 【修复】激活后完整刷新所有数据
-                setTimeout(function() {
-                    refreshAllData();
-                    // 触发全局刷新事件
-                    document.dispatchEvent(new CustomEvent('activationComplete'));
-                }, 3000);
+                el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
+                setTimeout(function() { refreshAllData(); document.dispatchEvent(new CustomEvent('activationComplete')); }, 3000);
             } catch (e) {
                 var m = parseError(e);
                 el.innerHTML = (m.indexOf('referrer') !== -1) ? '⚠️ 推荐人无效或未绑定，请检查链上绑定关系' : '❌ ' + m;
-            } finally {
-                b.disabled = false;
-                unlock();
-            }
+            } finally { b.disabled = false; unlock(); }
         }
 
-        // ===== 【修复】MYK 激活 - 二级价格降级 + 激活后完整刷新 =====
         async function activateMYK() {
             var userAddress = window.currentAccount;
             if (!userAddress) { alert('请先连接钱包'); return; }
             if (!lock()) return;
-
             var b = $('activateMYKBtn');
             var el = $('activateMYKResult');
             var am = $('mykAmount').value;
-
             if (!am || parseFloat(am) <= 0) { alert('请输入有效的MYK数量'); return; }
-
-            b.disabled = true;
-            b.textContent = '处理中...';
-            el.style.display = 'block';
-
+            b.disabled = true; b.textContent = '处理中...'; el.style.display = 'block';
             try {
                 el.innerHTML = '⏳ 获取实时价格...';
-
-                // 【修复】二级降级：getCurrentPrice → getSpotPrice
                 var contractPrice = 0;
-                try {
-                    var rawPrice = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
-                    contractPrice = n(rawPrice);
-                } catch (e1) {
-                    contractPrice = getSpotPrice();
-                }
-
+                try { var rawPrice = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') }); contractPrice = n(rawPrice); }
+                catch (e1) { contractPrice = getSpotPrice(); }
                 if (contractPrice <= 0) throw new Error('无法获取合约价格');
-
                 var requiredMYK = (2 / contractPrice * 1.05).toFixed(4);
                 $('suggestedMYK').textContent = requiredMYK;
                 $('mykAmount').setAttribute('data-default', requiredMYK);
-
                 var userAmount = parseFloat($('mykAmount').value || am);
                 if (userAmount < parseFloat(requiredMYK)) {
                     $('mykAmount').value = requiredMYK;
                     el.innerHTML = '⚠️ 需至少 ' + requiredMYK + ' MYK，已自动填入，请再次点击';
-                    el.style.borderLeftColor = '#f0b90b';
-                    el.style.background = 'rgba(240,185,11,0.1)';
-                    b.disabled = false;
-                    b.textContent = '💸 支付MYK激活';
-                    unlock();
-                    return;
+                    el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
+                    b.disabled = false; b.textContent = '💸 支付MYK激活'; unlock(); return;
                 }
-
-                b.textContent = '激活中...';
-                el.innerHTML = '⏳ 激活中...';
+                b.textContent = '激活中...'; el.innerHTML = '⏳ 激活中...';
                 var mw = Web3.utils.toWei($('mykAmount').value, 'ether');
                 var transferData = encodeCall('transfer(address,uint256)', ['address', 'uint256'], [RP, mw]);
-                await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{ from: userAddress, to: MYK, data: transferData }]
-                });
-
+                await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: transferData }] });
                 el.innerHTML = '✅ 激活成功！';
-                el.style.borderLeftColor = '#4ecca3';
-                el.style.background = 'rgba(78,204,163,0.1)';
-                // 【修复】激活后完整刷新所有数据
-                setTimeout(function() {
-                    refreshAllData();
-                    document.dispatchEvent(new CustomEvent('activationComplete'));
-                }, 3000);
-            } catch (e) {
-                el.innerHTML = '❌ ' + parseError(e);
-            } finally {
-                b.disabled = false;
-                b.textContent = '💸 支付MYK激活';
-                unlock();
-            }
+                el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
+                setTimeout(function() { refreshAllData(); document.dispatchEvent(new CustomEvent('activationComplete')); }, 3000);
+            } catch (e) { el.innerHTML = '❌ ' + parseError(e); }
+            finally { b.disabled = false; b.textContent = '💸 支付MYK激活'; unlock(); }
         }
 
-        // ===== 获取用户 Governance 等级 =====
         async function fetchUserGovTier() {
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) return 0;
@@ -614,25 +556,14 @@
             try {
                 var data = encodeCall('getUserBasic(address)', ['address'], [userAddress]);
                 var result = await web3.eth.call({ to: RP, data: data });
-                var u = web3.eth.abi.decodeParameters(
-                    ['address', 'uint256', 'uint256', 'uint8', 'uint256', 'bool', 'uint256', 'uint256'], result
-                );
-                return {
-                    referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]),
-                    role: parseInt(u[3]), activatedAt: parseInt(u[4]), isActive: u[5],
-                    pendingActivationMYK: u[6], activityBalance: u[7]
-                };
+                var u = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint8','uint256','bool','uint256','uint256'], result);
+                return { referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]), role: parseInt(u[3]), activatedAt: parseInt(u[4]), isActive: u[5], pendingActivationMYK: u[6], activityBalance: u[7] };
             } catch (e) {
                 try {
                     var data2 = encodeCall('users(address)', ['address'], [userAddress]);
                     var result2 = await web3.eth.call({ to: RP, data: data2 });
-                    var u2 = web3.eth.abi.decodeParameters(
-                        ['address', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint256', 'uint8', 'bool'], result2
-                    );
-                    return {
-                        referrer: u2[0], invited: parseInt(u2[1]), activatedInvited: parseInt(u2[1]),
-                        role: parseInt(u2[7]), activatedAt: parseInt(u2[4]), isActive: u2[8]
-                    };
+                    var u2 = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], result2);
+                    return { referrer: u2[0], invited: parseInt(u2[1]), activatedInvited: parseInt(u2[1]), role: parseInt(u2[7]), activatedAt: parseInt(u2[4]), isActive: u2[8] };
                 } catch (e2) {}
             }
             return null;
@@ -652,17 +583,9 @@
                     if (!span) continue;
                     span.textContent = '永久';
                 }
-                var tierCards = {
-                    1: ['community1Card', 'community1Status'],
-                    2: ['community2Card', 'community2Status'],
-                    3: ['community3Card', 'community3Status'],
-                    4: ['community4Card', 'community4Status'],
-                    5: ['community5Card', 'community5Status'],
-                    6: ['community5Card', 'community5Status']
-                };
+                var tierCards = { 1: ['community1Card','community1Status'], 2: ['community2Card','community2Status'], 3: ['community3Card','community3Status'], 4: ['community4Card','community4Status'], 5: ['community5Card','community5Status'], 6: ['community5Card','community5Status'] };
                 for (var t = 1; t <= 6; t++) {
-                    var ids = tierCards[t];
-                    if (!ids) continue;
+                    var ids = tierCards[t]; if (!ids) continue;
                     if (ids[0] && ids[1]) {
                         var cardEl = $(ids[0]), statusEl = $(ids[1]);
                         if (cardEl) { cardEl.classList.add('locked'); cardEl.classList.remove('unlocked'); }
@@ -692,25 +615,19 @@
                 var progress = Math.min(100, (activatedInvited / 3) * 100);
                 $('middleProgress').style.width = progress.toFixed(1) + '%';
                 if (basic.role === 2) {
-                    $('middleCard').classList.remove('locked');
-                    $('middleCard').classList.add('unlocked');
-                    $('middleStatus').textContent = '🔓已解锁';
-                    $('middleStatus').style.color = '#4ecca3';
+                    $('middleCard').classList.remove('locked'); $('middleCard').classList.add('unlocked');
+                    $('middleStatus').textContent = '🔓已解锁'; $('middleStatus').style.color = '#4ecca3';
                 } else {
-                    $('middleCard').classList.add('locked');
-                    $('middleCard').classList.remove('unlocked');
+                    $('middleCard').classList.add('locked'); $('middleCard').classList.remove('unlocked');
                     if (activatedInvited >= 3 && basic.role === 1) {
-                        $('middleStatus').textContent = '⚠️条件满足，请检查锁仓状态';
-                        $('middleStatus').style.color = '#f0b90b';
+                        $('middleStatus').textContent = '⚠️条件满足，请检查锁仓状态'; $('middleStatus').style.color = '#f0b90b';
                     } else {
-                        $('middleStatus').textContent = '🔒未解锁';
-                        $('middleStatus').style.color = '#a3adc9';
+                        $('middleStatus').textContent = '🔒未解锁'; $('middleStatus').style.color = '#a3adc9';
                     }
                 }
             } catch (e) { $('middleInvitedCount').textContent = '--'; }
         }
 
-        // 【修复】统一刷新函数
         async function refreshAllData() {
             await fetchPrices();
             await fetchUserStats();
@@ -721,15 +638,11 @@
         function updateAllMykSuggestions() {
             var sp = getSpotPrice();
             if (sp > 0) {
-                var fourthEl = $('fourthMykAmount');
-                if (fourthEl) { fourthEl.textContent = (500 / sp * 1.055).toFixed(4); }
-                var fifthEl = $('fifthMykAmount');
-                if (fifthEl) { fifthEl.textContent = (1000 / sp * 1.055).toFixed(4); }
+                var fourthEl = $('fourthMykAmount'); if (fourthEl) { fourthEl.textContent = (500 / sp * 1.055).toFixed(4); }
+                var fifthEl = $('fifthMykAmount'); if (fifthEl) { fifthEl.textContent = (1000 / sp * 1.055).toFixed(4); }
             } else {
-                var fourthEl2 = $('fourthMykAmount');
-                if (fourthEl2) { fourthEl2.textContent = '价格加载中...'; }
-                var fifthEl2 = $('fifthMykAmount');
-                if (fifthEl2) { fifthEl2.textContent = '价格加载中...'; }
+                var fourthEl2 = $('fourthMykAmount'); if (fourthEl2) { fourthEl2.textContent = '价格加载中...'; }
+                var fifthEl2 = $('fifthMykAmount'); if (fifthEl2) { fifthEl2.textContent = '价格加载中...'; }
             }
         }
 
@@ -746,13 +659,11 @@
                 el.innerHTML = '⏳ 正在授权 ' + amount + ' USDT...';
                 var approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, fee]);
                 var aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: approveData }] });
-                el.innerHTML = '⏳ 等待授权确认...';
-                await waitForTransaction(aTx);
+                el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx);
                 el.innerHTML = '⏳ 升级中（含推荐奖励分发）...';
                 var upgradeData = encodeCall('upgradeWithUSDT(uint256)', ['uint256'], [fee]);
                 var uTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: upgradeData }] });
-                el.innerHTML = '⏳ 等待升级确认...';
-                await waitForTransaction(uTx);
+                el.innerHTML = '⏳ 等待升级确认...'; await waitForTransaction(uTx);
                 el.innerHTML = '✅ 解锁成功！';
                 el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
                 btn.style.display = 'none';
@@ -772,8 +683,7 @@
             if (!btn || !el) return;
             btn.disabled = true; btn.textContent = '处理中...'; el.style.display = 'block';
             try {
-                el.innerHTML = '⏳ 获取实时价格...';
-                await fetchPrices();
+                el.innerHTML = '⏳ 获取实时价格...'; await fetchPrices();
                 var sp = getSpotPrice();
                 if (sp <= 0) { alert('无法获取现货价格，请稍后重试'); unlock(); btn.disabled = false; btn.textContent = amount >= 500 ? '🔥 销毁MYK解锁' : '🔓 立即解锁权益'; return; }
                 var mykAmount = Web3.utils.toWei(String((amount / sp) * 1.055), 'ether');
@@ -782,13 +692,11 @@
                 el.innerHTML = '⏳ 授权 MYK...';
                 var approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [GOV, mykAmount]);
                 var aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: approveData }] });
-                el.innerHTML = '⏳ 等待授权确认...';
-                await waitForTransaction(aTx);
+                el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx);
                 el.innerHTML = '⏳ 销毁中...';
                 var burnData = encodeCall('burnForTier(uint256)', ['uint256'], [mykAmount]);
                 var bTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: burnData }] });
-                el.innerHTML = '⏳ 等待销毁确认...';
-                await waitForTransaction(bTx);
+                el.innerHTML = '⏳ 等待销毁确认...'; await waitForTransaction(bTx);
                 el.innerHTML = '✅ 解锁成功！';
                 el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
                 btn.style.display = 'none';
@@ -825,10 +733,8 @@
             setupActivateTabs();
             setupUpgradeButtons();
             setupSwipeDots();
-
             $('activateUSDTBtn').addEventListener('click', activateUSDT);
             $('activateMYKBtn').addEventListener('click', activateMYK);
-
             if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshAllData(); }
             else { if (typeof web3 !== 'undefined' && web3) { fetchPrices(); } }
             document.addEventListener('walletConnected', function() { refreshAllData(); });
