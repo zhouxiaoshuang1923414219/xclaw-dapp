@@ -113,10 +113,8 @@
     <div class="glass-card">
         <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px;">
             🥉 激活初级 <span class="badge">PRIMARY</span>
-            <div class="glass-card"><h2>🥉激活初级<span class="badge">PRIMARY</span></h2><div class="tab-container" id="activateTabSwitch">
         </h2>
 
-        <!-- 激活方式标签切换 -->
         <div class="tab-container" id="activateTabSwitch">
             <div class="tab active" data-tab="usdt">💵 USDT激活</div>
             <div class="tab" data-tab="myk">💎 MYK激活</div>
@@ -161,7 +159,7 @@
         <div class="vertical-swipe-container" id="swipeContainer">
             <div class="vertical-swipe-track">
                 
-                <!-- 卡片1：MIDDLE 权益 -->
+                <!-- MIDDLE 权益 -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="middleCard">
                         <h2 style="font-size: 1.1rem;">
@@ -185,7 +183,7 @@
                     </div>
                 </div>
 
-                <!-- 卡片2：第一社区权益 FIRST -->
+                <!-- 第一社区权益 FIRST -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="community1Card">
                         <h2 style="font-size:1.1rem;">
@@ -212,7 +210,7 @@
                     </div>
                 </div>
 
-                <!-- 卡片3：第二社区权益 SECOND -->
+                <!-- 第二社区权益 SECOND -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="community2Card">
                         <h2 style="font-size:1.1rem;">
@@ -239,7 +237,7 @@
                     </div>
                 </div>
 
-                <!-- 卡片4：第三社区权益 THIRD -->
+                <!-- 第三社区权益 THIRD -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="community3Card">
                         <h2 style="font-size:1.1rem;">
@@ -266,7 +264,7 @@
                     </div>
                 </div>
 
-                <!-- 卡片5：第四社区权益 FOURTH -->
+                <!-- 第四社区权益 FOURTH -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="community4Card">
                         <h2 style="font-size:1.1rem;">
@@ -299,7 +297,7 @@
                     </div>
                 </div>
 
-                <!-- 卡片6：第五社区权益 FIFTH+ -->
+                <!-- 第五社区权益 FIFTH+ -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="community5Card">
                         <h2 style="font-size:1.1rem;">
@@ -403,11 +401,10 @@
             throw new Error('超时');
         }
 
-        // ===== 获取实时价格（含激活价格） =====
+        // ===== 【修复】获取实时价格（含激活价格） =====
         async function fetchPrices() {
             if (!web3) return;
             try {
-                // 获取合约激活价格
                 try {
                     var priceResult = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
                     cachedActivationPrice = n(priceResult);
@@ -445,10 +442,11 @@
         }
 
         function getSpotPrice() { return cachedSpotPrice; }
+        function getActivationPrice() { return cachedActivationPrice; }
 
         // ===== 更新 MYK 激活建议量 =====
         function updateActivateSuggestion() {
-            var price = cachedActivationPrice;
+            var price = getActivationPrice();
             if (price > 0) {
                 var suggested = (2 / price * 1.05).toFixed(4);
                 $('suggestedMYK').textContent = suggested;
@@ -471,7 +469,7 @@
             });
         }
 
-        // ===== USDT 激活 =====
+        // ===== 【修复】USDT 激活 - 激活后完整刷新 =====
         async function activateUSDT() {
             var userAddress = window.currentAccount;
             if (!userAddress) { alert('请先连接钱包'); return; }
@@ -505,17 +503,22 @@
                 el.innerHTML = '✅ 激活成功！已获得2 USDT等值MYK空投奖励';
                 el.style.borderLeftColor = '#4ecca3';
                 el.style.background = 'rgba(78,204,163,0.1)';
-                setTimeout(function() { refreshIdentityCard(); }, 3000);
+                // 【修复】激活后完整刷新所有数据
+                setTimeout(function() {
+                    refreshAllData();
+                    // 触发全局刷新事件
+                    document.dispatchEvent(new CustomEvent('activationComplete'));
+                }, 3000);
             } catch (e) {
                 var m = parseError(e);
-                el.innerHTML = m.includes('referrer') ? '⚠️ 推荐人无效或未绑定，请检查链上绑定关系' : '❌ ' + m;
+                el.innerHTML = (m.indexOf('referrer') !== -1) ? '⚠️ 推荐人无效或未绑定，请检查链上绑定关系' : '❌ ' + m;
             } finally {
                 b.disabled = false;
                 unlock();
             }
         }
 
-        // ===== MYK 激活 =====
+        // ===== 【修复】MYK 激活 - 二级价格降级 + 激活后完整刷新 =====
         async function activateMYK() {
             var userAddress = window.currentAccount;
             if (!userAddress) { alert('请先连接钱包'); return; }
@@ -533,8 +536,15 @@
 
             try {
                 el.innerHTML = '⏳ 获取实时价格...';
-                var rawPrice = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
-                var contractPrice = n(rawPrice);
+
+                // 【修复】二级降级：getCurrentPrice → getSpotPrice
+                var contractPrice = 0;
+                try {
+                    var rawPrice = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
+                    contractPrice = n(rawPrice);
+                } catch (e1) {
+                    contractPrice = getSpotPrice();
+                }
 
                 if (contractPrice <= 0) throw new Error('无法获取合约价格');
 
@@ -566,7 +576,11 @@
                 el.innerHTML = '✅ 激活成功！';
                 el.style.borderLeftColor = '#4ecca3';
                 el.style.background = 'rgba(78,204,163,0.1)';
-                setTimeout(function() { refreshIdentityCard(); }, 3000);
+                // 【修复】激活后完整刷新所有数据
+                setTimeout(function() {
+                    refreshAllData();
+                    document.dispatchEvent(new CustomEvent('activationComplete'));
+                }, 3000);
             } catch (e) {
                 el.innerHTML = '❌ ' + parseError(e);
             } finally {
@@ -696,7 +710,8 @@
             } catch (e) { $('middleInvitedCount').textContent = '--'; }
         }
 
-        async function refreshIdentityCard() {
+        // 【修复】统一刷新函数
+        async function refreshAllData() {
             await fetchPrices();
             await fetchUserStats();
             await fetchCommunityExpiry();
@@ -741,7 +756,7 @@
                 el.innerHTML = '✅ 解锁成功！';
                 el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
                 btn.style.display = 'none';
-                setTimeout(function() { refreshIdentityCard(); }, 3000);
+                setTimeout(function() { refreshAllData(); }, 3000);
             } catch (e) {
                 var m = parseError(e);
                 el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : (m.indexOf('insufficient') !== -1) ? '⚠️ 余额不足' : '❌ ' + m;
@@ -777,7 +792,7 @@
                 el.innerHTML = '✅ 解锁成功！';
                 el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
                 btn.style.display = 'none';
-                setTimeout(function() { refreshIdentityCard(); }, 3000);
+                setTimeout(function() { refreshAllData(); }, 3000);
             } catch (e) {
                 var m = parseError(e);
                 el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : (m.indexOf('insufficient') !== -1) ? '⚠️ 余额不足' : '❌ ' + m;
@@ -814,15 +829,15 @@
             $('activateUSDTBtn').addEventListener('click', activateUSDT);
             $('activateMYKBtn').addEventListener('click', activateMYK);
 
-            if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshIdentityCard(); }
+            if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshAllData(); }
             else { if (typeof web3 !== 'undefined' && web3) { fetchPrices(); } }
-            document.addEventListener('walletConnected', function() { refreshIdentityCard(); });
+            document.addEventListener('walletConnected', function() { refreshAllData(); });
         }
 
         if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
         else { init(); }
 
-        setInterval(function() { if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshIdentityCard(); } }, 60000);
+        setInterval(function() { if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshAllData(); } }, 60000);
     })();
     </script>
 </div>
