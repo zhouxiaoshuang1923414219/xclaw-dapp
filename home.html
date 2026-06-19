@@ -1,4 +1,4 @@
-<div id="page-home" class="page-container">
+<div id="page-trade" class="page-container">
     <style>
         .glass-card { background: rgba(18,22,40,0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; margin-bottom: 15px; }
         .title-left h2 { color: #f0b90b; font-size: 18px; } .title-left span { color: #a3adc9; font-size: 12px; }
@@ -25,7 +25,7 @@
     </style>
 
     <div class="glass-card">
-        <div class="flex-row"><div class="title-left"><h2>先锋配售</h2><span>XClaw 先锋轮认购，限量 1,000,000,000 枚</span></div>
+        <div class="flex-row"><div class="title-left"><h2>代币交易</h2><span>XClaw 先锋轮认购，限量 1,000,000,000 枚</span></div>
             <div class="progress-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="25" stroke="rgba(255,255,255,0.1)" stroke-width="5" fill="none"/><circle cx="30" cy="30" r="25" stroke="#f0b90b" stroke-width="5" fill="none" stroke-dasharray="157" stroke-dashoffset="44"/></svg><span class="progress-text">72.07%</span></div>
         </div>
         <div class="status-badge"><span class="spinner-icon"></span> 认购进行中</div>
@@ -38,9 +38,9 @@
     </div>
 
     <div class="glass-card">
-        <div class="title-left"><h2 style="margin-bottom:10px;">参与配售</h2></div>
+        <div class="title-left"><h2 style="margin-bottom:10px;">参与交易</h2></div>
         <div class="input-wrapper">
-            <div class="input-label"><span>认购金额</span><span>余额: <span id="bnbBalance" style="color:#4ecca3;">0</span> BNB</span></div>
+            <div class="input-label"><span>购买金额</span><span>余额: <span id="bnbBalance" style="color:#4ecca3;">0</span> BNB</span></div>
             <div class="input-box">
                 <input type="text" id="amountInput" placeholder="0.0">
                 <div class="flex-row" style="gap:10px;"><span class="max-btn" onclick="setMaxAmount()">MAX</span><div class="token-tag"><div class="token-icon"></div> BNB</div></div>
@@ -51,7 +51,7 @@
             <div class="input-label"><span>获得代币</span></div>
             <div class="input-box"><input type="text" id="outputAmount" value="0" disabled style="color:#fff;"><div class="token-tag"><div style="width:16px;height:16px;background:#e94560;border-radius:50%;margin-right:5px;"></div> XClaw</div></div>
         </div>
-        <button class="btn btn-primary" onclick="confirmPurchase()">确认认购</button>
+        <button class="btn btn-primary" onclick="confirmPurchase()">确认买入</button>
         <div class="rules"><li>首次认购最低 0.2 BNB，追加认购最低 0.1 BNB</li><li>单地址累计认购上限 5 BNB</li></div>
     </div>
     <script>
