@@ -1,0 +1,579 @@
+<!-- ===== OpenClaw（持币分红活动） ===== -->
+<div id="page-openclaw" class="page-container">
+    <style>
+        /* ===== openclaw.html 专用样式 ===== */
+        
+        /* ===== 顶部橙色横幅 - 半开红包信封 ===== */
+        .banner-container {
+            width: 100%;
+            margin-bottom: 15px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #ff8c00, #ff6600);
+            position: relative;
+            padding: 20px 15px 30px 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 102, 0, 0.3);
+        }
+
+        .banner-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .red-packet-wrapper {
+            position: relative;
+            max-width: 320px;
+            margin: 0 auto;
+            padding-bottom: 40px;
+        }
+
+        .sunburst {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-conic-gradient(
+                    from 0deg,
+                    rgba(255, 200, 0, 0.3) 0deg 5deg,
+                    rgba(255, 150, 0, 0.1) 5deg 10deg
+                );
+            border-radius: 12px;
+            z-index: 1;
+            animation: rotateSunburst 30s linear infinite;
+        }
+
+        @keyframes rotateSunburst {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .red-packet-body {
+            position: relative;
+            z-index: 2;
+            background: #e85d3a;
+            border-radius: 12px;
+            padding: 20px 15px 30px 15px;
+            min-height: 180px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 2px solid #d44a2a;
+        }
+
+        .red-packet-flap {
+            position: absolute;
+            top: -30px;
+            left: -2px;
+            right: -2px;
+            height: 40px;
+            background: #d44a2a;
+            border-radius: 12px 12px 0 0;
+            z-index: 4;
+            border: 2px solid #d44a2a;
+            border-bottom: none;
+        }
+
+        .red-packet-flap-open {
+            position: absolute;
+            top: -50px;
+            left: 10px;
+            right: 10px;
+            height: 35px;
+            background: #d44a2a;
+            border-radius: 12px 12px 0 0;
+            z-index: 3;
+            border: 2px solid #d44a2a;
+            border-bottom: none;
+            transform: rotateX(180deg);
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+        }
+
+        .red-packet-bottom {
+            position: absolute;
+            bottom: -10px;
+            left: 10px;
+            right: 10px;
+            height: 20px;
+            background: #d44a2a;
+            border-radius: 0 0 12px 12px;
+            z-index: 1;
+            border: 2px solid #d44a2a;
+            border-top: none;
+        }
+
+        .white-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px 15px;
+            margin: 10px auto 0 auto;
+            max-width: 220px;
+            position: relative;
+            z-index: 5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transform: translateY(-10px);
+            border: 1px solid #e0e0e0;
+        }
+
+        .white-card h2.project-name {
+            color: #1a3c6e;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+
+        .white-card h3.activity-name {
+            color: #d43d2a;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .badge-circle {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f7d875, #d4a017);
+            border: 3px solid #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .badge-content {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 2px solid #b8860b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #f5e6c8;
+            overflow: hidden;
+        }
+
+        .red-packet-line {
+            position: absolute;
+            top: 50%;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            z-index: 2;
+        }
+
+        .card-beige {
+            background: #fcf8e8;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .card-beige h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #222;
+        }
+
+        .card-beige .sub-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .progress-area {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+
+        .circle-progress {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 6px solid #ff8c00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ff8c00;
+            margin-right: 20px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .circle-progress::after {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            border-radius: 50%;
+            border: 6px solid #e0e0e0;
+            border-top-color: #ff8c00;
+            transform: rotate(-45deg);
+        }
+
+        .progress-info {
+            flex: 1;
+        }
+
+        .progress-info .row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .progress-info .row span:last-child {
+            font-weight: bold;
+        }
+
+        .progress-info .highlight {
+            color: #4a90d9;
+        }
+
+        .progress-info .highlight-red {
+            color: #ff3b3b;
+        }
+
+        .countdown-area {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .countdown-area .label {
+            font-size: 14px;
+            color: #555;
+            margin-right: 15px;
+        }
+
+        .countdown-box {
+            display: flex;
+            gap: 8px;
+        }
+
+        .countdown-box .box {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .countdown-box .colon {
+            color: #1a1a1a;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .participate-btn {
+            width: 100%;
+            background: #b0b0b0;
+            border: none;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: not-allowed;
+            text-align: center;
+        }
+
+        .record-table {
+            width: 100%;
+        }
+
+        .record-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 12px;
+        }
+
+        .record-row:last-child {
+            border-bottom: none;
+        }
+
+        .record-row .col-left {
+            display: flex;
+            flex-direction: column;
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        .record-row .col-left .time {
+            color: #999;
+            font-weight: normal;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .record-row .col-mid {
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+            color: #333;
+        }
+
+        .record-row .col-mid .usd {
+            color: #999;
+            font-size: 11px;
+        }
+
+        .record-row .col-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            color: #666;
+            font-size: 11px;
+        }
+
+        .record-row .col-right .icons {
+            display: flex;
+            gap: 4px;
+            margin-top: 2px;
+        }
+
+        .record-row .col-right .icons span {
+            background: #eee;
+            border-radius: 4px;
+            padding: 0 4px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .rules-list {
+            font-size: 13px;
+            color: #444;
+            line-height: 1.8;
+        }
+
+        .rules-list li {
+            list-style: none;
+            margin-bottom: 2px;
+        }
+
+        .rules-list li::before {
+            content: "• ";
+            color: #ff8c00;
+        }
+
+        @media (max-width: 360px) {
+            .white-card {
+                padding: 15px 10px;
+                max-width: 180px;
+            }
+            .white-card h2.project-name {
+                font-size: 18px;
+            }
+            .white-card h3.activity-name {
+                font-size: 16px;
+            }
+        }
+    </style>
+
+    <!-- 顶部半开红包卡片 -->
+    <div class="banner-container">
+        <div class="banner-title">持币分红活动</div>
+        
+        <div class="red-packet-wrapper">
+            <div class="sunburst"></div>
+            <div class="red-packet-flap-open"></div>
+            <div class="red-packet-body">
+                <div class="red-packet-line"></div>
+                <div class="white-card">
+                    <h2 class="project-name">BCBSE</h2>
+                    <h3 class="activity-name">持币分红计划</h3>
+                </div>
+                <div class="red-packet-flap"></div>
+                <div class="badge-circle">
+                    <div class="badge-content">🦅</div>
+                </div>
+            </div>
+            <div class="red-packet-bottom"></div>
+        </div>
+    </div>
+
+    <!-- 活动进度卡片 -->
+    <div class="card-beige">
+        <h3>活动进度</h3>
+        <div class="sub-text">超强共识者奖励计划，持币分红奖励 10% ~ 90%，<br>倒计时结束，暴利分红千亿 USDT!</div>
+        
+        <div class="progress-area">
+            <div class="circle-progress">95%</div>
+            <div class="progress-info">
+                <div class="row">
+                    <span>已领取:</span>
+                    <span class="highlight">224份</span>
+                </div>
+                <div class="row">
+                    <span>剩余:</span>
+                    <span class="highlight-red">0 份</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="countdown-area">
+            <span class="label">距活动结束:</span>
+            <div class="countdown-box">
+                <div class="box">424</div>
+                <div class="colon">:</div>
+                <div class="box">21</div>
+                <div class="colon">:</div>
+                <div class="box">07</div>
+                <div class="colon">:</div>
+                <div class="box">30</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 参与活动卡片 -->
+    <div class="card-beige">
+        <h3>参与活动</h3>
+        <button class="participate-btn">活动已结束</button>
+    </div>
+
+    <!-- 实时领取记录 -->
+    <div class="card-beige">
+        <h3>实时领取记录</h3>
+        <div class="record-table">
+            <div class="record-row">
+                <div class="col-left">
+                    买入 +4,152.69
+                    <span class="time">20:45:11</span>
+                </div>
+                <div class="col-mid">
+                    $19.90
+                    <span class="usd">$0.004792</span>
+                </div>
+                <div class="col-right">
+                    0xea9...c0a73
+                    <div class="icons"><span>📋</span><span>🔗</span></div>
+                </div>
+            </div>
+            <div class="record-row">
+                <div class="col-left">
+                    买入 +32.91K
+                    <span class="time">20:45:04</span>
+                </div>
+                <div class="col-mid">
+                    $128.01
+                    <span class="usd">$0.003890</span>
+                </div>
+                <div class="col-right">
+                    0x2a4...47AAF
+                    <div class="icons"><span>📋</span><span>🔗</span></div>
+                </div>
+            </div>
+            <div class="record-row">
+                <div class="col-left">
+                    买入 +2,176.79
+                    <span class="time">20:43:43</span>
+                </div>
+                <div class="col-mid">
+                    $6.97
+                    <span class="usd">$0.003206</span>
+                </div>
+                <div class="col-right">
+                    0x734...0b975
+                    <div class="icons"><span>📋</span><span>🔗</span></div>
+                </div>
+            </div>
+            <div class="record-row">
+                <div class="col-left">
+                    买入 +3,194.49
+                    <span class="time">20:42:25</span>
+                </div>
+                <div class="col-mid">
+                    $9.97
+                    <span class="usd">$0.003120</span>
+                </div>
+                <div class="col-right">
+                    0x734...0b975
+                    <div class="icons"><span>📋</span><span>🔗</span></div>
+                </div>
+            </div>
+            <div class="record-row">
+                <div class="col-left">
+                    买入 +10.19K
+                    <span class="time">19:52:55</span>
+                </div>
+                <div class="col-mid">
+                    $29.81
+                    <span class="usd">$0.002924</span>
+                </div>
+                <div class="col-right">
+                    0x48B...a14ec
+                    <div class="icons"><span>📋</span><span>🔗</span></div>
+                </div>
+            </div>
+            <div class="record-row">
+                <div class="col-left">
+                    买入 +3,642.20
+                    <span class="time">19:23:59</span>
+                </div>
+                <div class="col-mid">
+                    $9.97
+                    <span class="usd">$0.002737</span>
+                </div>
+                <div class="col-right">
+                    0x1d6...E8a36
+                    <div class="icons"><span>📋</span><span>🔗</span></div>
+                </div>
+            </div>
+            <div class="record-row">
+                <div class="col-left">
+                    买入 +11.72K
+                    <span class="time">16:38:51</span>
+                </div>
+                <div class="col-mid">
+                    $29.91
+                    <span class="usd">$0.002552</span>
+                </div>
+                <div class="col-right">
+                    0x2ee1...6088
+                    <div class="icons"><span>📋</span><span>🔗</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 活动规则说明 -->
+    <div class="card-beige">
+        <h3>活动规则说明</h3>
+        <ul class="rules-list">
+            <li>持币用户才能领取分红奖励，未持币用户只能获取参与奖励</li>
+            <li>持币越多领取的分红越多</li>
+            <li>持有代币且从未卖过币的用户领取的分红更高</li>
+            <li>领取奖励后等待3~5分钟奖励即可发到钱包</li>
+        </ul>
+    </div>
+
+</div>
