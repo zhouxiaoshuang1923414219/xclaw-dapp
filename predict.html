@@ -1,439 +1,58 @@
-<!-- ===== 预测页面 ===== -->
 <div id="page-predict" class="page-container">
     <style>
-        /* ===== predict.html 专用样式 ===== */
-        
-        .predict-card {
-            background: rgba(21, 22, 36, 0.9);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            border: 1px solid #23243a;
-            color: #fff;
-        }
-
-        .predict-card h2 {
-            font-size: 18px;
-            margin-bottom: 4px;
-        }
-
-        .predict-card .sub-text {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 12px;
-        }
-
-        .predict-card .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #1f2135;
-            font-size: 14px;
-        }
-
-        .predict-card .info-row:last-child {
-            border-bottom: none;
-        }
-
-        .predict-card .info-row .label {
-            color: #888;
-        }
-
-        .predict-card .info-row .value {
-            color: #fff;
-            font-weight: bold;
-        }
-
-        .predict-card .info-row .value.orange {
-            color: #ff8c00;
-        }
-
-        .predict-card .info-row .value.red {
-            color: #ff4d4d;
-        }
-
-        .predict-card .info-row .value.green {
-            color: #4caf50;
-        }
-
-        .lobster-icon {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            background: #ff3b3b;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 40px;
-            font-size: 20px;
-            margin-left: auto;
-        }
-
-        .my-delegation-card {
-            background: rgba(21, 22, 36, 0.9);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            border: 1px solid #23243a;
-            color: #fff;
-        }
-
-        .my-delegation-card h3 {
-            font-size: 16px;
-            margin-bottom: 12px;
-        }
-
-        .delegation-stats {
-            display: flex;
-            justify-content: space-between;
-            text-align: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #1f2135;
-        }
-
-        .delegation-stats .stat {
-            flex: 1;
-        }
-
-        .delegation-stats .stat .number {
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .delegation-stats .stat .label {
-            font-size: 11px;
-            color: #888;
-            margin-top: 2px;
-        }
-
-        .delegation-stats .stat .number.green {
-            color: #4caf50;
-        }
-
-        .delegation-stats .stat .number.orange {
-            color: #ff8c00;
-        }
-
-        .delegation-stats .stat .number.blue {
-            color: #4a90d9;
-        }
-
-        .delegation-btn {
-            width: 100%;
-            background: linear-gradient(90deg, #ff3b3b, #ff5252);
-            border: none;
-            color: white;
-            padding: 12px;
-            border-radius: 25px;
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 15px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(255, 59, 59, 0.3);
-        }
-
-        .strategy-card {
-            background: rgba(21, 22, 36, 0.9);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            border: 1px solid #23243a;
-            color: #fff;
-        }
-
-        .strategy-card h3 {
-            font-size: 16px;
-            margin-bottom: 12px;
-        }
-
-        .strategy-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .strategy-tabs .tab {
-            flex: 1;
-            padding: 8px 0;
-            text-align: center;
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            background: #1a1a2e;
-            border: 1px solid #2a2a40;
-            color: #888;
-            transition: all 0.3s;
-        }
-
-        .strategy-tabs .tab.active {
-            background: #1a1a2e;
-            border-color: #ff3b3b;
-            color: #fff;
-        }
-
-        .strategy-values {
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            border-top: 1px solid #1f2135;
-        }
-
-        .strategy-values .value {
-            font-size: 16px;
-            font-weight: bold;
-            color: #4caf50;
-        }
-
-        .strategy-values .value.green {
-            color: #4caf50;
-        }
-
-        .strategy-values .value.red {
-            color: #ff4d4d;
-        }
-
-        .position-tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #1f2135;
-        }
-
-        .position-tabs .tab {
-            padding: 8px 20px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #888;
-            position: relative;
-        }
-
-        .position-tabs .tab.active {
-            color: #fff;
-        }
-
-        .position-tabs .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #ff3b3b;
-        }
-
-        .predict-item {
-            background: rgba(21, 22, 36, 0.9);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 10px;
-            border: 1px solid #23243a;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .predict-item .icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #1a1a2e;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        .predict-item .content {
-            flex: 1;
-        }
-
-        .predict-item .content .title {
-            font-size: 14px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 4px;
-        }
-
-        .predict-item .content .sub {
-            font-size: 12px;
-            color: #888;
-        }
-
-        .predict-item .right {
-            text-align: right;
-            flex-shrink: 0;
-        }
-
-        .predict-item .right .amount {
-            font-size: 14px;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .predict-item .right .amount.green {
-            color: #4caf50;
-        }
-
-        .predict-item .right .amount.red {
-            color: #ff4d4d;
-        }
-
-        .predict-item .right .change {
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .predict-item .right .change.green {
-            color: #4caf50;
-        }
-
-        .predict-item .right .change.red {
-            color: #ff4d4d;
-        }
-
-        .predict-item .right .percent {
-            font-size: 11px;
-            color: #888;
-        }
-
-        .predict-item .right .percent.green {
-            color: #4caf50;
-        }
-
-        .predict-item .right .percent.red {
-            color: #ff4d4d;
-        }
-        
-        .predict-item .right .percent.gray {
-            color: #888;
-        }
-
-        .predict-item .right .status {
-            font-size: 11px;
-            color: #888;
-        }
-        
-        .predict-item .right .status.green {
-            color: #4caf50;
-        }
-        
-        .predict-item .right .status.red {
-            color: #ff4d4d;
-        }
+        .glass-card { background: rgba(18,22,40,0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; margin-bottom: 15px; }
+        .flex-row { display: flex; justify-content: space-between; align-items: center; }
+        .title-main { color: #f7c744; font-size: 18px; font-weight: bold; }
+        .desc { color: #a3adc9; font-size: 12px; }
+        .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .info-row .val-orange { color: #f0b90b; font-weight: bold; } .info-row .val-red { color: #e94560; font-weight: bold; }
+        .lobster-icon { display: inline-block; width: 40px; height: 40px; background: linear-gradient(135deg,#e94560,#b92b4a); border-radius: 50%; text-align: center; line-height: 40px; font-size: 20px; }
+        .delegation-stats { display: flex; justify-content: space-between; text-align: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .delegation-stats .num { font-size: 16px; font-weight: bold; } .delegation-stats .num.green { color: #4ecca3; } .delegation-stats .num.orange { color: #f0b90b; }
+        .delegation-stats .label { font-size: 11px; color: #888; margin-top: 2px; }
+        .btn-primary { width:100%; background: linear-gradient(135deg,#e94560,#b92b4a); color: #fff; border:none; padding:12px; border-radius:25px; font-size:16px; font-weight:bold; margin-top:15px; cursor:pointer; box-shadow:0 4px 12px rgba(233,69,96,0.3); }
+        .strategy-tabs { display: flex; gap: 10px; margin-bottom: 12px; }
+        .strategy-tabs .tab { flex:1; padding:8px 0; text-align:center; border-radius:8px; font-size:13px; cursor:pointer; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.05); color:#888; }
+        .strategy-tabs .tab.active { border-color:#f0b90b; color:#f0b90b; }
+        .strategy-values { display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+        .strategy-values .val-green { font-size: 16px; font-weight: bold; color: #4ecca3; }
+        .position-tabs { display: flex; gap: 0; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .position-tabs .tab { padding: 8px 20px; cursor: pointer; font-size: 14px; color: #888; }
+        .position-tabs .tab.active { color: #f0b90b; border-bottom: 2px solid #f0b90b; }
+        .predict-item { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 12px; }
+        .predict-item .icon { width: 40px; height: 40px; border-radius: 50%; background: #0f1422; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.05); }
+        .predict-item .title { font-size: 14px; font-weight: bold; color: #ccd6f0; margin-bottom: 4px; }
+        .predict-item .sub { font-size: 12px; color: #a3adc9; }
+        .predict-item .right { text-align: right; flex-shrink: 0; }
+        .predict-item .amount { font-size: 14px; font-weight: bold; } .amount.green { color: #4ecca3; } .amount.red { color: #e94560; }
+        .change.green { color: #4ecca3; } .change.red { color: #e94560; }
+        .percent.green { color: #4ecca3; } .percent.red { color: #e94560; }
     </style>
 
-    <div class="predict-card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-                <h2>预测委托</h2>
-                <div class="sub-text">让XClaw预测市场AI智能体，帮您实现自动化收益：</div>
-            </div>
-            <div class="lobster-icon">🦞</div>
-        </div>
-        
-        <div class="info-row">
-            <span class="label">委托金额：</span>
-            <span class="value orange">31600 USDT</span>
-        </div>
-        <div class="info-row">
-            <span class="label">预期APR：</span>
-            <span class="value red">9-27%</span>
-        </div>
+    <div class="glass-card">
+        <div class="flex-row"><div><div class="title-main">预测委托</div><div class="desc">让MYK预测市场AI智能体，帮您实现自动化收益</div></div><div class="lobster-icon">🦞</div></div>
+        <div class="info-row"><span class="desc">委托金额：</span><span class="val-orange">31600 USDT</span></div>
+        <div class="info-row"><span class="desc">预期APR：</span><span class="val-red">9-27%</span></div>
     </div>
 
-    <div class="my-delegation-card">
-        <h3>我的委托</h3>
+    <div class="glass-card">
+        <div class="title-main" style="font-size:16px;margin-bottom:12px;">我的委托</div>
         <div class="delegation-stats">
-            <div class="stat">
-                <div class="number">未参与</div>
-                <div class="label">当前委托</div>
-            </div>
-            <div class="stat">
-                <div class="number green">0 USDT</div>
-                <div class="label">累计收益</div>
-            </div>
-            <div class="stat">
-                <div class="number orange">灵活</div>
-                <div class="label">退出周期</div>
-            </div>
+            <div><div class="num">未参与</div><div class="label">当前委托</div></div>
+            <div><div class="num green">0 USDT</div><div class="label">累计收益</div></div>
+            <div><div class="num orange">灵活</div><div class="label">退出周期</div></div>
         </div>
-        <button class="delegation-btn">立即委托</button>
+        <button class="btn-primary">立即委托</button>
     </div>
 
-    <div class="strategy-card">
-        <h3>策略表现</h3>
-        <div class="strategy-tabs">
-            <div class="tab active">1W</div>
-            <div class="tab">1M</div>
-            <div class="tab">1Y</div>
-        </div>
-        <div class="strategy-values">
-            <div class="value green">↗ 115.07K</div>
-            <div class="value green">↗ 157.86K</div>
-            <div class="value green">↗ 462.85</div>
-        </div>
+    <div class="glass-card">
+        <div class="title-main" style="font-size:16px;margin-bottom:12px;">策略表现</div>
+        <div class="strategy-tabs"><div class="tab active">1W</div><div class="tab">1M</div><div class="tab">1Y</div></div>
+        <div class="strategy-values"><div class="val-green">↗ 115.07K</div><div class="val-green">↗ 157.86K</div><div class="val-green">↗ 462.85</div></div>
     </div>
 
-    <div class="position-tabs">
-        <div class="tab active">Positions</div>
-        <div class="tab">Activity</div>
-    </div>
-
-    <!-- 预测列表 (示例) -->
-    <div class="predict-item">
-        <div class="icon">🏀</div>
-        <div class="content">
-            <div class="title">Will the Oklahoma City Thunder win the 2026 NBA Finals?</div>
-            <div class="sub">Yes 40.31¢ | No 59.69¢</div>
-        </div>
-        <div class="right">
-            <div class="amount green">$92349</div>
-            <div class="change green">$28786</div>
-            <div class="percent green">45%</div>
-        </div>
-    </div>
-
-    <div class="predict-item">
-        <div class="icon">🏀</div>
-        <div class="content">
-            <div class="title">Will the New York Knicks win the 2026 NBA Finals?</div>
-            <div class="sub">Yes 3.5¢ | No 96.5¢</div>
-        </div>
-        <div class="right">
-            <div class="amount green">$5594</div>
-            <div class="change green">$4200</div>
-            <div class="percent green">301%</div>
-        </div>
-    </div>
-
-    <div class="predict-item">
-        <div class="icon">🏀</div>
-        <div class="content">
-            <div class="title">Will the Cleveland Cavaliers win the 2026 NBA Finals?</div>
-            <div class="sub">Yes 4.1¢ | No 95.9¢</div>
-        </div>
-        <div class="right">
-            <div class="amount green">$4981</div>
-            <div class="change green">$50</div>
-            <div class="percent green">1%</div>
-        </div>
-    </div>
-
-    <div class="predict-item">
-        <div class="icon">🏗️</div>
-        <div class="content">
-            <div class="title">Mamdani opens city-owned grocery store by...</div>
-            <div class="sub">No 86¢ | Yes 14¢</div>
-        </div>
-        <div class="right">
-            <div class="amount green">$4877</div>
-            <div class="change green">$577</div>
-            <div class="percent green">13%</div>
-        </div>
-    </div>
-
+    <div class="position-tabs"><div class="tab active">Positions</div><div class="tab">Activity</div></div>
+    <div class="predict-item"><div class="icon">🏀</div><div><div class="title">Will the Oklahoma City Thunder win the 2026 NBA Finals?</div><div class="sub">Yes 40.31¢ | No 59.69¢</div></div><div class="right"><div class="amount green">$92349</div><div class="change green">+$28786</div><div class="percent green">45%</div></div></div>
+    <div class="predict-item"><div class="icon">🏀</div><div><div class="title">Will the New York Knicks win the 2026 NBA Finals?</div><div class="sub">Yes 3.5¢ | No 96.5¢</div></div><div class="right"><div class="amount green">$5594</div><div class="change green">+$4200</div><div class="percent green">301%</div></div></div>
+    <div class="predict-item"><div class="icon">🏀</div><div><div class="title">Will the Cleveland Cavaliers win the 2026 NBA Finals?</div><div class="sub">Yes 4.1¢ | No 95.9¢</div></div><div class="right"><div class="amount green">$4981</div><div class="change green">+$50</div><div class="percent green">1%</div></div></div>
 </div>
