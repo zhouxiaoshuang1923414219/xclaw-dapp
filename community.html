@@ -1,0 +1,246 @@
+<!-- ===== 社区页面 ===== -->
+<div id="page-community" class="page-container">
+    <style>
+        /* ===== community.html 专用样式 ===== */
+        
+        .community-card {
+            background: rgba(21, 22, 36, 0.9);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #23243a;
+            color: #fff;
+        }
+
+        .community-card .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .community-card .header h3 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .community-card .header .link {
+            font-size: 13px;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .community-card .header .link:hover {
+            color: #fff;
+        }
+
+        .community-card .sub-text {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 12px;
+        }
+
+        .invite-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #2a2a40;
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #fff;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: monospace;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #2a2a40;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 59, 59, 0.1);
+            border-color: #ff3b3b;
+        }
+
+        .action-btn .icon {
+            font-size: 18px;
+        }
+
+        .action-btn .icon.red {
+            color: #ff3b3b;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .data-grid .data-item {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 12px;
+            padding: 14px;
+            border: 1px solid #2a2a40;
+        }
+
+        .data-grid .data-item .label {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .data-grid .data-item .value {
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .data-grid .data-item .value .num {
+            font-size: 20px;
+        }
+
+        .data-grid .data-item .value .num.white {
+            color: #fff;
+        }
+
+        .data-grid .data-item .value .unit {
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+
+    <div class="community-card">
+        <div class="header">
+            <h3>社区</h3>
+        </div>
+        <div class="sub-text">邀请好友，共建社区，赚取推荐奖励</div>
+        
+        <div class="invite-input">https://dapp.xcl...E5Ed</div>
+        
+        <div class="action-row">
+            <button class="action-btn" onclick="copyInviteLink()">
+                <span class="icon red">📋</span>
+                复制链接
+            </button>
+            <button class="action-btn" onclick="showQRCode()">
+                <span class="icon red">📱</span>
+                二维码
+            </button>
+        </div>
+    </div>
+
+    <div class="community-card">
+        <div class="header">
+            <h3>社区数据</h3>
+            <div class="link">查看直推 ›</div>
+        </div>
+        
+        <div class="data-grid">
+            <div class="data-item">
+                <div class="label">直推人数</div>
+                <div class="value">
+                    <span class="num white">0</span>
+                </div>
+            </div>
+            <div class="data-item">
+                <div class="label">团队人数</div>
+                <div class="value">
+                    <span class="num white">0</span>
+                </div>
+            </div>
+            <div class="data-item">
+                <div class="label">团队认购</div>
+                <div class="value">
+                    <span class="num white">0</span>
+                    <span class="unit">BNB</span>
+                </div>
+            </div>
+            <div class="data-item">
+                <div class="label">小区认购</div>
+                <div class="value">
+                    <span class="num white">0</span>
+                    <span class="unit">BNB</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyInviteLink() {
+            const link = 'https://dapp.xclaw.io/ref/0x' + (window.currentAccount ? window.currentAccount.substring(2, 8) : '123456');
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(link)
+                    .then(() => {
+                        showToast('链接已复制到剪贴板！', 'success');
+                    })
+                    .catch(() => {
+                        fallbackCopy(link);
+                    });
+            } else {
+                fallbackCopy(link);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast('链接已复制到剪贴板！', 'success');
+            } catch (err) {
+                showToast('复制失败，请手动复制', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function showQRCode() {
+            showToast('二维码功能开发中...', 'info');
+        }
+
+        if (typeof showToast !== 'function') {
+            function showToast(message, type = 'info') {
+                const toast = document.getElementById('toast');
+                if (toast) {
+                    toast.textContent = message;
+                    toast.className = 'toast ' + type;
+                    toast.style.display = 'block';
+                    clearTimeout(toast._hideTimer);
+                    toast._hideTimer = setTimeout(() => {
+                        toast.style.display = 'none';
+                    }, 3000);
+                } else {
+                    alert(message);
+                }
+            }
+        }
+    </script>
+</div>
