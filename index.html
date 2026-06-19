@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MYK DApp</title>
     <style>
-        /* ===== MYK 全局基础 ===== */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         body {
             background: radial-gradient(circle at 30% 10%, #1e2a4a, #0b0f1a);
@@ -16,8 +15,6 @@
             width: 100%; max-width: 414px;
             padding: 70px 15px 80px 15px; position: relative; min-height: 100vh;
         }
-
-        /* ===== 顶部导航 (毛玻璃) ===== */
         header {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: 414px; z-index: 1000;
@@ -38,7 +35,6 @@
         .wallet-dot { width: 6px; height: 6px; background: #e94560; border-radius: 50%; margin-right: 6px; transition: 0.3s; }
         .wallet-dot.connected-dot { background: #4ecca3; }
 
-        /* ===== 底部导航 (已修改为 资产、行情、交易、生态、社区) ===== */
         .bottom-nav {
             position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: 414px;
@@ -53,7 +49,6 @@
         .nav-icon.placeholder { background-color: currentColor; opacity: 0.3; }
         .nav-item.active .nav-icon.placeholder { background-color: #f0b90b; opacity: 1; }
 
-        /* ===== Toast ===== */
         .toast {
             position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
             background: #0f1422; border: 1px solid #394056; border-left: 4px solid #e94560;
@@ -79,7 +74,6 @@
         </header>
         <div id="page-container"></div>
         
-        <!-- 底部导航 (已修改) -->
         <div class="bottom-nav">
             <div class="nav-item" onclick="switchTab('assets')">
                 <div class="nav-icon placeholder"></div>资产
@@ -98,10 +92,15 @@
             </div>
         </div>
     </div>
+
+    <!-- ===== 引入 Web3.js ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    
     <script>
-        window.isConnected = false; window.currentAccount = null; window.mockBalance = 12.5;
-        
-        // 路由映射表（已更新）
+        // ===== 全局状态 =====
+        window.isConnected = false;
+        window.currentAccount = null;
+
         const pageMap = {
             'assets': 'assets.html',
             'markets': 'predict.html',
@@ -109,28 +108,191 @@
             'ecosystem': 'openclaw.html',
             'community': 'community.html'
         };
+
+        // ===== 工具函数 =====
+        function a6(a) { return a.slice(0, 6) + '...' + a.slice(-4); }
         
-        function loadPage(name) {
-            const c = document.getElementById('page-container');
-            c.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:80vh;color:#a3adc9;font-size:14px;">加载中...</div>`;
-            fetch(pageMap[name]).then(r=>r.text()).then(h=>{ c.innerHTML=h; c.querySelectorAll('script').forEach(s=>{ let ns=document.createElement('script'); ns.textContent=s.textContent; document.body.appendChild(ns); document.body.removeChild(ns); }); }).catch(()=>c.innerHTML=`<div style="color:#e94560;text-align:center;margin-top:40px;">加载失败</div>`);
+        function showToast(msg, type) {
+            type = type || 'info';
+            const tEl = document.getElementById('toast');
+            tEl.textContent = msg;
+            tEl.className = 'toast ' + type;
+            tEl.style.display = 'block';
+            clearTimeout(tEl._timer);
+            tEl._timer = setTimeout(function() { tEl.style.display = 'none'; }, 3000);
         }
-        
+
+        // ===== 钱包连接（真实 MetaMask） =====
+        async function connectWallet() {
+            if (!window.ethereum) {
+                alert('请安装 MetaMask 钱包');
+                return;
+            }
+            try {
+                showToast('🔄 正在连接钱包...', 'info');
+                // 请求 MetaMask 授权
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                if (accounts && accounts.length > 0) {
+                    window.currentAccount = accounts[0];
+                    window.isConnected = true;
+                    
+                    // 初始化 web3（全局可用）
+                    if (!window.web3) {
+                        window.web3 = new Web3(window.ethereum);
+                    }
+                    
+                    updateWalletUI();
+                    showToast('✅ 钱包连接成功', 'success');
+                    
+                    // 触发自定义事件，通知子页面钱包已连接
+                    document.dispatchEvent(new CustomEvent('walletConnected', { 
+                        detail: { account: window.currentAccount } 
+                    }));
+                }
+            } catch (e) {
+                console.error('连接失败:', e);
+                showToast('❌ 连接失败: ' + (e.message || '用户拒绝'), 'error');
+            }
+        }
+
+        function disconnectWallet() {
+            window.isConnected = false;
+            window.currentAccount = null;
+            updateWalletUI();
+            showToast('🔌 钱包已断开', 'info');
+            
+            // 通知子页面钱包已断开
+            document.dispatchEvent(new CustomEvent('walletDisconnected'));
+        }
+
+        function toggleWallet() {
+            if (window.isConnected) {
+                disconnectWallet();
+            } else {
+                connectWallet();
+            }
+        }
+
+        function updateWalletUI() {
+            const btn = document.getElementById('walletConnectBtn');
+            const dot = document.getElementById('walletDot');
+            const status = document.getElementById('walletStatus');
+            
+            if (window.isConnected && window.currentAccount) {
+                btn.classList.add('connected');
+                dot.classList.add('connected-dot');
+                status.textContent = a6(window.currentAccount);
+            } else {
+                btn.classList.remove('connected');
+                dot.classList.remove('connected-dot');
+                status.textContent = '连接钱包';
+            }
+        }
+
+        // ===== 监听 MetaMask 事件 =====
+        if (window.ethereum) {
+            // 账户切换
+            window.ethereum.on('accountsChanged', function(accounts) {
+                if (accounts.length > 0) {
+                    window.currentAccount = accounts[0];
+                    window.isConnected = true;
+                    updateWalletUI();
+                    showToast('🔄 账户已切换', 'info');
+                    document.dispatchEvent(new CustomEvent('walletConnected', { 
+                        detail: { account: window.currentAccount } 
+                    }));
+                } else {
+                    disconnectWallet();
+                }
+            });
+
+            // 链切换
+            window.ethereum.on('chainChanged', function() {
+                showToast('🔄 网络已切换，即将刷新', 'info');
+                setTimeout(function() { location.reload(); }, 1000);
+            });
+
+            // 断开连接
+            window.ethereum.on('disconnect', function() {
+                disconnectWallet();
+            });
+        }
+
+        // ===== 页面加载 =====
+        function loadPage(name) {
+            const container = document.getElementById('page-container');
+            container.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:80vh;color:#a3adc9;font-size:14px;">⏳ 加载中...</div>';
+            
+            fetch(pageMap[name])
+                .then(function(r) { return r.text(); })
+                .then(function(html) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    
+                    // 移除旧的动态样式
+                    document.querySelectorAll('style[data-dynamic]').forEach(function(el) { el.remove(); });
+                    
+                    // 提取并注入样式
+                    const styles = tempDiv.querySelectorAll('style');
+                    styles.forEach(function(style) {
+                        const newStyle = document.createElement('style');
+                        newStyle.textContent = style.textContent;
+                        newStyle.setAttribute('data-dynamic', 'true');
+                        document.head.appendChild(newStyle);
+                    });
+                    
+                    styles.forEach(function(s) { s.remove(); });
+                    container.innerHTML = tempDiv.innerHTML;
+                    
+                    // 执行脚本
+                    const scripts = container.querySelectorAll('script');
+                    scripts.forEach(function(oldScript) {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = oldScript.textContent;
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+                })
+                .catch(function() {
+                    container.innerHTML = '<div style="color:#e94560;text-align:center;margin-top:40px;">❌ 加载失败</div>';
+                });
+        }
+
         function switchTab(name) {
-            document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-            const idx = {'assets':0, 'markets':1, 'trade':2, 'ecosystem':3, 'community':4};
-            if(idx[name]!==undefined) document.querySelectorAll('.nav-item')[idx[name]].classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(function(i) { i.classList.remove('active'); });
+            const idx = { 'assets': 0, 'markets': 1, 'trade': 2, 'ecosystem': 3, 'community': 4 };
+            if (idx[name] !== undefined) {
+                document.querySelectorAll('.nav-item')[idx[name]].classList.add('active');
+            }
             loadPage(name);
         }
-        
-        function generateAddr(){ let a='0x'; for(let i=0;i<40;i++) a+='0123456789abcdef'[Math.floor(Math.random()*16)]; return a; }
-        function fmtAddr(a){ return a ? a.substring(0,6)+'...'+a.substring(a.length-4) : ''; }
-        function toggleWallet(){ window.isConnected ? disconnect() : connect(); }
-        function connect(){ showToast('连接钱包...','info'); setTimeout(()=>{ window.currentAccount=generateAddr(); window.isConnected=true; updateUI(); showToast('连接成功','success'); },800); }
-        function disconnect(){ window.isConnected=false; window.currentAccount=null; updateUI(); showToast('已断开','info'); }
-        function updateUI(){ const b=document.getElementById('walletConnectBtn'), d=document.getElementById('walletDot'), s=document.getElementById('walletStatus'); if(window.isConnected&&window.currentAccount){ b.classList.add('connected'); d.classList.add('connected-dot'); s.textContent=fmtAddr(window.currentAccount); } else { b.classList.remove('connected'); d.classList.remove('connected-dot'); s.textContent='连接钱包'; } }
-        function showToast(msg,t='info'){ const tEl=document.getElementById('toast'); tEl.textContent=msg; tEl.className='toast '+t; tEl.style.display='block'; clearTimeout(tEl._timer); tEl._timer=setTimeout(()=>tEl.style.display='none',3000); }
-        document.addEventListener('DOMContentLoaded',()=>switchTab('trade'));
+
+        // ===== 自动连接 =====
+        async function autoConnect() {
+            if (window.ethereum) {
+                // 初始化 web3
+                window.web3 = new Web3(window.ethereum);
+                
+                try {
+                    // 检查是否已授权
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts && accounts.length > 0) {
+                        window.currentAccount = accounts[0];
+                        window.isConnected = true;
+                        updateWalletUI();
+                        console.log('自动连接成功:', a6(window.currentAccount));
+                    }
+                } catch (e) {
+                    console.log('自动连接失败（需手动连接）');
+                }
+            }
+        }
+
+        // ===== 初始化 =====
+        document.addEventListener('DOMContentLoaded', function() {
+            autoConnect().then(function() {
+                switchTab('trade');
+            });
+        });
     </script>
 </body>
 </html>
