@@ -1,68 +1,155 @@
 <div id="page-ecosystem" class="page-container">
     <style>
-        .glass-card { background: rgba(18,22,40,0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; margin-bottom: 15px; }
-        .banner-container { width:100%; margin-bottom:15px; border-radius:16px; overflow:hidden; background:linear-gradient(135deg,#f0b90b,#e8a000); padding:20px 15px 30px 15px; text-align:center; }
-        .banner-title { font-size:22px; font-weight:bold; color:#fff; margin-bottom:15px; position:relative; z-index:2; }
-        .red-packet-wrapper { position:relative; max-width:320px; margin:0 auto; padding-bottom:40px; }
-        .sunburst { position:absolute; top:0; left:0; right:0; bottom:0; background:repeating-conic-gradient(from 0deg, rgba(255,255,255,0.1) 0deg 5deg, transparent 5deg 10deg); border-radius:12px; z-index:1; }
-        .red-packet-body { position:relative; z-index:2; background:#e94560; border-radius:12px; padding:20px 15px 30px 15px; min-height:180px; border:2px solid #b92b4a; box-shadow:0 4px 15px rgba(233,69,96,0.3); }
-        .red-packet-flap-open { position:absolute; top:-50px; left:10px; right:10px; height:35px; background:#b92b4a; border-radius:12px 12px 0 0; z-index:3; border:2px solid #b92b4a; border-bottom:none; transform:rotateX(180deg); }
-        .red-packet-flap { position:absolute; top:-30px; left:-2px; right:-2px; height:40px; background:#b92b4a; border-radius:12px 12px 0 0; z-index:4; border:2px solid #b92b4a; border-bottom:none; }
-        .red-packet-bottom { position:absolute; bottom:-10px; left:10px; right:10px; height:20px; background:#b92b4a; border-radius:0 0 12px 12px; z-index:1; border:2px solid #b92b4a; border-top:none; }
-        .white-card { background:#0b0f1a; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:20px 15px; margin:10px auto 0 auto; max-width:220px; position:relative; z-index:5; transform:translateY(-10px); color:#fff; }
-        .white-card h2 { color:#f0b90b; font-size:24px; font-weight:bold; margin-bottom:4px; } .white-card h3 { color:#e94560; font-size:20px; font-weight:bold; }
-        .badge-circle { position:absolute; bottom:-25px; left:50%; transform:translateX(-50%); width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#f0b90b,#e8a000); border:3px solid #fff; z-index:6; display:flex; align-items:center; justify-content:center; }
-        .badge-content { width:46px; height:46px; border-radius:50%; border:2px solid #f0b90b; display:flex; align-items:center; justify-content:center; font-size:24px; background:#0f1422; }
-        
-        .card-beige { background: rgba(18,22,40,0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; margin-bottom: 15px; color: #ccd6f0; }
-        .card-beige h3 { color: #f0b90b; font-size: 18px; margin-bottom: 8px; }
-        .card-beige .sub-text { color: #a3adc9; font-size: 13px; margin-bottom: 12px; }
-        .progress-area { display: flex; align-items: center; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
-        .circle-progress { width:70px; height:70px; border-radius:50%; border:6px solid rgba(255,255,255,0.1); border-top-color:#f0b90b; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; color:#f0b90b; margin-right:20px; flex-shrink:0; }
-        .progress-info .highlight { color:#4ecca3; } .progress-info .highlight-red { color:#e94560; }
-        .countdown-box .box { background:rgba(0,0,0,0.4); color:#f0b90b; padding:6px 10px; border-radius:6px; font-size:16px; font-weight:bold; min-width:32px; text-align:center; border:1px solid rgba(255,255,255,0.05); }
-        .participate-btn { width:100%; background:#2d325a; color:#888; border:none; padding:12px; border-radius:8px; font-size:16px; font-weight:bold; cursor:not-allowed; }
-        .record-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
-        .record-row .col-left { color: #4ecca3; } .record-row .col-left .time { color: #888; }
-        .record-row .col-mid { color: #ccd6f0; } .record-row .col-mid .usd { color: #a3adc9; }
-        .record-row .col-right { color: #a3adc9; }
-        .rules-list { color: #a3adc9; font-size: 13px; line-height: 1.8; } .rules-list li { list-style:none; } .rules-list li::before { content:"• "; color:#f0b90b; }
+        .glass-card { 
+            background: rgba(18,22,40,0.7); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 16px; 
+            padding: 20px; 
+            margin-bottom: 15px; 
+            color: #ccd6f0; 
+        }
+        .title-main { color: #f0b90b; font-size: 18px; font-weight: bold; }
+        .desc { color: #a3adc9; font-size: 14px; margin-bottom: 8px; }
+        .highlight { color: #4ef0a8; font-weight: 700; }
+        .highlight-green { color: #4ecca3; font-weight: 700; }
+        .stat-row {
+            display: flex; justify-content: space-between;
+            font-size: 13px; color: #ccd6f0; margin: 4px 0;
+        }
+        .stat-value { color: #4ef0a8; font-weight: 700; }
+        .progress-bar-container {
+            width: 100%; height: 20px; background: #1a1f35;
+            border-radius: 10px; margin: 8px 0; overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%; border-radius: 10px; transition: width 0.3s;
+            background: linear-gradient(90deg, #4ecca3, #f0b90b);
+        }
     </style>
 
-    <div class="banner-container">
-        <div class="banner-title">生态活动</div>
-        <div class="red-packet-wrapper">
-            <div class="sunburst"></div><div class="red-packet-flap-open"></div>
-            <div class="red-packet-body">
-                <div class="white-card"><h2>BCBSE</h2><h3>持币分红计划</h3></div>
-                <div class="red-packet-flap"></div>
-                <div class="badge-circle"><div class="badge-content">🦅</div></div>
-            </div>
-            <div class="red-packet-bottom"></div>
+    <!-- ========== 百万MYK生态福利 ========== -->
+    <div class="glass-card">
+        <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 12px;">
+            🎁 百万MYK生态福利
+        </h2>
+        <div class="desc">
+            新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK，总量 
+            <span class="highlight-green" id="airdropTotal">--</span> MYK 赠完即止
+        </div>
+        <div class="stat-row">
+            <span>已赠送：<span class="stat-value" id="airdropPaid">--</span> MYK</span>
+            <span>剩余：<span class="stat-value" id="airdropRemaining">--</span> MYK</span>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="airdropProgress" style="width:0%;"></div>
+        </div>
+        <div class="stat-row" style="margin-top:4px;">
+            <span style="color:#888;">当前奖金池：<span id="airdropPoolBalance">--</span> MYK</span>
+            <span style="color:#888;" id="airdropPercent">0%</span>
         </div>
     </div>
 
-    <div class="card-beige">
-        <h3>活动进度</h3>
-        <div class="sub-text">超强共识者奖励计划，持币分红奖励 10% ~ 90%</div>
-        <div class="progress-area">
-            <div class="circle-progress">95%</div>
-            <div><div class="flex-row" style="margin-bottom:4px;"><span>已领取:</span><span class="highlight">224份</span></div><div class="flex-row"><span>剩余:</span><span class="highlight-red">0 份</span></div></div>
-        </div>
-        <div class="flex-row" style="margin-top:5px;"><span style="color:#a3adc9;">距活动结束:</span><div class="flex-row" style="gap:5px;"><div class="countdown-box" style="display:flex;gap:5px;"><div class="box">424</div><span class="desc">:</span><div class="box">21</div><span class="desc">:</span><div class="box">07</div><span class="desc">:</span><div class="box">30</div></div></div></div>
-    </div>
+    <script>
+    (function() {
+        var RP = '0xD9772cb247913f0d61D2Ae5093Ad8dDd9a197f53';
+        var AIRDROP_INITIAL = 1000000;
+        var AIRDROP_STORAGE_KEY = 'myk_airdrop_total_v2_';
+        var airdropTotalAmount = 1000000;
 
-    <div class="card-beige"><h3>参与活动</h3><button class="participate-btn">活动已结束</button></div>
+        function $(id) { return document.getElementById(id); }
+        function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
+        function formatM(v) {
+            if (v >= 1000000) return (v / 1000000).toFixed(2) + 'M';
+            if (v >= 1000) return (v / 1000).toFixed(2) + 'K';
+            return v.toFixed(2);
+        }
 
-    <div class="card-beige">
-        <h3>实时领取记录</h3>
-        <div class="record-row"><div class="col-left">买入 +4,152.69<span class="time">20:45:11</span></div><div class="col-mid">$19.90<span class="usd">$0.004792</span></div><div class="col-right">0xea9...c0a73</div></div>
-        <div class="record-row"><div class="col-left">买入 +32.91K<span class="time">20:45:04</span></div><div class="col-mid">$128.01<span class="usd">$0.003890</span></div><div class="col-right">0x2a4...47AAF</div></div>
-        <div class="record-row"><div class="col-left">买入 +2,176.79<span class="time">20:43:43</span></div><div class="col-mid">$6.97<span class="usd">$0.003206</span></div><div class="col-right">0x734...0b975</div></div>
-    </div>
+        function encodeCall(sig, types, values) {
+            var s = web3.eth.abi.encodeFunctionSignature(sig);
+            if (!types || !types.length) return s;
+            var e = web3.eth.abi.encodeParameters(types, values);
+            return s + e.slice(2);
+        }
 
-    <div class="card-beige">
-        <h3>活动规则说明</h3>
-        <ul class="rules-list"><li>持币用户才能领取分红奖励，未持币用户只能获取参与奖励</li><li>持币越多领取的分红越多</li><li>持有代币且从未卖过币的用户领取的分红更高</li><li>领取奖励后等待3~5分钟奖励即可发到钱包</li></ul>
-    </div>
+        // ===== 获取空投数据（与原文件 fetchAirdrop 完全一致） =====
+        async function fetchAirdrop() {
+            if (!web3) return;
+            try {
+                // 查询当前奖金池余额
+                var data = encodeCall('getActivityPoolBalance()');
+                var result = await web3.eth.call({ to: RP, data: data });
+                var currentBalance = n(web3.eth.abi.decodeParameter('uint256', result));
+
+                // 缓存逻辑
+                var storageKey = AIRDROP_STORAGE_KEY + RP;
+                var stored = localStorage.getItem(storageKey);
+
+                if (!stored) {
+                    // 首次加载：取最大值
+                    airdropTotalAmount = Math.max(currentBalance, AIRDROP_INITIAL);
+                    localStorage.setItem(storageKey, airdropTotalAmount);
+                } else {
+                    airdropTotalAmount = parseFloat(stored);
+                    // 如果当前余额 > 缓存值，更新缓存
+                    if (currentBalance > airdropTotalAmount) {
+                        airdropTotalAmount = currentBalance;
+                        localStorage.setItem(storageKey, airdropTotalAmount);
+                    }
+                }
+
+                // 计算已赠送和进度
+                var paid = airdropTotalAmount - currentBalance;
+                var percent = Math.min(100, Math.max(0, (paid / airdropTotalAmount) * 100));
+
+                // 更新 UI
+                $('airdropTotal').textContent = formatM(airdropTotalAmount);
+                $('airdropPaid').textContent = formatM(paid);
+                $('airdropRemaining').textContent = formatM(currentBalance);
+                $('airdropProgress').style.width = percent.toFixed(1) + '%';
+                $('airdropPercent').textContent = percent.toFixed(1) + '%';
+                $('airdropPoolBalance').textContent = formatM(currentBalance);
+            } catch (e) {
+                $('airdropTotal').textContent = '--';
+                $('airdropPaid').textContent = '--';
+                $('airdropRemaining').textContent = '--';
+                $('airdropPercent').textContent = '0%';
+                $('airdropPoolBalance').textContent = '--';
+            }
+        }
+
+        // ===== 初始化 =====
+        function init() {
+            if (typeof web3 !== 'undefined' && web3) {
+                fetchAirdrop();
+                // 60秒自动刷新
+                setInterval(function() {
+                    fetchAirdrop();
+                }, 60000);
+            } else {
+                var checkWeb3 = setInterval(function() {
+                    if (typeof web3 !== 'undefined' && web3) {
+                        clearInterval(checkWeb3);
+                        fetchAirdrop();
+                        setInterval(function() {
+                            fetchAirdrop();
+                        }, 60000);
+                    }
+                }, 500);
+            }
+
+            // 监听钱包连接事件
+            document.addEventListener('walletConnected', function() {
+                fetchAirdrop();
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
 </div>
