@@ -131,7 +131,6 @@
             border: 1px solid #2a2f52;
         }
         .order-divider { width: 1px; background: #2a2f52; }
-        .price-source-tag { font-size: 10px; opacity: 0.7; margin-left: 2px; }
     </style>
 
     <!-- ========== 卡片3：买卖 MYK ========== -->
@@ -144,7 +143,6 @@
             </span>
         </h2>
 
-        <!-- 买卖盘口（与原卡片3一致） -->
         <div class="order-panel">
             <div style="flex:1;text-align:center;">
                 <div style="font-size:10px;color:#888;margin-bottom:2px;">买入价</div>
@@ -159,13 +157,11 @@
             </div>
         </div>
 
-        <!-- 交易标签切换 -->
         <div class="tab-container" id="tradeTabSwitch">
             <div class="tab tab-buy active" data-tab="buy">🟢 买入 MYK</div>
             <div class="tab tab-sell" data-tab="sell">🔴 卖出 MYK</div>
         </div>
 
-        <!-- 买入面板 -->
         <div id="panelBuy">
             <div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div>
             <div class="slippage-row">
@@ -183,7 +179,6 @@
             <div class="info-box" id="buyResult" style="display:none;"></div>
         </div>
 
-        <!-- 卖出面板 -->
         <div id="panelSell" style="display:none;">
             <div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT</div>
             <div class="slippage-row">
@@ -204,7 +199,7 @@
 
     <script>
     (function() {
-        // ===== 合约地址常量（与原文件完全一致） =====
+        // ===== 常量 =====
         const MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
         const RP = '0xD9772cb247913f0d61D2Ae5093Ad8dDd9a197f53';
         const USDT = '0x55d398326f99059fF775485246999027B3197955';
@@ -214,15 +209,12 @@
         const PCS_API = 'https://api.pancakeswap.info/api/v2/tokens/0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
         const STORAGE_KEY = 'myk_baseline_price';
 
-        // ===== 状态变量（与原文件完全一致） =====
         let buySlippage = 0.005;
         let sellSlippage = 0.005;
         let spotPrice = '1000000000000000000';
         let isProcessing = false;
 
-        // ===== 工具函数（与原文件完全一致） =====
         function $(id) { return document.getElementById(id); }
-        function a6(a) { return a.slice(0, 6) + '...' + a.slice(-4); }
         function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
         function formatPrice(p) {
             if (p >= 1) return p.toFixed(2);
@@ -255,7 +247,9 @@
             try {
                 const r = await fetch(PCS_API);
                 const d = await r.json();
-                if (d && d.data && d.data.price_change_24h) return { change: d.data.price_change_24h };
+                if (d && d.data && d.data.price_change_24h) {
+                    return { change: d.data.price_change_24h };
+                }
             } catch (e) {}
             return null;
         }
@@ -292,9 +286,8 @@
             const num = BigInt(Math.round((1 - slippage) * 10000));
             return (a * num / BigInt(10000)).toString();
         }
-        async function waitForTransaction(txHash, maxAttempts) {
-            maxAttempts = maxAttempts || 30;
-            for (let i = 0; i < maxAttempts; i++) {
+        async function waitForTransaction(txHash) {
+            for (let i = 0; i < 30; i++) {
                 try {
                     const r = await web3.eth.getTransactionReceipt(txHash);
                     if (r) {
@@ -302,39 +295,54 @@
                         else throw new Error('交易失败');
                     }
                 } catch (e) {
-                    if (i === maxAttempts - 1) throw e;
+                    if (i === 29) throw e;
                 }
                 await new Promise(r => setTimeout(r, 2000));
             }
             throw new Error('超时');
         }
 
-        // ===== 价格服务（与原文件 fetchPrice 完全一致） =====
+        // ===== 🔑 价格获取（三级降级策略） =====
         async function fetchPrice() {
             try {
                 if (!web3) return;
 
-                // 优先：Router getAmountsOut
+                // 第一级：RewardPool.getCurrentPrice()
                 try {
-                    const ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
-                    const rc = new web3.eth.Contract(ra, ROUTER);
-                    const oneMYK = Web3.utils.toWei('1', 'ether');
-                    const amounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call();
-                    spotPrice = Web3.utils.toWei(String(n(amounts[1])), 'ether');
+                    const result = await web3.eth.call({
+                        to: RP,
+                        data: encodeCall('getCurrentPrice()')
+                    });
+                    spotPrice = result;
                 } catch (e1) {
-                    // 降级：Pair getReserves
+                    // 第二级：Router.getAmountsOut(1 MYK → USDT)
                     try {
-                        const pa = [{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];
-                        const pc = new web3.eth.Contract(pa, PAIR);
-                        const t0 = await pc.methods.token0().call();
-                        const rv = await pc.methods.getReserves().call();
-                        const r0 = BigInt(rv[0]), r1 = BigInt(rv[1]);
-                        if (r0 === BigInt(0) || r1 === BigInt(0)) throw new Error('0');
-                        let rU, rM;
-                        if (t0.toLowerCase() === USDT.toLowerCase()) { rU = r0; rM = r1; }
-                        else { rU = r1; rM = r0; }
-                        spotPrice = ((rU * BigInt(10 ** 18)) / rM).toString();
-                    } catch (e2) {}
+                        const ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
+                        const rc = new web3.eth.Contract(ra, ROUTER);
+                        const oneMYK = Web3.utils.toWei('1', 'ether');
+                        const amounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call();
+                        spotPrice = Web3.utils.toWei(String(n(amounts[1])), 'ether');
+                    } catch (e2) {
+                        // 第三级：Pair.getReserves() 反推
+                        try {
+                            const pa = [{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];
+                            const pc = new web3.eth.Contract(pa, PAIR);
+                            const t0 = await pc.methods.token0().call();
+                            const rv = await pc.methods.getReserves().call();
+                            const r0 = BigInt(rv[0]), r1 = BigInt(rv[1]);
+                            if (r0 === BigInt(0) || r1 === BigInt(0)) throw new Error('0');
+                            let rU, rM;
+                            if (t0.toLowerCase() === USDT.toLowerCase()) {
+                                rU = r0; rM = r1;
+                            } else {
+                                rU = r1; rM = r0;
+                            }
+                            spotPrice = ((rU * BigInt(10 ** 18)) / rM).toString();
+                        } catch (e3) {
+                            // 三级全部失败，保持默认值
+                            console.log('价格获取全部失败，使用默认值');
+                        }
+                    }
                 }
 
                 const sp = n(spotPrice);
@@ -370,7 +378,6 @@
             }
         }
 
-        // ===== 盘口更新（与原文件 updateOrderPanel 完全一致） =====
         async function updateOrderPanel() {
             try {
                 if (!web3) return;
@@ -378,25 +385,17 @@
                 const rc = new web3.eth.Contract(ra, ROUTER);
                 const oneMYK = Web3.utils.toWei('1', 'ether');
                 const oneUSDT = Web3.utils.toWei('1', 'ether');
-
-                // 卖出价：1 MYK → ? USDT
                 const sellAmounts = await rc.methods.getAmountsOut(oneMYK, [MYK, USDT]).call();
                 const sellPrice = n(sellAmounts[1]);
-
-                // 买入价：1 USDT → ? MYK
                 const buyAmounts = await rc.methods.getAmountsOut(oneUSDT, [USDT, MYK]).call();
                 const buyRate = n(buyAmounts[1]);
-
                 $('buyRateDisplay').textContent = buyRate.toFixed(4);
                 $('sellRateDisplay').textContent = sellPrice.toFixed(6);
                 $('buyPriceDisplay').textContent = '$' + sellPrice.toFixed(6);
                 $('sellPriceDisplay').textContent = '$' + sellPrice.toFixed(6);
-            } catch (e) {
-                console.log('updateOrderPanel error:', e);
-            }
+            } catch (e) {}
         }
 
-        // ===== 报价查询（与原文件 getSwapQuote 完全一致） =====
         async function getSwapQuote(amountIn, path) {
             try {
                 const ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
@@ -404,7 +403,6 @@
                 const ams = await rc.methods.getAmountsOut(amountIn, path).call();
                 return ams[1];
             } catch (e) {
-                // 降级：使用 spotPrice 估算
                 const sp = n(spotPrice);
                 if (isNaN(sp) || sp <= 0) return '0';
                 const an = n(amountIn);
@@ -416,7 +414,6 @@
             }
         }
 
-        // ===== 报价更新（与原文件完全一致） =====
         async function updateBuyQuote() {
             const ua = parseFloat($('buyUSDTAmount').value) || 0;
             if (ua <= 0) { $('expectedMYK').textContent = '--'; return; }
@@ -439,7 +436,6 @@
             } catch (e) { $('expectedUSDT').textContent = '--'; }
         }
 
-        // ===== 买入 MYK（与原文件 buyMYK 完全一致） =====
         async function buyMYK() {
             const userAddress = window.currentAccount;
             if (!userAddress) { alert('请先连接钱包'); return; }
@@ -517,7 +513,6 @@
             }
         }
 
-        // ===== 卖出 MYK（与原文件 sellMYK 完全一致） =====
         async function sellMYK() {
             const userAddress = window.currentAccount;
             if (!userAddress) { alert('请先连接钱包'); return; }
@@ -595,7 +590,6 @@
             }
         }
 
-        // ===== 滑点按钮（与原文件完全一致） =====
         function setupSlippageButtons() {
             document.querySelectorAll('#panelBuy .slippage-btn').forEach(b => {
                 b.addEventListener('click', function() {
@@ -615,7 +609,6 @@
             });
         }
 
-        // ===== 标签切换（与原文件完全一致） =====
         function setupTabs() {
             document.querySelectorAll('#tradeTabSwitch .tab').forEach(t => {
                 t.addEventListener('click', function() {
@@ -626,17 +619,14 @@
                     const tb = this.dataset.tab;
                     if (tb === 'buy') this.classList.add('tab-buy');
                     if (tb === 'sell') this.classList.add('tab-sell');
-
                     $('panelBuy').style.display = tb === 'buy' ? 'block' : 'none';
                     $('panelSell').style.display = tb === 'sell' ? 'block' : 'none';
-
                     if (tb === 'buy') updateBuyQuote();
                     if (tb === 'sell') updateSellQuote();
                 });
             });
         }
 
-        // ===== 定时价格刷新（与原文件 startPriceAutoRefresh 完全一致） =====
         function startPriceAutoRefresh() {
             fetchPrice().then(() => {
                 updateBuyQuote();
@@ -657,17 +647,14 @@
             }, 30000);
         }
 
-        // ===== 初始化 =====
         function init() {
             setupTabs();
             setupSlippageButtons();
-
             $('buyUSDTAmount').addEventListener('input', updateBuyQuote);
             $('sellMYKAmount').addEventListener('input', updateSellQuote);
             $('buyMYKBtn').addEventListener('click', buyMYK);
             $('sellMYKBtn').addEventListener('click', sellMYK);
 
-            // 等待主框架注入 web3 实例
             if (typeof web3 !== 'undefined' && web3) {
                 startPriceAutoRefresh();
             } else {
@@ -680,7 +667,6 @@
             }
         }
 
-        // 页面加载完成初始化
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
