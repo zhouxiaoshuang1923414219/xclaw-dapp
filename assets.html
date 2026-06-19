@@ -23,7 +23,7 @@
         }
         .asset-item .name { color: #888; font-size: 12px; }
         .asset-item .num { color: #4ecca3; font-size: 16px; font-weight: bold; margin-top: 4px; }
-        .asset-item .usd { color: #a3adc9; font-size: 11px; }
+        .asset-item .usd { color: #a3adc9; font-size: 11px; margin-top: 2px; }
         .btn { 
             width: 100%; 
             background: linear-gradient(135deg, #4ecca3, #2e8b6a); 
@@ -62,21 +62,29 @@
     <div class="glass-card">
         <div class="title-main" style="font-size:16px; margin-bottom:12px;"> 资产分布</div>
         <div class="asset-grid">
+            <!-- USDT 余额 -->
             <div class="asset-item">
                 <div class="name"> USDT</div>
                 <div class="num" id="usdtBalance">--</div>
+                <div class="usd" id="usdtUsdValue">≈ $--</div>
             </div>
+            <!-- MYK 余额 -->
             <div class="asset-item">
                 <div class="name"> MYK</div>
                 <div class="num" id="mykBalance">--</div>
+                <div class="usd" id="mykUsdValue">≈ $--</div>
             </div>
+            <!-- 可领MYK（每日升级奖励 + 持币奖励） -->
             <div class="asset-item">
                 <div class="name"> 可领MYK</div>
                 <div class="num" id="claimableMYK">--</div>
+                <div class="usd" id="claimableUsdValue">≈ $--</div>
             </div>
+            <!-- 社区分红 -->
             <div class="asset-item">
                 <div class="name"> 社区分红</div>
                 <div class="num" id="communityDividend">--</div>
+                <div class="usd" id="dividendUsdValue">≈ $--</div>
             </div>
         </div>
     </div>
@@ -290,9 +298,13 @@
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) {
                 $('usdtBalance').textContent = '--';
+                $('usdtUsdValue').textContent = '≈ $--';
                 $('mykBalance').textContent = '--';
+                $('mykUsdValue').textContent = '≈ $--';
                 $('claimableMYK').textContent = '--';
+                $('claimableUsdValue').textContent = '≈ $--';
                 $('communityDividend').textContent = '--';
+                $('dividendUsdValue').textContent = '≈ $--';
                 $('totalAssetValue').textContent = '$--';
                 return;
             }
@@ -303,19 +315,33 @@
                     var usdtResult = await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
                     usdtBal = n(web3.eth.abi.decodeParameter('uint256', usdtResult));
                     $('usdtBalance').textContent = usdtBal.toFixed(4);
-                } catch (e) { $('usdtBalance').textContent = '--'; }
+                    $('usdtUsdValue').textContent = '≈ $' + usdtBal.toFixed(2);
+                } catch (e) {
+                    $('usdtBalance').textContent = '--';
+                    $('usdtUsdValue').textContent = '≈ $--';
+                }
                 try {
                     var mykResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
                     mykBal = n(web3.eth.abi.decodeParameter('uint256', mykResult));
+                    var mykUsd = sp > 0 ? mykBal * sp : 0;
                     $('mykBalance').textContent = mykBal.toFixed(4);
-                } catch (e) { $('mykBalance').textContent = '--'; }
+                    $('mykUsdValue').textContent = '≈ $' + mykUsd.toFixed(2);
+                } catch (e) {
+                    $('mykBalance').textContent = '--';
+                    $('mykUsdValue').textContent = '≈ $--';
+                }
                 var dailyBonusUSDT = await fetchDailyBonusClaimable();
                 var holdingMYK = await fetchHoldingRewardClaimable();
                 var dailyBonusMYK = sp > 0 ? dailyBonusUSDT / sp : 0;
                 var totalClaimable = dailyBonusMYK + holdingMYK;
+                var claimableUsd = totalClaimable * sp;
                 $('claimableMYK').textContent = totalClaimable.toFixed(4);
+                $('claimableUsdValue').textContent = '≈ $' + claimableUsd.toFixed(2);
                 var dividend = await fetchCommunityDividend();
+                var dividendUsd = dividend * sp;
                 $('communityDividend').textContent = dividend.toFixed(4);
+                $('dividendUsdValue').textContent = '≈ $' + dividendUsd.toFixed(2);
+                // 总资产 = USDT价值 + MYK价值
                 var mykValue = sp > 0 ? mykBal * sp : 0;
                 var totalValue = usdtBal + mykValue;
                 $('totalAssetValue').textContent = '$' + totalValue.toFixed(2);
