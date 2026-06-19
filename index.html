@@ -38,7 +38,7 @@
         .wallet-dot { width: 6px; height: 6px; background: #e94560; border-radius: 50%; margin-right: 6px; transition: 0.3s; }
         .wallet-dot.connected-dot { background: #4ecca3; }
 
-        /* ===== 底部导航 (毛玻璃) ===== */
+        /* ===== 底部导航 (已修改为 资产、行情、交易、生态、社区) ===== */
         .bottom-nav {
             position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: 414px;
@@ -78,28 +78,51 @@
             </button>
         </header>
         <div id="page-container"></div>
+        
+        <!-- 底部导航 (已修改) -->
         <div class="bottom-nav">
-            <div class="nav-item active" onclick="switchTab('home')"><div class="nav-icon placeholder"></div>配售</div>
-            <div class="nav-item" onclick="switchTab('predict')"><div class="nav-icon placeholder"></div>预测</div>
-            <div class="nav-item" onclick="switchTab('openclaw')"><div class="nav-icon placeholder"></div>OpenClaw</div>
-            <div class="nav-item" onclick="switchTab('community')"><div class="nav-icon placeholder"></div>社区</div>
-            <div class="nav-item" onclick="switchTab('rewards')"><div class="nav-icon placeholder"></div>奖励</div>
+            <div class="nav-item" onclick="switchTab('assets')">
+                <div class="nav-icon placeholder"></div>资产
+            </div>
+            <div class="nav-item" onclick="switchTab('markets')">
+                <div class="nav-icon placeholder"></div>行情
+            </div>
+            <div class="nav-item active" onclick="switchTab('trade')">
+                <div class="nav-icon placeholder"></div>交易
+            </div>
+            <div class="nav-item" onclick="switchTab('ecosystem')">
+                <div class="nav-icon placeholder"></div>生态
+            </div>
+            <div class="nav-item" onclick="switchTab('community')">
+                <div class="nav-icon placeholder"></div>社区
+            </div>
         </div>
     </div>
     <script>
         window.isConnected = false; window.currentAccount = null; window.mockBalance = 12.5;
-        const pageMap = { 'home':'home.html', 'predict':'predict.html', 'openclaw':'openclaw.html', 'community':'community.html', 'rewards':'rewards.html' };
+        
+        // 路由映射表（已更新）
+        const pageMap = {
+            'assets': 'assets.html',
+            'markets': 'predict.html',
+            'trade': 'home.html',
+            'ecosystem': 'openclaw.html',
+            'community': 'community.html'
+        };
+        
         function loadPage(name) {
             const c = document.getElementById('page-container');
             c.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:80vh;color:#a3adc9;font-size:14px;">加载中...</div>`;
             fetch(pageMap[name]).then(r=>r.text()).then(h=>{ c.innerHTML=h; c.querySelectorAll('script').forEach(s=>{ let ns=document.createElement('script'); ns.textContent=s.textContent; document.body.appendChild(ns); document.body.removeChild(ns); }); }).catch(()=>c.innerHTML=`<div style="color:#e94560;text-align:center;margin-top:40px;">加载失败</div>`);
         }
+        
         function switchTab(name) {
             document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-            const idx = {'home':0,'predict':1,'openclaw':2,'community':3,'rewards':4};
+            const idx = {'assets':0, 'markets':1, 'trade':2, 'ecosystem':3, 'community':4};
             if(idx[name]!==undefined) document.querySelectorAll('.nav-item')[idx[name]].classList.add('active');
             loadPage(name);
         }
+        
         function generateAddr(){ let a='0x'; for(let i=0;i<40;i++) a+='0123456789abcdef'[Math.floor(Math.random()*16)]; return a; }
         function fmtAddr(a){ return a ? a.substring(0,6)+'...'+a.substring(a.length-4) : ''; }
         function toggleWallet(){ window.isConnected ? disconnect() : connect(); }
@@ -107,7 +130,7 @@
         function disconnect(){ window.isConnected=false; window.currentAccount=null; updateUI(); showToast('已断开','info'); }
         function updateUI(){ const b=document.getElementById('walletConnectBtn'), d=document.getElementById('walletDot'), s=document.getElementById('walletStatus'); if(window.isConnected&&window.currentAccount){ b.classList.add('connected'); d.classList.add('connected-dot'); s.textContent=fmtAddr(window.currentAccount); } else { b.classList.remove('connected'); d.classList.remove('connected-dot'); s.textContent='连接钱包'; } }
         function showToast(msg,t='info'){ const tEl=document.getElementById('toast'); tEl.textContent=msg; tEl.className='toast '+t; tEl.style.display='block'; clearTimeout(tEl._timer); tEl._timer=setTimeout(()=>tEl.style.display='none',3000); }
-        document.addEventListener('DOMContentLoaded',()=>switchTab('home'));
+        document.addEventListener('DOMContentLoaded',()=>switchTab('trade'));
     </script>
 </body>
 </html>
