@@ -108,7 +108,6 @@
             </div>
         </div>
 
-        <!-- 合约地址 -->
         <div style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);">
             <div style="font-size:12px;color:#888;margin-bottom:8px;">📋 合约地址</div>
             <div class="contract-addr-row">
@@ -118,29 +117,29 @@
             </div>
             <div class="contract-addr-row">
                 <span class="contract-addr-label">🟢 RewardPool</span>
-                <span class="contract-addr-value">0xD9772c...f53</span>
-                <button class="contract-addr-copy" data-addr="0xFfB8565dd1dd743a45F681D77C7d1De7e2ab95F2">复制</button>
+                <span class="contract-addr-value">0x889Cf2...92ec</span>
+                <button class="contract-addr-copy" data-addr="0x889Cf28B22790f6f76578013a8812C3012a192ec">复制</button>
             </div>
             <div class="contract-addr-row">
                 <span class="contract-addr-label">🟡 Governance</span>
-                <span class="contract-addr-value">0x4Ee5Ed...7CC9</span>
-                <button class="contract-addr-copy" data-addr="0x4Ee5EdB6625a183D04A1595b430C848A12b47CC9">复制</button>
+                <span class="contract-addr-value">0x3Ccc54...61C2</span>
+                <button class="contract-addr-copy" data-addr="0x3Ccc540a3C5949E0afeB7199bF29aD9daebF61C2">复制</button>
             </div>
             <div class="contract-addr-row">
                 <span class="contract-addr-label">🔴 FundManager</span>
-                <span class="contract-addr-value">0x3a15A2...3d9f</span>
-                <button class="contract-addr-copy" data-addr="0x3a15A2947e116af89316B6f8b8BB54bf340A3d9f">复制</button>
+                <span class="contract-addr-value">0xD4CB1e...e1b2</span>
+                <button class="contract-addr-copy" data-addr="0xD4CB1e8bf1feFA5E93B599E9FE172E0c4651e1b2">复制</button>
             </div>
         </div>
     </div>
 
     <script>
     (function() {
-        // ===== 合约地址 =====
+        // ===== 合约地址（已更新） =====
         var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
-        var RP = '0xFfB8565dd1dd743a45F681D77C7d1De7e2ab95F2';
-        var GOV = '0x0B829905DF3D4e449200F5A5f58374d1C8DA690D';
-        var FM = '0x55F83Ec2d9d7F44Bd53699Ac3fddd39B1ff3ce5e';
+        var RP = '0x889Cf28B22790f6f76578013a8812C3012a192ec';
+        var GOV = '0x3Ccc540a3C5949E0afeB7199bF29aD9daebF61C2';
+        var FM = '0xD4CB1e8bf1feFA5E93B599E9FE172E0c4651e1b2';
         var DEAD_ADDR = '0x000000000000000000000000000000000000dEaD';
         var ZERO_ADDR = '0x0000000000000000000000000000000000000000';
 
@@ -155,7 +154,6 @@
             if (v >= 1000) return (v / 1000).toFixed(2) + 'K';
             return v.toFixed(2);
         }
-        function a6(a) { return a.slice(0, 6) + '...' + a.slice(-4); }
 
         function encodeCall(sig, types, values) {
             var s = web3.eth.abi.encodeFunctionSignature(sig);
@@ -204,75 +202,46 @@
             }
         }
 
-        // ===== 获取合约信息（与原文件 fetchContractInfo 完全一致） =====
+        // ===== 获取合约信息 =====
         async function fetchContractInfo() {
             if (!web3) return;
             try {
-                // 总发行量
-                var tsResult = await web3.eth.call({
-                    to: MYK,
-                    data: encodeCall('totalSupply()')
-                });
+                var tsResult = await web3.eth.call({ to: MYK, data: encodeCall('totalSupply()') });
                 $('totalSupply').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', tsResult)));
 
-                // 永久销毁量 = 黑洞地址 + 零地址
                 var burnedTotal = 0;
                 try {
-                    var deadResult = await web3.eth.call({
-                        to: MYK,
-                        data: encodeCall('balanceOf(address)', ['address'], [DEAD_ADDR])
-                    });
+                    var deadResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [DEAD_ADDR]) });
                     burnedTotal += n(web3.eth.abi.decodeParameter('uint256', deadResult));
                 } catch (e) {}
                 try {
-                    var zeroResult = await web3.eth.call({
-                        to: MYK,
-                        data: encodeCall('balanceOf(address)', ['address'], [ZERO_ADDR])
-                    });
+                    var zeroResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ZERO_ADDR]) });
                     burnedTotal += n(web3.eth.abi.decodeParameter('uint256', zeroResult));
                 } catch (e) {}
                 $('burnedAmount').textContent = formatM(burnedTotal);
 
-                // 奖金池持币
                 try {
-                    var bpResult = await web3.eth.call({
-                        to: MYK,
-                        data: encodeCall('balanceOf(address)', ['address'], [RP])
-                    });
+                    var bpResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [RP]) });
                     $('bonusPool').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', bpResult)));
-                } catch (e) {
-                    $('bonusPool').textContent = '--';
-                }
+                } catch (e) { $('bonusPool').textContent = '--'; }
 
-                // 社区治理奖励
                 try {
                     var divData = encodeCall('getDividendInfo()');
                     var divResult = await web3.eth.call({ to: GOV, data: divData });
-                    var info = web3.eth.abi.decodeParameters(['uint256', 'uint256', 'uint256', 'uint256'], divResult);
+                    var info = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256'], divResult);
                     var totalDividend = BigInt(info[0]) + BigInt(info[1]) + BigInt(info[2]);
                     $('govLocked').textContent = formatM(n(totalDividend.toString()));
                 } catch (e) {
                     try {
-                        var gbResult = await web3.eth.call({
-                            to: MYK,
-                            data: encodeCall('balanceOf(address)', ['address'], [GOV])
-                        });
+                        var gbResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) });
                         $('govLocked').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', gbResult)));
-                    } catch (e2) {
-                        $('govLocked').textContent = '--';
-                    }
+                    } catch (e2) { $('govLocked').textContent = '--'; }
                 }
 
-                // 去中心化基金
                 try {
-                    var fbResult = await web3.eth.call({
-                        to: MYK,
-                        data: encodeCall('balanceOf(address)', ['address'], [FM])
-                    });
+                    var fbResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [FM]) });
                     $('fundAsset').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', fbResult)));
-                } catch (e) {
-                    $('fundAsset').textContent = '--';
-                }
+                } catch (e) { $('fundAsset').textContent = '--'; }
             } catch (e) {
                 $('totalSupply').textContent = '--';
                 $('burnedAmount').textContent = '--';
@@ -289,10 +258,7 @@
                         await navigator.clipboard.writeText(addr);
                         this.textContent = '✅已复制';
                         this.classList.add('copied');
-                        setTimeout(() => {
-                            this.textContent = '复制';
-                            this.classList.remove('copied');
-                        }, 2000);
+                        setTimeout(function(self) { self.textContent = '复制'; self.classList.remove('copied'); }, 2000, this);
                     } catch (e) {
                         var ta = document.createElement('textarea');
                         ta.value = addr;
@@ -302,10 +268,7 @@
                         document.body.removeChild(ta);
                         this.textContent = '✅已复制';
                         this.classList.add('copied');
-                        setTimeout(() => {
-                            this.textContent = '复制';
-                            this.classList.remove('copied');
-                        }, 2000);
+                        setTimeout(function(self) { self.textContent = '复制'; self.classList.remove('copied'); }, 2000, this);
                     }
                 });
             });
@@ -314,39 +277,25 @@
         // ===== 初始化 =====
         function init() {
             setupCopyButtons();
-
             if (typeof web3 !== 'undefined' && web3) {
                 fetchAirdrop();
                 fetchContractInfo();
-                setInterval(function() {
-                    fetchAirdrop();
-                    fetchContractInfo();
-                }, 60000);
+                setInterval(function() { fetchAirdrop(); fetchContractInfo(); }, 60000);
             } else {
                 var checkWeb3 = setInterval(function() {
                     if (typeof web3 !== 'undefined' && web3) {
                         clearInterval(checkWeb3);
                         fetchAirdrop();
                         fetchContractInfo();
-                        setInterval(function() {
-                            fetchAirdrop();
-                            fetchContractInfo();
-                        }, 60000);
+                        setInterval(function() { fetchAirdrop(); fetchContractInfo(); }, 60000);
                     }
                 }, 500);
             }
-
-            document.addEventListener('walletConnected', function() {
-                fetchAirdrop();
-                fetchContractInfo();
-            });
+            document.addEventListener('walletConnected', function() { fetchAirdrop(); fetchContractInfo(); });
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
+        else { init(); }
     })();
     </script>
 </div>
