@@ -96,7 +96,6 @@
     </div>
 
     <script>
-    // 轮询等待 web3 注入
     var _pollCount = 0;
     function _waitForWeb3(callback) {
         if (typeof web3 !== 'undefined' && web3 && web3.eth) {
@@ -108,8 +107,10 @@
     }
 
     _waitForWeb3(function() {
+        // ===== 合约地址（已更新） =====
         var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
-        var RP = '0xFfB8565dd1dd743a45F681D77C7d1De7e2ab95F2';
+        var RP = '0x889Cf28B22790f6f76578013a8812C3012a192ec';
+        var GOV = '0x3Ccc540a3C5949E0afeB7199bF29aD9daebF61C2';
         var USDT = '0x55d398326f99059fF775485246999027B3197955';
         var ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
         var PAIR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
@@ -121,7 +122,6 @@
 
         function $(id) { return document.getElementById(id); }
         function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
-
         function safeText(id, text) { var el = $(id); if (el) el.textContent = text; }
         function safeDisabled(id, val) { var el = $(id); if (el) el.disabled = val; }
 
@@ -156,11 +156,7 @@
         }
 
         function getCurrentDay() { return Math.floor(Date.now() / 1000 / SNAPSHOT_PERIOD); }
-
-        // 安全获取当前账户
-        function getAccount() {
-            return window.currentAccount || null;
-        }
+        function getAccount() { return window.currentAccount || null; }
 
         async function fetchSpotPrice() {
             if (!web3) return 0;
@@ -201,12 +197,9 @@
         async function fetchDailyBonusInfo() {
             var userAddress = getAccount();
             if (!userAddress) {
-                safeText('bonusPrincipal', '--');
-                safeText('bonusDaily', '--');
-                safeText('bonusClaimed', '--');
-                safeText('bonusRemaining', '--');
-                safeDisabled('claimBonusBtn', true);
-                safeText('claimBonusBtn', '📈 暂无升级奖励');
+                safeText('bonusPrincipal', '--'); safeText('bonusDaily', '--');
+                safeText('bonusClaimed', '--'); safeText('bonusRemaining', '--');
+                safeDisabled('claimBonusBtn', true); safeText('claimBonusBtn', '📈 暂无升级奖励');
                 return;
             }
             try {
@@ -264,146 +257,116 @@
             } finally { b.disabled = false; unlock(); }
         }
 
-        // ===== 【核心修复】做市7天持币奖励 - 直接获取购买记录 =====
+        // ===== 做市7天持币奖励 =====
         async function fetchHoldingInfo() {
             var userAddress = getAccount();
-
-            // 未连接钱包时显示默认值
             if (!userAddress) {
-                safeText('streakDays', '--');
-                safeText('holdingBalance', '--');
-                safeText('holdingAmount', '--');
-                safeText('holdingDaysAgo', '');
-                safeText('claimedToday', '--');
-                safeText('todayReward', '--');
-                safeDisabled('claimRewardBtn', true);
-                safeText('claimRewardBtn', '请先连接钱包');
+                safeText('streakDays', '--'); safeText('holdingBalance', '--');
+                safeText('holdingAmount', '--'); safeText('holdingDaysAgo', '');
+                safeText('claimedToday', '--'); safeText('todayReward', '--');
+                safeDisabled('claimRewardBtn', true); safeText('claimRewardBtn', '请先连接钱包');
                 return;
             }
-
             try {
-                var isActive = false, isRecent = false;
-                var buyAmount = 0, buyValue = 0, buyTimestamp = 0;
+                var isActive = false;
+                var buyTimestamp = 0, buyAmount = 0, buyValue = 0;
+                var streakDays = 0, totalClaimed = 0, claimable = 0;
 
-                // 1. 并行查询：激活状态 + 最近买家
-                var results = await Promise.allSettled([
-                    web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [userAddress]) }),
-                    web3.eth.call({ to: RP, data: encodeCall('isRecentPancakeBuyer(address)', ['address'], [userAddress]) }),
-                    web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyInfo(address)', ['address'], [userAddress]) }),
-                    web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) }),
-                    web3.eth.call({ to: RP, data: encodeCall('getTotalDailyRewardClaimed(address)', ['address'], [userAddress]) }),
-                    web3.eth.call({ to: RP, data: encodeCall('getClaimableDailyReward(address)', ['address'], [userAddress]) })
-                ]);
-
-                // 解析结果1：isActiveUser
-                if (results[0].status === 'fulfilled') {
-                    isActive = web3.eth.abi.decodeParameter('bool', results[0].value);
-                }
-
-                // 解析结果2：isRecentPancakeBuyer
-                if (results[1].status === 'fulfilled') {
-                    isRecent = web3.eth.abi.decodeParameter('bool', results[1].value);
-                }
-
-                // 解析结果3：getLastPancakeBuyInfo（交易所U支付记录 + MYK持币量）
-                if (results[2].status === 'fulfilled') {
+                // getUserBasic
+                try {
+                    var basicResult = await web3.eth.call({ to: RP, data: encodeCall('getUserBasic(address)', ['address'], [userAddress]) });
+                    var u = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint8','uint256','bool','uint256','uint256'], basicResult);
+                    isActive = u[5];
+                } catch (e) {
                     try {
-                        var bi = web3.eth.abi.decodeParameters(['uint256','uint256','uint256'], results[2].value);
-                        buyAmount = n(bi[0]);
-                        buyValue = n(bi[1]);
-                        buyTimestamp = parseInt(bi[2]);
+                        var usersResult = await web3.eth.call({ to: RP, data: encodeCall('users(address)', ['address'], [userAddress]) });
+                        var u2 = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], usersResult);
+                        isActive = u2[8];
+                    } catch (e2) {}
+                }
 
-                        safeText('holdingBalance', buyValue.toFixed(2) + ' USDT');
+                // MYK余额
+                try {
+                    var mykResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
+                    buyAmount = n(web3.eth.abi.decodeParameter('uint256', mykResult));
+                    safeText('holdingAmount', buyAmount.toFixed(2) + ' MYK');
+                } catch (e) { safeText('holdingAmount', '--'); }
+
+                // getLastPancakeBuyTime
+                try {
+                    var timeResult = await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyTime(address)', ['address'], [userAddress]) });
+                    buyTimestamp = parseInt(web3.eth.abi.decodeParameter('uint256', timeResult));
+                } catch (e) {
+                    try {
+                        var infoResult = await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyInfo(address)', ['address'], [userAddress]) });
+                        var bi = web3.eth.abi.decodeParameters(['uint256','uint256','uint256'], infoResult);
+                        buyAmount = n(bi[0]); buyValue = n(bi[1]); buyTimestamp = parseInt(bi[2]);
                         safeText('holdingAmount', buyAmount.toFixed(2) + ' MYK');
+                    } catch (e2) {}
+                }
 
-                        if (buyTimestamp > 0) {
-                            var diffSec = Math.floor(Date.now() / 1000) - buyTimestamp;
-                            var diffDays = Math.floor(diffSec / 86400);
-                            if (diffDays <= 0) {
-                                var diffHours = Math.floor(diffSec / 3600);
-                                safeText('holdingDaysAgo', diffHours <= 0
-                                    ? (Math.floor(diffSec / 60) <= 1 ? '(刚刚)' : '(' + Math.floor(diffSec / 60) + '分钟前)')
-                                    : '(' + diffHours + '小时前)');
-                            } else {
-                                safeText('holdingDaysAgo', '(' + diffDays + '天前)');
-                            }
-                        } else {
-                            safeText('holdingDaysAgo', '');
-                        }
-                    } catch (e) {
-                        safeText('holdingBalance', '--');
-                        safeText('holdingAmount', '--');
-                        safeText('holdingDaysAgo', '');
+                // getStreakLength
+                try {
+                    var streakResult = await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) });
+                    streakDays = parseInt(web3.eth.abi.decodeParameter('uint256', streakResult));
+                    safeText('streakDays', streakDays);
+                } catch (e) { safeText('streakDays', '0'); }
+
+                // getTotalDailyRewardClaimed
+                try {
+                    var claimedResult = await web3.eth.call({ to: RP, data: encodeCall('getTotalDailyRewardClaimed(address)', ['address'], [userAddress]) });
+                    totalClaimed = n(web3.eth.abi.decodeParameter('uint256', claimedResult));
+                    safeText('claimedToday', totalClaimed.toFixed(4) + ' MYK');
+                } catch (e) { safeText('claimedToday', '-- MYK'); }
+
+                // getClaimableDailyReward
+                try {
+                    var claimableResult = await web3.eth.call({ to: RP, data: encodeCall('getClaimableDailyReward(address)', ['address'], [userAddress]) });
+                    claimable = n(web3.eth.abi.decodeParameter('uint256', claimableResult));
+                } catch (e) {}
+
+                // 显示购买时间
+                if (buyTimestamp > 0) {
+                    var diffSec = Math.floor(Date.now() / 1000) - buyTimestamp;
+                    var diffDays = Math.floor(diffSec / 86400);
+                    if (diffDays <= 0) {
+                        var diffHours = Math.floor(diffSec / 3600);
+                        safeText('holdingDaysAgo', diffHours <= 0 ? (Math.floor(diffSec / 60) <= 1 ? '(刚刚)' : '(' + Math.floor(diffSec / 60) + '分钟前)') : '(' + diffHours + '小时前)');
+                    } else {
+                        safeText('holdingDaysAgo', '(' + diffDays + '天前)');
                     }
+                    safeText('holdingBalance', diffDays <= 7 ? '✅ 7天内有买入' : '⚠️ 超过7天');
                 } else {
-                    safeText('holdingBalance', '--');
-                    safeText('holdingAmount', '--');
                     safeText('holdingDaysAgo', '');
+                    safeText('holdingBalance', '无买入记录');
                 }
 
-                // 解析结果4：getStreakLength
-                if (results[3].status === 'fulfilled') {
-                    safeText('streakDays', web3.eth.abi.decodeParameter('uint256', results[3].value));
-                } else {
-                    safeText('streakDays', '0');
-                }
-
-                // 解析结果5：getTotalDailyRewardClaimed
-                if (results[4].status === 'fulfilled') {
-                    safeText('claimedToday', n(web3.eth.abi.decodeParameter('uint256', results[4].value)).toFixed(4) + ' MYK');
-                } else {
-                    safeText('claimedToday', '-- MYK');
-                }
-
-                // 解析结果6：getClaimableDailyReward + 判断逻辑
+                // 判断今天可领
                 var errorMsg = '', btnDisabled = false;
                 if (!isActive) {
-                    errorMsg = '请先激活 PRIMARY 身份';
-                    btnDisabled = true;
+                    errorMsg = '请先激活 PRIMARY 身份'; btnDisabled = true;
                     safeText('todayReward', '未激活');
-                } else if (!isRecent) {
-                    errorMsg = '7 天内没有买入记录';
-                    btnDisabled = true;
+                } else if (buyTimestamp <= 0) {
+                    errorMsg = '没有买入记录'; btnDisabled = true;
                     safeText('todayReward', '无买入记录');
-                } else if (results[5].status === 'fulfilled') {
-                    var claimable = n(web3.eth.abi.decodeParameter('uint256', results[5].value));
-                    if (claimable <= 0) {
-                        var buyDay = Math.floor(buyTimestamp / SNAPSHOT_PERIOD);
-                        if (buyDay >= getCurrentDay()) {
-                            errorMsg = '买入当天不可领取，0点后结算';
-                            btnDisabled = true;
-                            safeText('todayReward', '等待结算');
-                        } else {
-                            errorMsg = '今日已领取，0点后结算';
-                            btnDisabled = true;
-                            safeText('todayReward', '已领取');
-                        }
-                    } else {
-                        var buyDay2 = Math.floor(buyTimestamp / SNAPSHOT_PERIOD);
-                        if (buyDay2 >= getCurrentDay()) {
-                            errorMsg = '买入当天不可领取';
-                            btnDisabled = true;
-                            safeText('todayReward', '等待结算');
-                        } else {
-                            safeText('todayReward', claimable.toFixed(6) + ' MYK');
-                        }
-                    }
                 } else {
-                    safeText('todayReward', '查询失败');
-                    btnDisabled = true;
-                    errorMsg = '查询失败';
+                    var buyDay = Math.floor(buyTimestamp / SNAPSHOT_PERIOD);
+                    if (buyDay >= getCurrentDay()) {
+                        errorMsg = '买入当天不可领取，0点后结算'; btnDisabled = true;
+                        safeText('todayReward', '等待结算');
+                    } else if (claimable <= 0) {
+                        errorMsg = '今日已领取，0点后结算'; btnDisabled = true;
+                        safeText('todayReward', '已领取');
+                    } else {
+                        safeText('todayReward', claimable.toFixed(6) + ' MYK');
+                    }
                 }
-
                 safeDisabled('claimRewardBtn', btnDisabled);
                 safeText('claimRewardBtn', btnDisabled ? errorMsg : '领取奖励');
-
             } catch (e) {
-                safeText('holdingBalance', '--');
-                safeText('holdingAmount', '--');
-                safeText('streakDays', '--');
-                safeText('claimedToday', '--');
-                safeText('todayReward', '--');
-                safeDisabled('claimRewardBtn', true);
+                safeText('holdingBalance', '--'); safeText('holdingAmount', '--');
+                safeText('streakDays', '--'); safeText('claimedToday', '--');
+                safeText('todayReward', '--'); safeDisabled('claimRewardBtn', true);
                 safeText('claimRewardBtn', '数据加载失败');
             }
         }
@@ -417,18 +380,12 @@
             el.style.display = 'block'; el.innerHTML = '⏳ 领取中...'; b.disabled = true; b.textContent = '处理中...';
             try {
                 var txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: RP, data: encodeCall('claimDailyRewardAuto()'), gas: '0xF4240' }] });
-                el.innerHTML = '⏳ 等待确认...'; var receipt = await waitForTransaction(txHash);
-                var rewardEventSig = web3.eth.abi.encodeEventSignature('DailyRewardClaimed(address,uint256,uint256)');
-                var hasReward = (receipt.logs || []).some(function(log) { return log.topics && log.topics[0] === rewardEventSig; });
-                if (hasReward) {
-                    el.innerHTML = '✅ 领取成功！奖励已发放'; el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
-                    b.textContent = '已领取（明天再来）'; b.disabled = true;
-                } else {
-                    el.innerHTML = '✅ 交易成功！请刷新查看'; el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
-                }
+                el.innerHTML = '⏳ 等待确认...'; await waitForTransaction(txHash);
+                el.innerHTML = '✅ 领取成功！'; el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
+                b.textContent = '已领取（明天再来）'; b.disabled = true;
                 setTimeout(function() { fetchAllData(); }, 3000);
             } catch (e) {
-                el.style.display = 'block'; var m = parseError(e);
+                var m = parseError(e);
                 el.innerHTML = (m.indexOf('NotActive') !== -1) ? '⚠️ 账户未激活' : (m.indexOf('NoRecent') !== -1) ? '⚠️ 7天内无买入' : (m.indexOf('TooFrequent') !== -1) ? '⚠️ 今天已领取' : (m.indexOf('rejected') !== -1) ? '⚠️ 已取消' : '❌ ' + m;
             } finally { b.disabled = false; if (b.textContent.indexOf('已领取') === -1) b.textContent = '领取奖励'; unlock(); }
         }
@@ -442,19 +399,13 @@
         function doInit() {
             var cbb = $('claimBonusBtn'); if (cbb) cbb.addEventListener('click', claimDailyBonus);
             var crb = $('claimRewardBtn'); if (crb) crb.addEventListener('click', claimDailyReward);
-
             fetchAllData();
             setInterval(function() { fetchAllData(); }, 30000);
-
             document.addEventListener('walletConnected', function() { fetchAllData(); });
         }
 
-        // 等待 DOM 就绪后执行
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() { setTimeout(doInit, 200); });
-        } else {
-            setTimeout(doInit, 200);
-        }
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', function() { setTimeout(doInit, 200); }); }
+        else { setTimeout(doInit, 200); }
     });
     </script>
 </div>
