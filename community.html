@@ -193,7 +193,6 @@
         <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px; text-align: center;">🔓 权益卡片</h2>
         <div class="vertical-swipe-container" id="swipeContainer">
             <div class="vertical-swipe-track">
-                <!-- MIDDLE 权益 -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="middleCard">
                         <h2 style="font-size: 1.1rem;">🔓 MIDDLE 权益<span class="badge badge-silver" style="font-size:10px;">权益卡</span></h2>
@@ -209,7 +208,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- 第一社区权益 FIRST -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="community1Card">
                         <h2 style="font-size:1.1rem;">第一社区权益<span class="badge badge-gold" style="font-size:10px;">FIRST</span></h2>
@@ -222,7 +220,6 @@
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
-                <!-- 第二社区权益 SECOND -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="community2Card">
                         <h2 style="font-size:1.1rem;">第二社区权益<span class="badge badge-gold" style="font-size:10px;">SECOND</span></h2>
@@ -235,7 +232,6 @@
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
-                <!-- 第三社区权益 THIRD -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="community3Card">
                         <h2 style="font-size:1.1rem;">第三社区权益<span class="badge badge-gold" style="font-size:10px;">THIRD</span></h2>
@@ -248,7 +244,6 @@
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
-                <!-- 第四社区权益 FOURTH -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="community4Card">
                         <h2 style="font-size:1.1rem;">第四社区权益<span class="badge badge-gold" style="font-size:10px;">FOURTH</span></h2>
@@ -263,7 +258,6 @@
                         <div class="info-box upgrade-result" style="display:none;"></div>
                     </div>
                 </div>
-                <!-- 第五社区权益 FIFTH+ -->
                 <div class="vertical-swipe-card">
                     <div class="unlock-card locked" id="community5Card">
                         <h2 style="font-size:1.1rem;">第五社区权益<span class="badge badge-gold" style="font-size:10px;">FIFTH+</span></h2>
@@ -291,10 +285,20 @@
     </div>
 
     <script>
-    (function() {
+    var communityInitAttempts = 0;
+    var communityMaxAttempts = 20;
+
+    function communityInit() {
+        if (typeof web3 === 'undefined') {
+            communityInitAttempts++;
+            if (communityInitAttempts < communityMaxAttempts) { setTimeout(communityInit, 300); }
+            return;
+        }
+
+        // ===== 合约地址（已更新） =====
         var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
-        var RP = '0xFfB8565dd1dd743a45F681D77C7d1De7e2ab95F2';
-        var GOV = '0x0B829905DF3D4e449200F5A5f58374d1C8DA690D';
+        var RP = '0x889Cf28B22790f6f76578013a8812C3012a192ec';
+        var GOV = '0x3Ccc540a3C5949E0afeB7199bF29aD9daebF61C2';
         var USDT = '0x55d398326f99059fF775485246999027B3197955';
         var ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
         var PAIR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
@@ -383,9 +387,8 @@
             var price = getActivationPrice();
             if (price > 0) {
                 var suggested = (2 / price * 1.05).toFixed(4);
-                $('suggestedMYK').textContent = suggested;
-                $('mykAmount').value = suggested;
-                $('mykAmount').setAttribute('data-default', suggested);
+                var sm = $('suggestedMYK'); if (sm) sm.textContent = suggested;
+                var ma = $('mykAmount'); if (ma) { ma.value = suggested; ma.setAttribute('data-default', suggested); }
             }
         }
 
@@ -407,28 +410,31 @@
                 else if (rpRole >= 3) roleName = '🥇 COMMUNITY';
                 else if (rpRole >= 2) roleName = '🥈 MIDDLE';
                 else if (rpRole >= 1) roleName = '🥉 PRIMARY';
-                $('cardRole').textContent = roleName;
-                $('cardActiveBadge').innerHTML = basic.isActive
+                var cr = $('cardRole'); if (cr) cr.textContent = roleName;
+                var cab = $('cardActiveBadge');
+                if (cab) cab.innerHTML = basic.isActive
                     ? '<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅已激活</span>'
                     : '<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌未激活</span>';
-                $('cardReferrer').textContent = basic.referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(basic.referrer);
-                $('cardReferrer').style.color = basic.referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8';
-                $('cardActivated').textContent = basic.activatedAt > 0 ? new Date(basic.activatedAt * 1000).toLocaleDateString('zh-CN') : '未激活';
-                $('cardInvited').textContent = basic.invited;
-                try { $('cardStreak').textContent = web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) })); } catch (e) { $('cardStreak').textContent = '0'; }
-                try { $('cardMYK').textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) { $('cardMYK').textContent = '--'; }
-                try { $('cardUSDT').textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) { $('cardUSDT').textContent = '--'; }
+                var crf = $('cardReferrer');
+                if (crf) { crf.textContent = basic.referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(basic.referrer); crf.style.color = basic.referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
+                var ca = $('cardActivated'); if (ca) ca.textContent = basic.activatedAt > 0 ? new Date(basic.activatedAt * 1000).toLocaleDateString('zh-CN') : '未激活';
+                var ci = $('cardInvited'); if (ci) ci.textContent = basic.invited;
+                try { var cs = $('cardStreak'); if (cs) cs.textContent = web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) })); } catch (e) {}
+                try { var cm = $('cardMYK'); if (cm) cm.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) {}
+                try { var cu = $('cardUSDT'); if (cu) cu.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) {}
             } catch (e) {}
         }
 
         function setupActivateTabs() {
-            document.querySelectorAll('#activateTabSwitch .tab').forEach(function(t) {
+            var tabs = document.querySelectorAll('#activateTabSwitch .tab');
+            if (!tabs.length) return;
+            tabs.forEach(function(t) {
                 t.addEventListener('click', function() {
-                    document.querySelectorAll('#activateTabSwitch .tab').forEach(function(x) { x.classList.remove('active'); });
+                    tabs.forEach(function(x) { x.classList.remove('active'); });
                     this.classList.add('active');
                     var tb = this.dataset.tab;
-                    $('panelUSDT').style.display = tb === 'usdt' ? 'block' : 'none';
-                    $('panelMYK').style.display = tb === 'myk' ? 'block' : 'none';
+                    var pu = $('panelUSDT'); if (pu) pu.style.display = tb === 'usdt' ? 'block' : 'none';
+                    var pm = $('panelMYK'); if (pm) pm.style.display = tb === 'myk' ? 'block' : 'none';
                     if (tb === 'myk') updateActivateSuggestion();
                 });
             });
@@ -439,6 +445,7 @@
             if (!userAddress) { alert('请先连接钱包'); return; }
             if (!lock()) return;
             var b = $('activateUSDTBtn'), el = $('activateUSDTResult');
+            if (!b || !el) return;
             el.style.display = 'block'; el.innerHTML = '⏳ 授权USDT...'; b.disabled = true;
             try {
                 var fee = Web3.utils.toWei('2', 'ether');
@@ -458,7 +465,9 @@
             var userAddress = window.currentAccount;
             if (!userAddress) { alert('请先连接钱包'); return; }
             if (!lock()) return;
-            var b = $('activateMYKBtn'), el = $('activateMYKResult'), am = $('mykAmount').value;
+            var b = $('activateMYKBtn'), el = $('activateMYKResult'), amEl = $('mykAmount');
+            if (!b || !el) return;
+            var am = amEl ? amEl.value : '0';
             if (!am || parseFloat(am) <= 0) { alert('请输入有效的MYK数量'); return; }
             b.disabled = true; b.textContent = '处理中...'; el.style.display = 'block';
             try {
@@ -468,15 +477,16 @@
                 catch (e1) { contractPrice = getSpotPrice(); }
                 if (contractPrice <= 0) throw new Error('无法获取合约价格');
                 var requiredMYK = (2 / contractPrice * 1.05).toFixed(4);
-                $('suggestedMYK').textContent = requiredMYK; $('mykAmount').setAttribute('data-default', requiredMYK);
-                if (parseFloat($('mykAmount').value || am) < parseFloat(requiredMYK)) {
-                    $('mykAmount').value = requiredMYK;
+                var sm = $('suggestedMYK'); if (sm) sm.textContent = requiredMYK;
+                if (amEl) amEl.setAttribute('data-default', requiredMYK);
+                if (parseFloat((amEl ? amEl.value : am) || am) < parseFloat(requiredMYK)) {
+                    if (amEl) amEl.value = requiredMYK;
                     el.innerHTML = '⚠️ 需至少 ' + requiredMYK + ' MYK，已自动填入，请再次点击';
                     el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
                     b.disabled = false; b.textContent = '💸 支付MYK激活'; unlock(); return;
                 }
                 b.textContent = '激活中...'; el.innerHTML = '⏳ 激活中...';
-                await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: encodeCall('transfer(address,uint256)', ['address','uint256'], [RP, Web3.utils.toWei($('mykAmount').value, 'ether')]) }] });
+                await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: encodeCall('transfer(address,uint256)', ['address','uint256'], [RP, Web3.utils.toWei(amEl ? amEl.value : am, 'ether')]) }] });
                 el.innerHTML = '✅ 激活成功！'; el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
                 setTimeout(function() { refreshAllData(); document.dispatchEvent(new CustomEvent('activationComplete')); }, 3000);
             } catch (e) { el.innerHTML = '❌ ' + parseError(e); }
@@ -543,19 +553,22 @@
             if (!userAddress || !web3) return;
             try {
                 var basic = await fetchUserBasic();
-                if (!basic) { $('middleInvitedCount').textContent = '--'; return; }
+                if (!basic) { var mic = $('middleInvitedCount'); if (mic) mic.textContent = '--'; return; }
                 var activatedInvited = basic.activatedInvited || 0;
-                $('middleInvitedCount').textContent = activatedInvited;
-                $('middleProgress').style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
+                var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
+                var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
+                var mc = $('middleCard'), ms = $('middleStatus');
                 if (basic.role === 2) {
-                    $('middleCard').classList.remove('locked'); $('middleCard').classList.add('unlocked');
-                    $('middleStatus').textContent = '🔓已解锁'; $('middleStatus').style.color = '#4ecca3';
+                    if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
+                    if (ms) { ms.textContent = '🔓已解锁'; ms.style.color = '#4ecca3'; }
                 } else {
-                    $('middleCard').classList.add('locked'); $('middleCard').classList.remove('unlocked');
-                    $('middleStatus').textContent = (activatedInvited >= 3 && basic.role === 1) ? '⚠️条件满足，请检查锁仓状态' : '🔒未解锁';
-                    $('middleStatus').style.color = (activatedInvited >= 3 && basic.role === 1) ? '#f0b90b' : '#a3adc9';
+                    if (mc) { mc.classList.add('locked'); mc.classList.remove('unlocked'); }
+                    if (ms) {
+                        ms.textContent = (activatedInvited >= 3 && basic.role === 1) ? '⚠️条件满足，请检查锁仓状态' : '🔒未解锁';
+                        ms.style.color = (activatedInvited >= 3 && basic.role === 1) ? '#f0b90b' : '#a3adc9';
+                    }
                 }
-            } catch (e) { $('middleInvitedCount').textContent = '--'; }
+            } catch (e) {}
         }
 
         async function refreshAllData() {
@@ -647,19 +660,19 @@
             });
         }
 
-        function init() {
+        function doInit() {
             setupActivateTabs(); setupUpgradeButtons(); setupSwipeDots();
-            $('activateUSDTBtn').addEventListener('click', activateUSDT);
-            $('activateMYKBtn').addEventListener('click', activateMYK);
+            var aub = $('activateUSDTBtn'); if (aub) aub.addEventListener('click', activateUSDT);
+            var amb = $('activateMYKBtn'); if (amb) amb.addEventListener('click', activateMYK);
             if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshAllData(); }
-            else { if (typeof web3 !== 'undefined' && web3) { fetchPrices(); } }
+            else { fetchPrices(); }
             document.addEventListener('walletConnected', function() { refreshAllData(); });
+            setInterval(function() { if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshAllData(); } }, 60000);
         }
 
-        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
-        else { init(); }
+        doInit();
+    }
 
-        setInterval(function() { if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshAllData(); } }, 60000);
-    })();
+    communityInit();
     </script>
 </div>
