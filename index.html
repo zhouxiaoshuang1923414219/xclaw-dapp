@@ -43,7 +43,7 @@
             border-top: 1px solid rgba(255,255,255,0.1);
             display: flex; justify-content: space-around; padding: 10px 0; z-index: 100;
         }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; font-size: 10px; cursor: pointer; transition: 0.3s; text-decoration: none; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #888; font-size: 10px; cursor: pointer; transition: 0.3s; user-select: none; -webkit-tap-highlight-color: transparent; }
         .nav-item.active { color: #f0b90b; }
         .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; border-radius: 4px; display: block; }
         .nav-icon.placeholder { background-color: currentColor; opacity: 0.3; }
@@ -76,20 +76,20 @@
         </header>
         <div id="page-container"></div>
         
-        <div class="bottom-nav">
-            <div class="nav-item" onclick="switchTab('assets')">
+        <div class="bottom-nav" id="bottomNav">
+            <div class="nav-item" data-tab="assets">
                 <div class="nav-icon placeholder"></div>资产
             </div>
-            <div class="nav-item" onclick="switchTab('markets')">
+            <div class="nav-item" data-tab="markets">
                 <div class="nav-icon placeholder"></div>领币
             </div>
-            <div class="nav-item active" onclick="switchTab('trade')">
+            <div class="nav-item active" data-tab="trade">
                 <div class="nav-icon placeholder"></div>交易
             </div>
-            <div class="nav-item" onclick="switchTab('ecosystem')">
+            <div class="nav-item" data-tab="ecosystem">
                 <div class="nav-icon placeholder"></div>生态
             </div>
-            <div class="nav-item" onclick="switchTab('community')">
+            <div class="nav-item" data-tab="community">
                 <div class="nav-icon placeholder"></div>社区
             </div>
         </div>
@@ -203,13 +203,33 @@
         }
 
         function switchTab(name) {
-            document.querySelectorAll('.bottom-nav .nav-item').forEach(function(i) { i.classList.remove('active'); });
-            var idx = { 'assets': 0, 'markets': 1, 'trade': 2, 'ecosystem': 3, 'community': 4 };
-            if (idx[name] !== undefined) {
-                document.querySelectorAll('.bottom-nav .nav-item')[idx[name]].classList.add('active');
-            }
+            // 更新底部导航激活状态
+            var navItems = document.querySelectorAll('#bottomNav .nav-item');
+            navItems.forEach(function(item) {
+                item.classList.remove('active');
+                if (item.getAttribute('data-tab') === name) {
+                    item.classList.add('active');
+                }
+            });
+            // 加载页面
             loadPage(name);
         }
+
+        // ===== 使用事件委托绑定底部导航 =====
+        document.getElementById('bottomNav').addEventListener('click', function(e) {
+            var target = e.target;
+            // 向上查找 .nav-item
+            while (target && target !== this) {
+                if (target.classList.contains('nav-item')) {
+                    var tabName = target.getAttribute('data-tab');
+                    if (tabName) {
+                        switchTab(tabName);
+                    }
+                    return;
+                }
+                target = target.parentElement;
+            }
+        });
 
         async function autoConnect() {
             if (window.ethereum) {
