@@ -166,6 +166,7 @@
         }
     </style>
 
+    <!-- ========== 卡片3：买卖 MYK ========== -->
     <div class="glass-card">
         <h2 style="justify-content: space-between; display: flex; align-items: center; font-size: 1.2rem; color: #f0b90b;">
             <span>📈 买卖 MYK</span>
@@ -194,16 +195,15 @@
             <div class="tab tab-sell" data-tab="sell">🔴 卖出 MYK</div>
         </div>
 
-        <!-- 买入面板 -->
         <div id="panelBuy">
             <div class="desc">使用 <span class="highlight">USDT</span> 购买 MYK</div>
             <div class="balance-row">
                 <div class="balance-item">
-                    <span class="balance-label"> MYK 余额:</span>
+                    <span class="balance-label">💰 MYK 余额:</span>
                     <span class="balance-value" id="mykBalanceBuy">--</span>
                 </div>
                 <div class="balance-item">
-                    <span class="balance-label"> USDT 余额:</span>
+                    <span class="balance-label">💵 USDT 余额:</span>
                     <span class="balance-value" id="usdtBalance">--</span>
                 </div>
             </div>
@@ -225,16 +225,15 @@
             <div class="info-box" id="buyResult" style="display:none;"></div>
         </div>
 
-        <!-- 卖出面板 -->
         <div id="panelSell" style="display:none;">
             <div class="desc">卖出 <span class="highlight">MYK</span> 获得 USDT</div>
             <div class="balance-row">
                 <div class="balance-item">
-                    <span class="balance-label"> MYK 余额:</span>
+                    <span class="balance-label">💰 MYK 余额:</span>
                     <span class="balance-value" id="mykBalanceSell">--</span>
                 </div>
                 <div class="balance-item">
-                    <span class="balance-label"> USDT 余额:</span>
+                    <span class="balance-label">💵 USDT 余额:</span>
                     <span class="balance-value" id="usdtBalanceSell">--</span>
                 </div>
             </div>
@@ -259,22 +258,22 @@
 
     <script>
     (function() {
-        const MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
-        const RP = '0xFfB8565dd1dd743a45F681D77C7d1De7e2ab95F2';
-        const USDT = '0x55d398326f99059fF775485246999027B3197955';
-        const ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
-        const PAIR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
-        const SWAP_SIG = 'swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
-        const PCS_API = 'https://api.pancakeswap.info/api/v2/tokens/0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
-        const STORAGE_KEY = 'myk_baseline_price';
+        // ===== 合约地址（已更新） =====
+        var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
+        var RP = '0x889Cf28B22790f6f76578013a8812C3012a192ec';
+        var USDT = '0x55d398326f99059fF775485246999027B3197955';
+        var ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+        var PAIR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
+        var SWAP_SIG = 'swapExactTokensForTokensSupportingFeeOnTransferTokens(uint256,uint256,address[],address,uint256)';
+        var PCS_API = 'https://api.pancakeswap.info/api/v2/tokens/0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
+        var STORAGE_KEY = 'myk_baseline_price';
 
-        let buySlippage = 0.005;
-        let sellSlippage = 0.005;
-        let spotPrice = '1000000000000000000';
-        let isProcessing = false;
-        // 缓存余额，避免交易中重复查询
-        let cachedUSDTBalance = '0';
-        let cachedMYKBalance = '0';
+        var buySlippage = 0.005;
+        var sellSlippage = 0.005;
+        var spotPrice = '1000000000000000000';
+        var isProcessing = false;
+        var cachedUSDTBalance = '0';
+        var cachedMYKBalance = '0';
 
         function $(id) { return document.getElementById(id); }
         function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
@@ -337,8 +336,7 @@
         }
         function lock() {
             if (isProcessing) { alert('请等待当前操作完成'); return false; }
-            isProcessing = true;
-            return true;
+            isProcessing = true; return true;
         }
         function unlock() { isProcessing = false; }
         function calcMinOutput(amountOut, slippage) {
@@ -350,80 +348,48 @@
             for (var i = 0; i < 30; i++) {
                 try {
                     var r = await web3.eth.getTransactionReceipt(txHash);
-                    if (r) {
-                        if (r.status) return r;
-                        else throw new Error('交易失败');
-                    }
-                } catch (e) {
-                    if (i === 29) throw e;
-                }
+                    if (r) { if (r.status) return r; else throw new Error('交易失败'); }
+                } catch (e) { if (i === 29) throw e; }
                 await new Promise(function(r) { setTimeout(r, 2000); });
             }
             throw new Error('超时');
         }
 
-        // ===== 【修复】获取用户余额 =====
         async function fetchBalances() {
             var userAddress = window.currentAccount;
-            if (!userAddress || !web3) {
-                resetBalances();
-                return;
-            }
+            if (!userAddress || !web3) { resetBalances(); return; }
             try {
-                var usdtResult = await web3.eth.call({
-                    to: USDT,
-                    data: encodeCall('balanceOf(address)', ['address'], [userAddress])
-                });
+                var usdtResult = await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
                 var usdtBal = n(web3.eth.abi.decodeParameter('uint256', usdtResult));
                 cachedUSDTBalance = usdtBal.toFixed(4);
                 $('usdtBalance').textContent = cachedUSDTBalance;
                 $('usdtBalanceSell').textContent = cachedUSDTBalance;
 
-                var mykResult = await web3.eth.call({
-                    to: MYK,
-                    data: encodeCall('balanceOf(address)', ['address'], [userAddress])
-                });
+                var mykResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
                 var mykBal = n(web3.eth.abi.decodeParameter('uint256', mykResult));
                 cachedMYKBalance = mykBal.toFixed(4);
                 $('mykBalanceBuy').textContent = cachedMYKBalance;
                 $('mykBalanceSell').textContent = cachedMYKBalance;
-            } catch (e) {
-                console.error('获取余额失败:', e);
-                resetBalances();
-            }
+            } catch (e) { resetBalances(); }
         }
 
         function resetBalances() {
-            $('usdtBalance').textContent = '--';
-            $('mykBalanceBuy').textContent = '--';
-            $('mykBalanceSell').textContent = '--';
-            $('usdtBalanceSell').textContent = '--';
-            cachedUSDTBalance = '0';
-            cachedMYKBalance = '0';
+            $('usdtBalance').textContent = '--'; $('mykBalanceBuy').textContent = '--';
+            $('mykBalanceSell').textContent = '--'; $('usdtBalanceSell').textContent = '--';
+            cachedUSDTBalance = '0'; cachedMYKBalance = '0';
         }
 
-        // ===== MAX 按钮 =====
         function setupMaxButtons() {
             $('buyMaxBtn').addEventListener('click', function() {
-                if (cachedUSDTBalance === '0' || cachedUSDTBalance === '--') {
-                    alert('USDT 余额不足或未连接钱包');
-                    return;
-                }
-                $('buyUSDTAmount').value = cachedUSDTBalance;
-                updateBuyQuote();
+                if (cachedUSDTBalance === '0' || cachedUSDTBalance === '--') { alert('USDT 余额不足或未连接钱包'); return; }
+                $('buyUSDTAmount').value = cachedUSDTBalance; updateBuyQuote();
             });
-
             $('sellMaxBtn').addEventListener('click', function() {
-                if (cachedMYKBalance === '0' || cachedMYKBalance === '--') {
-                    alert('MYK 余额不足或未连接钱包');
-                    return;
-                }
-                $('sellMYKAmount').value = cachedMYKBalance;
-                updateSellQuote();
+                if (cachedMYKBalance === '0' || cachedMYKBalance === '--') { alert('MYK 余额不足或未连接钱包'); return; }
+                $('sellMYKAmount').value = cachedMYKBalance; updateSellQuote();
             });
         }
 
-        // ===== 价格获取 =====
         async function fetchPrice() {
             if (!web3) return;
             try {
@@ -446,21 +412,16 @@
                             var r0 = BigInt(rv[0]), r1 = BigInt(rv[1]);
                             if (r0 === BigInt(0) || r1 === BigInt(0)) throw new Error('0');
                             var rU, rM;
-                            if (t0.toLowerCase() === USDT.toLowerCase()) { rU = r0; rM = r1; }
-                            else { rU = r1; rM = r0; }
+                            if (t0.toLowerCase() === USDT.toLowerCase()) { rU = r0; rM = r1; } else { rU = r1; rM = r0; }
                             spotPrice = ((rU * BigInt(10 ** 18)) / rM).toString();
                         } catch (e3) {}
                     }
                 }
-
                 var sp = n(spotPrice);
                 var pcs = await fetchPCSChange();
                 if (pcs) updatePriceDisplay(sp, pcs.change);
                 else { var lr = getLocalChange(sp); updatePriceDisplay(sp, lr.change); }
-                updateOrderPanel();
-                updateBuyQuote();
-                updateSellQuote();
-                fetchBalances();
+                updateOrderPanel(); updateBuyQuote(); updateSellQuote(); fetchBalances();
             } catch (e) {
                 $('tradePriceDisplay').textContent = '--';
                 $('tradePriceBadge').className = 'trade-price-badge price-change-flat';
@@ -482,9 +443,9 @@
                 if (!web3) return;
                 var ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
                 var rc = new web3.eth.Contract(ra, ROUTER);
-                var sellAmounts = await rc.methods.getAmountsOut(Web3.utils.toWei('1', 'ether'), [MYK, USDT]).call();
+                var sellAmounts = await rc.methods.getAmountsOut(Web3.utils.toWei('1','ether'), [MYK, USDT]).call();
                 var sellPrice = n(sellAmounts[1]);
-                var buyAmounts = await rc.methods.getAmountsOut(Web3.utils.toWei('1', 'ether'), [USDT, MYK]).call();
+                var buyAmounts = await rc.methods.getAmountsOut(Web3.utils.toWei('1','ether'), [USDT, MYK]).call();
                 var buyRate = n(buyAmounts[1]);
                 $('buyRateDisplay').textContent = buyRate.toFixed(4);
                 $('sellRateDisplay').textContent = sellPrice.toFixed(6);
@@ -503,9 +464,7 @@
                 var sp = n(spotPrice);
                 if (isNaN(sp) || sp <= 0) return '0';
                 var an = n(amountIn);
-                return path[0].toLowerCase() === USDT.toLowerCase()
-                    ? Web3.utils.toWei(String(an / sp), 'ether')
-                    : Web3.utils.toWei(String(an * sp), 'ether');
+                return path[0].toLowerCase() === USDT.toLowerCase() ? Web3.utils.toWei(String(an / sp), 'ether') : Web3.utils.toWei(String(an * sp), 'ether');
             }
         }
 
@@ -529,185 +488,67 @@
             } catch (e) { $('expectedUSDT').textContent = '--'; }
         }
 
-        // ===== 【修复】买入 MYK - 使用缓存余额验证 =====
         async function buyMYK() {
             var userAddress = window.currentAccount;
             if (!userAddress) { alert('请先连接钱包'); return; }
             if (!lock()) return;
-
-            var b = $('buyMYKBtn');
-            var el = $('buyResult');
-            var ua = parseFloat($('buyUSDTAmount').value);
-
+            var b = $('buyMYKBtn'), el = $('buyResult'), ua = parseFloat($('buyUSDTAmount').value);
             if (!ua || ua <= 0) { alert('请输入有效的USDT数量'); unlock(); return; }
-
-            // 使用缓存余额快速检查
-            if (cachedUSDTBalance !== '--' && cachedUSDTBalance !== '0') {
-                if (parseFloat(cachedUSDTBalance) < ua) {
-                    alert('USDT 余额不足！当前余额: ' + cachedUSDTBalance);
-                    unlock();
-                    return;
-                }
-            }
-
-            el.style.display = 'block';
-            b.disabled = true;
-            b.textContent = '处理中...';
-
+            if (cachedUSDTBalance !== '--' && cachedUSDTBalance !== '0' && parseFloat(cachedUSDTBalance) < ua) { alert('USDT 余额不足！当前余额: ' + cachedUSDTBalance); unlock(); return; }
+            el.style.display = 'block'; b.disabled = true; b.textContent = '处理中...';
             try {
-                var uw = Web3.utils.toWei(String(ua), 'ether');
-                var dl = Math.floor(Date.now() / 1000) + 300;
-
-                el.innerHTML = '⏳ 查询报价...';
-                var mo = await getSwapQuote(uw, [USDT, MYK]);
-                var mm = calcMinOutput(mo, buySlippage);
-
-                el.innerHTML = '⏳ 检查余额...';
-                var balanceData = encodeCall('balanceOf(address)', ['address'], [userAddress]);
-                var br = await web3.eth.call({ to: USDT, data: balanceData });
-                var onChainBalance = web3.eth.abi.decodeParameter('uint256', br);
-
-                if (BigInt(onChainBalance) < BigInt(uw)) {
-                    var balFormatted = parseFloat(Web3.utils.fromWei(onChainBalance, 'ether')).toFixed(4);
-                    throw new Error('USDT余额不足，链上余额: ' + balFormatted);
-                }
-
-                el.innerHTML = '⏳ 授权 USDT...';
-                var approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [ROUTER, uw]);
-                var aTx = await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{ from: userAddress, to: USDT, data: approveData }]
-                });
-                el.innerHTML = '⏳ 等待授权确认...';
-                await waitForTransaction(aTx);
-
-                el.innerHTML = '⏳ 买入 MYK...';
-                var swapData = encodeCall(SWAP_SIG,
-                    ['uint256', 'uint256', 'address[]', 'address', 'uint256'],
-                    [uw, mm, [USDT, MYK], userAddress, String(dl)]
-                );
-                var sTx = await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{ from: userAddress, to: ROUTER, data: swapData }]
-                });
-                el.innerHTML = '⏳ 等待交易确认...';
-                await waitForTransaction(sTx);
-
-                el.innerHTML = '✅ 买入成功！';
-                el.style.borderLeftColor = '#4ecca3';
-                el.style.background = 'rgba(78,204,163,0.1)';
+                var uw = Web3.utils.toWei(String(ua), 'ether'), dl = Math.floor(Date.now() / 1000) + 300;
+                el.innerHTML = '⏳ 查询报价...'; var mo = await getSwapQuote(uw, [USDT, MYK]); var mm = calcMinOutput(mo, buySlippage);
+                el.innerHTML = '⏳ 检查余额...'; var br = await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
+                if (BigInt(web3.eth.abi.decodeParameter('uint256', br)) < BigInt(uw)) throw new Error('USDT余额不足，链上余额: ' + parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', br), 'ether')).toFixed(4));
+                el.innerHTML = '⏳ 授权 USDT...'; var aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: USDT, data: encodeCall('approve(address,uint256)', ['address','uint256'], [ROUTER, uw]) }] });
+                el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx);
+                el.innerHTML = '⏳ 买入 MYK...'; var sTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall(SWAP_SIG, ['uint256','uint256','address[]','address','uint256'], [uw, mm, [USDT, MYK], userAddress, String(dl)]) }] });
+                el.innerHTML = '⏳ 等待交易确认...'; await waitForTransaction(sTx);
+                el.innerHTML = '✅ 买入成功！'; el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
                 setTimeout(function() { fetchPrice(); }, 3000);
             } catch (e) {
                 var m = parseError(e);
-                el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1)
-                    ? '⚠️ 交易已取消'
-                    : (m.indexOf('insufficient') !== -1 || m.indexOf('余额不足') !== -1)
-                    ? '⚠️ ' + m
-                    : '❌ ' + m;
-            } finally {
-                b.disabled = false;
-                b.textContent = '🟢 买入 MYK';
-                unlock();
-            }
+                el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : (m.indexOf('insufficient') !== -1 || m.indexOf('余额不足') !== -1) ? '⚠️ ' + m : '❌ ' + m;
+            } finally { b.disabled = false; b.textContent = '🟢 买入 MYK'; unlock(); }
         }
 
-        // ===== 【修复】卖出 MYK - 使用缓存余额验证 =====
         async function sellMYK() {
             var userAddress = window.currentAccount;
             if (!userAddress) { alert('请先连接钱包'); return; }
             if (!lock()) return;
-
-            var b = $('sellMYKBtn');
-            var el = $('sellResult');
-            var ma = parseFloat($('sellMYKAmount').value);
-
+            var b = $('sellMYKBtn'), el = $('sellResult'), ma = parseFloat($('sellMYKAmount').value);
             if (!ma || ma <= 0) { alert('请输入有效的MYK数量'); unlock(); return; }
-
-            // 使用缓存余额快速检查
-            if (cachedMYKBalance !== '--' && cachedMYKBalance !== '0') {
-                if (parseFloat(cachedMYKBalance) < ma) {
-                    alert('MYK 余额不足！当前余额: ' + cachedMYKBalance);
-                    unlock();
-                    return;
-                }
-            }
-
-            el.style.display = 'block';
-            b.disabled = true;
-            b.textContent = '处理中...';
-
+            if (cachedMYKBalance !== '--' && cachedMYKBalance !== '0' && parseFloat(cachedMYKBalance) < ma) { alert('MYK 余额不足！当前余额: ' + cachedMYKBalance); unlock(); return; }
+            el.style.display = 'block'; b.disabled = true; b.textContent = '处理中...';
             try {
-                var mw = Web3.utils.toWei(String(ma), 'ether');
-                var dl = Math.floor(Date.now() / 1000) + 300;
-
-                el.innerHTML = '⏳ 查询报价...';
-                var uo = await getSwapQuote(mw, [MYK, USDT]);
-                var mu = calcMinOutput(uo, sellSlippage);
-
-                el.innerHTML = '⏳ 检查余额...';
-                var balanceData = encodeCall('balanceOf(address)', ['address'], [userAddress]);
-                var br = await web3.eth.call({ to: MYK, data: balanceData });
-                var onChainBalance = web3.eth.abi.decodeParameter('uint256', br);
-
-                if (BigInt(onChainBalance) < BigInt(mw)) {
-                    var balFormatted = parseFloat(Web3.utils.fromWei(onChainBalance, 'ether')).toFixed(4);
-                    throw new Error('MYK余额不足，链上余额: ' + balFormatted);
-                }
-
-                el.innerHTML = '⏳ 授权 MYK...';
-                var approveData = encodeCall('approve(address,uint256)', ['address', 'uint256'], [ROUTER, mw]);
-                var aTx = await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{ from: userAddress, to: MYK, data: approveData }]
-                });
-                el.innerHTML = '⏳ 等待授权确认...';
-                await waitForTransaction(aTx);
-
-                el.innerHTML = '⏳ 卖出 MYK...';
-                var swapData = encodeCall(SWAP_SIG,
-                    ['uint256', 'uint256', 'address[]', 'address', 'uint256'],
-                    [mw, mu, [MYK, USDT], userAddress, String(dl)]
-                );
-                var sTx = await window.ethereum.request({
-                    method: 'eth_sendTransaction',
-                    params: [{ from: userAddress, to: ROUTER, data: swapData }]
-                });
-                el.innerHTML = '⏳ 等待交易确认...';
-                await waitForTransaction(sTx);
-
-                el.innerHTML = '✅ 卖出成功！';
-                el.style.borderLeftColor = '#4ecca3';
-                el.style.background = 'rgba(78,204,163,0.1)';
+                var mw = Web3.utils.toWei(String(ma), 'ether'), dl = Math.floor(Date.now() / 1000) + 300;
+                el.innerHTML = '⏳ 查询报价...'; var uo = await getSwapQuote(mw, [MYK, USDT]); var mu = calcMinOutput(uo, sellSlippage);
+                el.innerHTML = '⏳ 检查余额...'; var br = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
+                if (BigInt(web3.eth.abi.decodeParameter('uint256', br)) < BigInt(mw)) throw new Error('MYK余额不足，链上余额: ' + parseFloat(Web3.utils.fromWei(web3.eth.abi.decodeParameter('uint256', br), 'ether')).toFixed(4));
+                el.innerHTML = '⏳ 授权 MYK...'; var aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: MYK, data: encodeCall('approve(address,uint256)', ['address','uint256'], [ROUTER, mw]) }] });
+                el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx);
+                el.innerHTML = '⏳ 卖出 MYK...'; var sTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: ROUTER, data: encodeCall(SWAP_SIG, ['uint256','uint256','address[]','address','uint256'], [mw, mu, [MYK, USDT], userAddress, String(dl)]) }] });
+                el.innerHTML = '⏳ 等待交易确认...'; await waitForTransaction(sTx);
+                el.innerHTML = '✅ 卖出成功！'; el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
                 setTimeout(function() { fetchPrice(); }, 3000);
             } catch (e) {
                 var m = parseError(e);
-                el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1)
-                    ? '⚠️ 交易已取消'
-                    : (m.indexOf('insufficient') !== -1 || m.indexOf('余额不足') !== -1)
-                    ? '⚠️ ' + m
-                    : '❌ ' + m;
-            } finally {
-                b.disabled = false;
-                b.textContent = '🔴 卖出 MYK';
-                unlock();
-            }
+                el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : (m.indexOf('insufficient') !== -1 || m.indexOf('余额不足') !== -1) ? '⚠️ ' + m : '❌ ' + m;
+            } finally { b.disabled = false; b.textContent = '🔴 卖出 MYK'; unlock(); }
         }
 
         function setupSlippageButtons() {
             document.querySelectorAll('#panelBuy .slippage-btn').forEach(function(b) {
                 b.addEventListener('click', function() {
                     document.querySelectorAll('#panelBuy .slippage-btn').forEach(function(x) { x.classList.remove('active'); });
-                    this.classList.add('active');
-                    buySlippage = parseFloat(this.dataset.slip) / 100;
-                    updateBuyQuote();
+                    this.classList.add('active'); buySlippage = parseFloat(this.dataset.slip) / 100; updateBuyQuote();
                 });
             });
             document.querySelectorAll('#panelSell .slippage-btn').forEach(function(b) {
                 b.addEventListener('click', function() {
                     document.querySelectorAll('#panelSell .slippage-btn').forEach(function(x) { x.classList.remove('active'); });
-                    this.classList.add('active');
-                    sellSlippage = parseFloat(this.dataset.slip) / 100;
-                    updateSellQuote();
+                    this.classList.add('active'); sellSlippage = parseFloat(this.dataset.slip) / 100; updateSellQuote();
                 });
             });
         }
@@ -715,9 +556,7 @@
         function setupTabs() {
             document.querySelectorAll('#tradeTabSwitch .tab').forEach(function(t) {
                 t.addEventListener('click', function() {
-                    document.querySelectorAll('#tradeTabSwitch .tab').forEach(function(x) {
-                        x.classList.remove('active', 'tab-buy', 'tab-sell');
-                    });
+                    document.querySelectorAll('#tradeTabSwitch .tab').forEach(function(x) { x.classList.remove('active', 'tab-buy', 'tab-sell'); });
                     this.classList.add('active');
                     var tb = this.dataset.tab;
                     if (tb === 'buy') this.classList.add('tab-buy');
@@ -731,51 +570,28 @@
         }
 
         function startPriceAutoRefresh() {
-            fetchPrice().then(function() {
-                updateBuyQuote();
-                updateSellQuote();
-            });
+            fetchPrice().then(function() { updateBuyQuote(); updateSellQuote(); });
             setInterval(function() {
                 var s = localStorage.getItem(STORAGE_KEY);
-                if (s) {
-                    try {
-                        var d = JSON.parse(s);
-                        if (d.date !== getTodayKey()) localStorage.removeItem(STORAGE_KEY);
-                    } catch (e) {}
-                }
-                fetchPrice().then(function() {
-                    updateBuyQuote();
-                    updateSellQuote();
-                });
+                if (s) { try { var d = JSON.parse(s); if (d.date !== getTodayKey()) localStorage.removeItem(STORAGE_KEY); } catch (e) {} }
+                fetchPrice().then(function() { updateBuyQuote(); updateSellQuote(); });
             }, 30000);
         }
 
         function init() {
-            setupTabs();
-            setupSlippageButtons();
-            setupMaxButtons();
+            setupTabs(); setupSlippageButtons(); setupMaxButtons();
             $('buyUSDTAmount').addEventListener('input', updateBuyQuote);
             $('sellMYKAmount').addEventListener('input', updateSellQuote);
             $('buyMYKBtn').addEventListener('click', buyMYK);
             $('sellMYKBtn').addEventListener('click', sellMYK);
-
-            if (typeof web3 !== 'undefined' && web3) {
-                startPriceAutoRefresh();
-            } else {
-                var checkWeb3 = setInterval(function() {
-                    if (typeof web3 !== 'undefined' && web3) {
-                        clearInterval(checkWeb3);
-                        startPriceAutoRefresh();
-                    }
-                }, 500);
+            if (typeof web3 !== 'undefined' && web3) { startPriceAutoRefresh(); }
+            else {
+                var checkWeb3 = setInterval(function() { if (typeof web3 !== 'undefined' && web3) { clearInterval(checkWeb3); startPriceAutoRefresh(); } }, 500);
             }
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
-        }
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
+        else { init(); }
     })();
     </script>
 </div>
