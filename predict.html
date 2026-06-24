@@ -156,9 +156,9 @@
         // ===== 做市7天 =====
         async function fetchHoldingInfo() {
             var ua = getAccount();
-            if (!ua) { st('holdingBalance','0.00 USDT'); st('holdingAmount','0.00 MYK'); st('streakDays','--'); st('claimedToday','--'); st('todayReward','--'); sd('claimRewardBtn',true); st('claimRewardBtn','请先连接钱包'); return; }
+            if (!ua) { st('holdingBalance','--'); st('holdingAmount','--'); st('streakDays','--'); st('claimedToday','--'); st('todayReward','--'); sd('claimRewardBtn',true); st('claimRewardBtn','请先连接钱包'); return; }
 
-            var isActive = false, buyTs = 0, buyVal = 0, streak = 0, claimed = 0, claimable = 0;
+            var isActive = false, buyTs = 0, buyVal = 0, buyAmt = 0, streak = 0, claimed = 0, claimable = 0;
 
             try {
                 // 1. 激活状态
@@ -172,41 +172,34 @@
                     try { isActive = web3.eth.abi.decodeParameter('bool', await web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [ua]) })); } catch (e2) {}
                 }
 
-                // 2. getLastPancakeBuyInfo → amount, value, timestamp
+                // 2. getLastPancakeBuyInfo → amount, value, timestamp (无降级)
                 try {
                     var raw = await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyInfo(address)', ['address'], [ua]) });
                     var bi = web3.eth.abi.decodeParameters(['uint256','uint256','uint256'], raw);
-                    var amt = n(bi[0]), val = n(bi[1]), ts = parseInt(bi[2]);
-                    if (ts > 0) { buyTs = ts; buyVal = val; }
-                } catch (e) {
-                    try { buyTs = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyTime(address)', ['address'], [ua]) }))); } catch (e2) {}
-                }
+                    buyAmt = n(bi[0]); buyVal = n(bi[1]); buyTs = parseInt(bi[2]);
+                } catch (e) {}
 
-                // 3. 显示最近购买：无数据时显示 0.00 USDT
+                // 3. 显示：无数据时显示 0.00
+                st('holdingBalance', buyVal.toFixed(2) + ' USDT');
+                st('holdingAmount', buyAmt.toFixed(2) + ' MYK');
+
+                // 4. getStreakLength
+                try { streak = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [ua]) }))); st('streakDays', streak); } catch (e) { st('streakDays','0'); }
+
+                // 5. getTotalDailyRewardClaimed
+                try { claimed = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getTotalDailyRewardClaimed(address)', ['address'], [ua]) }))); st('claimedToday', claimed.toFixed(4) + ' MYK'); } catch (e) { st('claimedToday','0.0000 MYK'); }
+
+                // 6. getClaimableDailyReward
+                try { claimable = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getClaimableDailyReward(address)', ['address'], [ua]) }))); } catch (e) {}
+
+                // 7. 时间显示
                 if (buyTs > 0) {
                     var diff = Math.floor(Date.now() / 1000) - buyTs;
                     var dd = Math.floor(diff / 86400);
                     st('holdingDaysAgo', dd <= 0 ? (Math.floor(diff / 3600) <= 0 ? (Math.floor(diff / 60) <= 1 ? '(刚刚)' : '(' + Math.floor(diff / 60) + '分钟前)') : '(' + Math.floor(diff / 3600) + '小时前)') : '(' + dd + '天前)');
-                    st('holdingBalance', buyVal.toFixed(2) + ' USDT');
                 } else {
-                    st('holdingDaysAgo', '');
-                    st('holdingBalance', '0.00 USDT');
+                    st('holdingDaysAgo','');
                 }
-
-                // 4. 持币：无数据时显示 0.00 MYK
-                try {
-                    var mykBal = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ua]) })));
-                    st('holdingAmount', mykBal.toFixed(2) + ' MYK');
-                } catch (e) { st('holdingAmount', '0.00 MYK'); }
-
-                // 5. getStreakLength
-                try { streak = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [ua]) }))); st('streakDays', streak); } catch (e) { st('streakDays','0'); }
-
-                // 6. getTotalDailyRewardClaimed
-                try { claimed = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getTotalDailyRewardClaimed(address)', ['address'], [ua]) }))); st('claimedToday', claimed.toFixed(4) + ' MYK'); } catch (e) { st('claimedToday','0.0000 MYK'); }
-
-                // 7. getClaimableDailyReward
-                try { claimable = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getClaimableDailyReward(address)', ['address'], [ua]) }))); } catch (e) {}
 
                 // 8. 可领判断
                 var em = '', bd = false;
