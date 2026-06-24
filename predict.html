@@ -107,10 +107,9 @@
     }
 
     _waitForWeb3(function() {
-        // ===== 合约地址 =====
         var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
-        var RP = '0x6068890bcDfdBd41b13e5A49e2540Ac5bdf3929B';
-        var GOV = '0xE4B0187Aa2EaD11D102eE61Fe2a9AeE23C865e58';
+        var RP = '0xCCA6d5be986420FD3A6DfbFC5173627Cf57e0573';
+        var GOV = '0xf6A994642cf23d74DCAcB0B737a5C1703Dc88D32';
         var USDT = '0x55d398326f99059fF775485246999027B3197955';
         var ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
         var PAIR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
@@ -118,7 +117,6 @@
 
         var isProcessing = false;
         var cachedSpotPrice = 0;
-        var cachedSpotPriceWei = '1000000000000000000';
 
         function $(id) { return document.getElementById(id); }
         function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
@@ -163,14 +161,12 @@
             try {
                 try {
                     var result = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
-                    cachedSpotPriceWei = result;
                     cachedSpotPrice = n(result);
                 } catch (e1) {
                     try {
                         var ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
                         var rc = new web3.eth.Contract(ra, ROUTER);
                         var amounts = await rc.methods.getAmountsOut(Web3.utils.toWei('1','ether'), [MYK, USDT]).call();
-                        cachedSpotPriceWei = Web3.utils.toWei(String(n(amounts[1])), 'ether');
                         cachedSpotPrice = n(amounts[1]);
                     } catch (e2) {
                         try {
@@ -182,8 +178,7 @@
                             if (r0 === BigInt(0) || r1 === BigInt(0)) throw new Error('0');
                             var rU, rM;
                             if (t0.toLowerCase() === USDT.toLowerCase()) { rU = r0; rM = r1; } else { rU = r1; rM = r0; }
-                            cachedSpotPriceWei = ((rU * BigInt(10 ** 18)) / rM).toString();
-                            cachedSpotPrice = parseFloat(Web3.utils.fromWei(cachedSpotPriceWei, 'ether'));
+                            cachedSpotPrice = parseFloat(Web3.utils.fromWei(((rU * BigInt(10 ** 18)) / rM).toString(), 'ether'));
                         } catch (e3) {}
                     }
                 }
@@ -257,7 +252,7 @@
             } finally { b.disabled = false; unlock(); }
         }
 
-        // ===== 做市7天持币奖励 =====
+        // ===== 【修复】做市7天持币奖励 - 通过PancakeSwap交易记录查询最近购买 =====
         async function fetchHoldingInfo() {
             var userAddress = getAccount();
             if (!userAddress) {
@@ -269,63 +264,94 @@
             }
             try {
                 var isActive = false;
-                var buyTimestamp = 0, buyAmount = 0;
+                var buyTimestamp = 0, buyAmount = 0, buyValue = 0;
                 var streakDays = 0, totalClaimed = 0, claimable = 0;
 
-                // getUserBasic
+                // 1. 检查激活状态
                 try {
                     var basicResult = await web3.eth.call({ to: RP, data: encodeCall('getUserBasic(address)', ['address'], [userAddress]) });
                     var u = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint8','uint256','bool','uint256','uint256'], basicResult);
                     isActive = u[5];
                 } catch (e) {
                     try {
-                        var usersResult = await web3.eth.call({ to: RP, data: encodeCall('users(address)', ['address'], [userAddress]) });
-                        var u2 = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], usersResult);
-                        isActive = u2[8];
+                        var iaResult = await web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [userAddress]) });
+                        isActive = web3.eth.abi.decodeParameter('bool', iaResult);
                     } catch (e2) {}
                 }
 
-                // MYK余额
+                // 2. 【核心修复】通过 Pair 合约查询 Transfer 事件获取最近一笔买入
+                try {
+                    // 查询从 Pair 到用户的 MYK Transfer 事件（即用户买入 MYK）
+                    var currentBlock = await web3.eth.getBlockNumber();
+                    var fromBlock = Math.max(0, currentBlock - 50000); // 约7天的区块
+
+                    // 获取 Transfer 事件签名
+                    var transferEventSig = web3.eth.abi.encodeEventSignature('Transfer(address,address,uint256)');
+
+                    // 查询 Pair → 用户的 MYK 转入记录
+                    var logs = await web3.eth.getPastLogs({
+                        fromBlock: fromBlock,
+                        toBlock: 'latest',
+                        address: PAIR,
+                        topics: [transferEventSig, null, web3.eth.abi.encodeParameter('address', userAddress)]
+                    });
+
+                    if (logs && logs.length > 0) {
+                        // 取最新一条记录
+                        var latestLog = logs[logs.length - 1];
+                        var block = await web3.eth.getBlock(latestLog.blockNumber);
+                        buyTimestamp = parseInt(block.timestamp);
+                        buyAmount = n(latestLog.data);
+                        buyValue = 0; // 需要从 Swap 事件获取 USDT 金额
+                    }
+
+                    // 如果没有 Transfer 事件，尝试 getLastPancakeBuyTime
+                    if (buyTimestamp === 0) {
+                        try {
+                            var timeResult = await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyTime(address)', ['address'], [userAddress]) });
+                            buyTimestamp = parseInt(web3.eth.abi.decodeParameter('uint256', timeResult));
+                        } catch (e) {
+                            try {
+                                var infoResult = await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyInfo(address)', ['address'], [userAddress]) });
+                                var bi = web3.eth.abi.decodeParameters(['uint256','uint256','uint256'], infoResult);
+                                buyAmount = n(bi[0]);
+                                buyValue = n(bi[1]);
+                                buyTimestamp = parseInt(bi[2]);
+                            } catch (e2) {}
+                        }
+                    }
+                } catch (e) {
+                    // 降级方案全部失败
+                }
+
+                // 3. MYK余额
                 try {
                     var mykResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) });
                     buyAmount = n(web3.eth.abi.decodeParameter('uint256', mykResult));
                     safeText('holdingAmount', buyAmount.toFixed(2) + ' MYK');
                 } catch (e) { safeText('holdingAmount', '--'); }
 
-                // getLastPancakeBuyTime
-                try {
-                    var timeResult = await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyTime(address)', ['address'], [userAddress]) });
-                    buyTimestamp = parseInt(web3.eth.abi.decodeParameter('uint256', timeResult));
-                } catch (e) {
-                    try {
-                        var infoResult = await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyInfo(address)', ['address'], [userAddress]) });
-                        var bi = web3.eth.abi.decodeParameters(['uint256','uint256','uint256'], infoResult);
-                        buyAmount = n(bi[0]); buyTimestamp = parseInt(bi[2]);
-                        safeText('holdingAmount', buyAmount.toFixed(2) + ' MYK');
-                    } catch (e2) {}
-                }
-
-                // getStreakLength
+                // 4. getStreakLength
                 try {
                     var streakResult = await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) });
                     streakDays = parseInt(web3.eth.abi.decodeParameter('uint256', streakResult));
                     safeText('streakDays', streakDays);
                 } catch (e) { safeText('streakDays', '0'); }
 
-                // getTotalDailyRewardClaimed
+                // 5. getTotalDailyRewardClaimed
                 try {
                     var claimedResult = await web3.eth.call({ to: RP, data: encodeCall('getTotalDailyRewardClaimed(address)', ['address'], [userAddress]) });
                     totalClaimed = n(web3.eth.abi.decodeParameter('uint256', claimedResult));
                     safeText('claimedToday', totalClaimed.toFixed(4) + ' MYK');
-                } catch (e) { safeText('claimedToday', '-- MYK'); }
+                } catch (e) { safeText('claimedToday', '0.0000 MYK'); }
 
-                // getClaimableDailyReward
+                // 6. getClaimableDailyReward
                 try {
                     var claimableResult = await web3.eth.call({ to: RP, data: encodeCall('getClaimableDailyReward(address)', ['address'], [userAddress]) });
                     claimable = n(web3.eth.abi.decodeParameter('uint256', claimableResult));
                 } catch (e) {}
 
-                // 显示购买时间
+                // 7. 显示购买记录
                 if (buyTimestamp > 0) {
                     var diffSec = Math.floor(Date.now() / 1000) - buyTimestamp;
                     var diffDays = Math.floor(diffSec / 86400);
@@ -335,13 +361,19 @@
                     } else {
                         safeText('holdingDaysAgo', '(' + diffDays + '天前)');
                     }
-                    safeText('holdingBalance', diffDays <= 7 ? '✅ 7天内有买入' : '⚠️ 超过7天');
+                    if (buyValue > 0) {
+                        safeText('holdingBalance', buyValue.toFixed(2) + ' USDT');
+                    } else if (diffDays <= 7) {
+                        safeText('holdingBalance', '✅ 7天内有买入');
+                    } else {
+                        safeText('holdingBalance', '⚠️ 超过7天 (' + new Date(buyTimestamp * 1000).toLocaleDateString('zh-CN') + ')');
+                    }
                 } else {
                     safeText('holdingDaysAgo', '');
                     safeText('holdingBalance', '无买入记录');
                 }
 
-                // 判断今天可领
+                // 8. 判断今天可领
                 var errorMsg = '', btnDisabled = false;
                 if (!isActive) {
                     errorMsg = '请先激活 PRIMARY 身份'; btnDisabled = true;
@@ -349,6 +381,9 @@
                 } else if (buyTimestamp <= 0) {
                     errorMsg = '没有买入记录'; btnDisabled = true;
                     safeText('todayReward', '无买入记录');
+                } else if (buyTimestamp > 0 && (Math.floor(Date.now() / 1000) - buyTimestamp) > 7 * 86400) {
+                    errorMsg = '最近买入已超过7天'; btnDisabled = true;
+                    safeText('todayReward', '超过7天');
                 } else {
                     var buyDay = Math.floor(buyTimestamp / SNAPSHOT_PERIOD);
                     if (buyDay >= getCurrentDay()) {
