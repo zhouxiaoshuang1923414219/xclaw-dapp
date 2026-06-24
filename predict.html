@@ -156,7 +156,7 @@
         // ===== 做市7天 =====
         async function fetchHoldingInfo() {
             var ua = getAccount();
-            if (!ua) { st('holdingBalance','--'); st('holdingAmount','--'); st('streakDays','--'); st('claimedToday','--'); st('todayReward','--'); sd('claimRewardBtn',true); st('claimRewardBtn','请先连接钱包'); return; }
+            if (!ua) { st('holdingBalance','0.00 USDT'); st('holdingAmount','0.00 MYK'); st('streakDays','--'); st('claimedToday','--'); st('todayReward','--'); sd('claimRewardBtn',true); st('claimRewardBtn','请先连接钱包'); return; }
 
             var isActive = false, buyTs = 0, buyVal = 0, streak = 0, claimed = 0, claimable = 0;
 
@@ -182,37 +182,36 @@
                     try { buyTs = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyTime(address)', ['address'], [ua]) }))); } catch (e2) {}
                 }
 
-                // 3. MYK余额 - 只在有购买记录时显示
-                if (buyTs > 0) {
-                    try { st('holdingAmount', n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(2) + ' MYK'); } catch (e) { st('holdingAmount','--'); }
-                } else {
-                    st('holdingAmount', '--');
-                }
-
-                // 4. getStreakLength
-                try { streak = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [ua]) }))); st('streakDays', streak); } catch (e) { st('streakDays','0'); }
-
-                // 5. getTotalDailyRewardClaimed
-                try { claimed = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getTotalDailyRewardClaimed(address)', ['address'], [ua]) }))); st('claimedToday', claimed.toFixed(4) + ' MYK'); } catch (e) { st('claimedToday','0.0000 MYK'); }
-
-                // 6. getClaimableDailyReward
-                try { claimable = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getClaimableDailyReward(address)', ['address'], [ua]) }))); } catch (e) {}
-
-                // 7. 显示
+                // 3. 显示最近购买：无数据时显示 0.00 USDT
                 if (buyTs > 0) {
                     var diff = Math.floor(Date.now() / 1000) - buyTs;
                     var dd = Math.floor(diff / 86400);
                     st('holdingDaysAgo', dd <= 0 ? (Math.floor(diff / 3600) <= 0 ? (Math.floor(diff / 60) <= 1 ? '(刚刚)' : '(' + Math.floor(diff / 60) + '分钟前)') : '(' + Math.floor(diff / 3600) + '小时前)') : '(' + dd + '天前)');
-                    st('holdingBalance', buyVal > 0 ? buyVal.toFixed(2) + ' USDT' : '有买入记录');
+                    st('holdingBalance', buyVal.toFixed(2) + ' USDT');
                 } else {
-                    st('holdingDaysAgo','');
-                    st('holdingBalance','7天内无记录');
+                    st('holdingDaysAgo', '');
+                    st('holdingBalance', '0.00 USDT');
                 }
+
+                // 4. 持币：无数据时显示 0.00 MYK
+                try {
+                    var mykBal = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ua]) })));
+                    st('holdingAmount', mykBal.toFixed(2) + ' MYK');
+                } catch (e) { st('holdingAmount', '0.00 MYK'); }
+
+                // 5. getStreakLength
+                try { streak = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [ua]) }))); st('streakDays', streak); } catch (e) { st('streakDays','0'); }
+
+                // 6. getTotalDailyRewardClaimed
+                try { claimed = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getTotalDailyRewardClaimed(address)', ['address'], [ua]) }))); st('claimedToday', claimed.toFixed(4) + ' MYK'); } catch (e) { st('claimedToday','0.0000 MYK'); }
+
+                // 7. getClaimableDailyReward
+                try { claimable = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getClaimableDailyReward(address)', ['address'], [ua]) }))); } catch (e) {}
 
                 // 8. 可领判断
                 var em = '', bd = false;
                 if (!isActive) { em = '请先激活 PRIMARY 身份'; bd = true; st('todayReward','未激活'); }
-                else if (buyTs <= 0) { em = '无PancakeSwap买入记录'; bd = true; st('todayReward','7天内无记录'); }
+                else if (buyTs <= 0) { em = '7天内无PancakeSwap买入记录'; bd = true; st('todayReward','无买入记录'); }
                 else if (Math.floor(Date.now()/1000) - buyTs > 7*86400) { em = '最近买入已超过7天'; bd = true; st('todayReward','超过7天'); }
                 else {
                     var bd2 = Math.floor(buyTs / SNAPSHOT_PERIOD);
@@ -221,7 +220,7 @@
                     else { st('todayReward', claimable.toFixed(6) + ' MYK'); }
                 }
                 sd('claimRewardBtn', bd); st('claimRewardBtn', bd ? em : '领取奖励');
-            } catch (e) { st('holdingBalance','--'); st('holdingAmount','--'); st('streakDays','--'); st('claimedToday','--'); st('todayReward','--'); sd('claimRewardBtn',true); st('claimRewardBtn','加载失败'); }
+            } catch (e) { st('holdingBalance','0.00 USDT'); st('holdingAmount','0.00 MYK'); st('streakDays','--'); st('claimedToday','--'); st('todayReward','--'); sd('claimRewardBtn',true); st('claimRewardBtn','加载失败'); }
         }
 
         async function claimDailyReward() {
