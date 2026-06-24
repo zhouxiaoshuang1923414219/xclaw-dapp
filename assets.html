@@ -108,7 +108,6 @@
         var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
         var RP = '0xCCA6d5be986420FD3A6DfbFC5173627Cf57e0573';
         var GOV = '0xf6A994642cf23d74DCAcB0B737a5C1703Dc88D32';
-        var FM = '0xe86B0536Db1167dDFD9A95E3Ad522f63B76B0e67';
         var USDT = '0x55d398326f99059fF775485246999027B3197955';
         var ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
         var PAIR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
@@ -204,13 +203,34 @@
             return 0;
         }
 
+        // ===== 【修复】获取个人社区分红份额 =====
         async function fetchCommunityDividend() {
-            if (!web3) return 0;
+            var userAddress = window.currentAccount;
+            if (!web3 || !userAddress) return 0;
             try {
-                var info = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256'], await web3.eth.call({ to: GOV, data: encodeCall('getDividendInfo()') }));
-                return n((BigInt(info[0]) + BigInt(info[1]) + BigInt(info[2])).toString());
+                // 优先使用 getClaimableDividend 获取个人可领分红
+                var data = encodeCall('getClaimableDividend(address)', ['address'], [userAddress]);
+                var result = await web3.eth.call({ to: GOV, data: data });
+                var decoded = web3.eth.abi.decodeParameters(['uint256', 'uint256'], result);
+                var mykAmount = n(decoded[0]);
+                var usdtAmount = n(decoded[1]);
+                // 返回 MYK 分红数量
+                return mykAmount;
             } catch (e) {
-                try { return n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) }))); } catch (e2) {}
+                // 降级1：getDividendInfo 获取总分红池
+                try {
+                    var data2 = encodeCall('getDividendInfo()');
+                    var result2 = await web3.eth.call({ to: GOV, data: data2 });
+                    var info = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256'], result2);
+                    var totalDividend = BigInt(info[0]) + BigInt(info[1]) + BigInt(info[2]);
+                    return n(totalDividend.toString());
+                } catch (e2) {
+                    // 降级2：直接查 GOV 合约 MYK 余额
+                    try {
+                        var gbResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) });
+                        return n(web3.eth.abi.decodeParameter('uint256', gbResult));
+                    } catch (e3) {}
+                }
             }
             return 0;
         }
@@ -268,6 +288,7 @@
                 var cm = $('claimableMYK'); if (cm) cm.textContent = totalClaimable.toFixed(4);
                 var cuv = $('claimableUsdValue'); if (cuv) cuv.textContent = '≈ $' + claimableUsd.toFixed(2);
 
+                // 社区分红（个人份额）
                 var dividend = await fetchCommunityDividend();
                 dividendUsd = dividend * sp;
                 var cd = $('communityDividend'); if (cd) cd.textContent = dividend.toFixed(4);
