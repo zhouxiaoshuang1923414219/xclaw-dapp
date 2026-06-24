@@ -153,7 +153,7 @@
             return cachedSpotPrice;
         }
 
-        // ===== 【核心修复】做市7天 =====
+        // ===== 做市7天 =====
         async function fetchHoldingInfo() {
             var ua = getAccount();
             if (!ua) { st('holdingBalance','--'); st('holdingAmount','--'); st('streakDays','--'); st('claimedToday','--'); st('todayReward','--'); sd('claimRewardBtn',true); st('claimRewardBtn','请先连接钱包'); return; }
@@ -172,24 +172,27 @@
                     try { isActive = web3.eth.abi.decodeParameter('bool', await web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [ua]) })); } catch (e2) {}
                 }
 
-                // 2. getLastPancakeBuyInfo → (#37) amount, value, timestamp
+                // 2. getLastPancakeBuyInfo → amount, value, timestamp
                 try {
                     var raw = await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyInfo(address)', ['address'], [ua]) });
                     var bi = web3.eth.abi.decodeParameters(['uint256','uint256','uint256'], raw);
                     var amt = n(bi[0]), val = n(bi[1]), ts = parseInt(bi[2]);
                     if (ts > 0) { buyTs = ts; buyVal = val; }
                 } catch (e) {
-                    // 降级：getLastPancakeBuyTime (#35)
                     try { buyTs = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getLastPancakeBuyTime(address)', ['address'], [ua]) }))); } catch (e2) {}
                 }
 
-                // 3. MYK余额
-                try { st('holdingAmount', n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(2) + ' MYK'); } catch (e) { st('holdingAmount','--'); }
+                // 3. MYK余额 - 只在有购买记录时显示
+                if (buyTs > 0) {
+                    try { st('holdingAmount', n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(2) + ' MYK'); } catch (e) { st('holdingAmount','--'); }
+                } else {
+                    st('holdingAmount', '--');
+                }
 
-                // 4. getStreakLength (#38)
+                // 4. getStreakLength
                 try { streak = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [ua]) }))); st('streakDays', streak); } catch (e) { st('streakDays','0'); }
 
-                // 5. getTotalDailyRewardClaimed (#39)
+                // 5. getTotalDailyRewardClaimed
                 try { claimed = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getTotalDailyRewardClaimed(address)', ['address'], [ua]) }))); st('claimedToday', claimed.toFixed(4) + ' MYK'); } catch (e) { st('claimedToday','0.0000 MYK'); }
 
                 // 6. getClaimableDailyReward
@@ -200,13 +203,16 @@
                     var diff = Math.floor(Date.now() / 1000) - buyTs;
                     var dd = Math.floor(diff / 86400);
                     st('holdingDaysAgo', dd <= 0 ? (Math.floor(diff / 3600) <= 0 ? (Math.floor(diff / 60) <= 1 ? '(刚刚)' : '(' + Math.floor(diff / 60) + '分钟前)') : '(' + Math.floor(diff / 3600) + '小时前)') : '(' + dd + '天前)');
-                    st('holdingBalance', buyVal > 0 ? buyVal.toFixed(2) + ' USDT' : '✅ 有买入');
-                } else { st('holdingDaysAgo',''); st('holdingBalance','无买入记录'); }
+                    st('holdingBalance', buyVal > 0 ? buyVal.toFixed(2) + ' USDT' : '有买入记录');
+                } else {
+                    st('holdingDaysAgo','');
+                    st('holdingBalance','7天内无记录');
+                }
 
                 // 8. 可领判断
                 var em = '', bd = false;
                 if (!isActive) { em = '请先激活 PRIMARY 身份'; bd = true; st('todayReward','未激活'); }
-                else if (buyTs <= 0) { em = '没有买入记录（仅PancakeSwap买入计入）'; bd = true; st('todayReward','无买入记录'); }
+                else if (buyTs <= 0) { em = '无PancakeSwap买入记录'; bd = true; st('todayReward','7天内无记录'); }
                 else if (Math.floor(Date.now()/1000) - buyTs > 7*86400) { em = '最近买入已超过7天'; bd = true; st('todayReward','超过7天'); }
                 else {
                     var bd2 = Math.floor(buyTs / SNAPSHOT_PERIOD);
