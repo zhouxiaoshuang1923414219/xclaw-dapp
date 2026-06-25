@@ -125,7 +125,7 @@
         </div>
         <div class="stat-row">
             <span>🤝 直推人数：<span class="stat-value" id="cardInvited">--</span></span>
-            <span>📋 连续领取：<span class="stat-value" id="cardStreak">--</span> 天</span>
+            <span>📋 当前日领币：<span class="stat-value" id="cardDailyRate">--</span></span>
         </div>
         <div style="display:flex;gap:12px;margin-top:14px;">
             <div class="asset-box" style="flex:1;">
@@ -384,16 +384,18 @@
                 var govTier = await fetchUserGovTier();
                 var rpRole = basic.role;
                 var roleName = '无';
-                if (govTier >= 6) roleName = '👑 SIXTH';
-                else if (govTier >= 5) roleName = '👑 FIFTH';
-                else if (govTier >= 4) roleName = '🥇 FOURTH';
-                else if (govTier >= 3) roleName = '🥇 THIRD';
-                else if (govTier >= 2) roleName = '🥇 SECOND';
-                else if (govTier >= 1) roleName = '🥇 FIRST';
-                else if (rpRole >= 3) roleName = '🥇 COMMUNITY';
-                else if (rpRole >= 2) roleName = '🥈 MIDDLE';
-                else if (rpRole >= 1) roleName = '🥉 PRIMARY';
+                var dailyRate = '--';
+                if (govTier >= 6) { roleName = '👑 SIXTH'; dailyRate = '1.6%'; }
+                else if (govTier >= 5) { roleName = '👑 FIFTH'; dailyRate = '1.6%'; }
+                else if (govTier >= 4) { roleName = '🥇 FOURTH'; dailyRate = '1.6%'; }
+                else if (govTier >= 3) { roleName = '🥇 THIRD'; dailyRate = '1.6%'; }
+                else if (govTier >= 2) { roleName = '🥇 SECOND'; dailyRate = '1.6%'; }
+                else if (govTier >= 1) { roleName = '🥇 FIRST'; dailyRate = '1.6%'; }
+                else if (rpRole >= 3) { roleName = '🥇 COMMUNITY'; dailyRate = '1.6%'; }
+                else if (rpRole >= 2) { roleName = '🥈 MIDDLE'; dailyRate = '1.3%'; }
+                else if (rpRole >= 1) { roleName = '🥉 PRIMARY'; dailyRate = '1%'; }
                 var cr = $('cardRole'); if (cr) cr.textContent = roleName;
+                var cdr = $('cardDailyRate'); if (cdr) cdr.textContent = dailyRate;
                 var cab = $('cardActiveBadge');
                 if (cab) cab.innerHTML = basic.isActive
                     ? '<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅已激活</span>'
@@ -402,7 +404,6 @@
                 if (crf) { crf.textContent = basic.referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(basic.referrer); crf.style.color = basic.referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
                 var ca = $('cardActivated'); if (ca) ca.textContent = basic.activatedAt > 0 ? new Date(basic.activatedAt * 1000).toLocaleDateString('zh-CN') : '未激活';
                 var ci = $('cardInvited'); if (ci) ci.textContent = basic.invited;
-                try { var cs = $('cardStreak'); if (cs) cs.textContent = web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [userAddress]) })); } catch (e) {}
                 try { var cm = $('cardMYK'); if (cm) cm.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) {}
                 try { var cu = $('cardUSDT'); if (cu) cu.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) {}
             } catch (e) {}
