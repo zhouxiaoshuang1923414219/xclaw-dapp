@@ -166,26 +166,26 @@
         </div>
     </div>
 
-    <!-- ========== 角色费率卡片（新增 - 排序第三） ========== -->
+    <!-- ========== 角色费率卡片（第三位置） ========== -->
     <div class="glass-card">
         <div style="display:flex;gap:10px;">
             <div class="asset-box" style="flex:1;">
                 <div class="asset-label">🥉 PRIMARY</div>
-                <div class="rate-value" style="color:#4ecca3;" id="primaryRate">--</div>
+                <div class="rate-value" style="color:#4ecca3;" id="primaryRate">1%</div>
                 <div class="rate-label">日领币</div>
                 <div class="rate-condition">已激活节点</div>
             </div>
             <div class="asset-box" style="flex:1;">
                 <div class="asset-label">🥈 MIDDLE</div>
-                <div class="rate-value" style="color:#4ecca3;" id="middleRate">--</div>
+                <div class="rate-value" style="color:#4ecca3;" id="middleRate">1.3%</div>
                 <div class="rate-label">日领币</div>
                 <div class="rate-condition">已激活直推≥3</div>
             </div>
             <div class="asset-box" style="flex:1;">
                 <div class="asset-label">🥇 COMMUNITY</div>
-                <div class="rate-value" style="color:#f0b90b;" id="communityRate">--</div>
+                <div class="rate-value" style="color:#f0b90b;" id="communityRate">1.6%</div>
                 <div class="rate-label">日领币</div>
-                <div class="rate-condition">持有社区身份</div>
+                <div class="rate-condition">持有社区身份<br>已激活直推≥6</div>
             </div>
         </div>
     </div>
@@ -378,11 +378,12 @@
         // ===== 获取角色费率 =====
         async function fetchRoleRates() {
             if (!web3) return;
-            // PRIMARY：先查链上 getRoleRate，失败降级为 1.0%
+            // PRIMARY：先查链上 getRoleRate，失败降级为 1%
             try {
-                var pr = await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [window.currentAccount || '0x0000000000000000000000000000000000000000']) });
+                var addr = window.currentAccount || '0x0000000000000000000000000000000000000000';
+                var pr = await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [addr]) });
                 var prEl = $('primaryRate'); if (prEl) prEl.textContent = (Number(web3.eth.abi.decodeParameter('uint256', pr)) / 10).toFixed(1) + '%';
-            } catch (e) { var prEl2 = $('primaryRate'); if (prEl2) prEl2.textContent = '1.0%'; }
+            } catch (e) { var prEl2 = $('primaryRate'); if (prEl2) prEl2.textContent = '1%'; }
             // MIDDLE：固定 1.3%
             var mrEl = $('middleRate'); if (mrEl) mrEl.textContent = '1.3%';
             // COMMUNITY：固定 1.6%
