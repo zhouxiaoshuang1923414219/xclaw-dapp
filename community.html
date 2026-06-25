@@ -166,7 +166,7 @@
         </div>
     </div>
 
-    <!-- ========== 角色费率卡片 ========== -->
+    <!-- ========== 角色费率卡片 + 进度条 ========== -->
     <div class="glass-card">
         <div style="display:flex;gap:10px;">
             <div class="asset-box" style="flex:1;">
@@ -188,13 +188,32 @@
                 <div class="rate-condition">持有社区身份<br>已激活直推≥6</div>
             </div>
         </div>
+        <!-- 进度条1：直推激活 -->
+        <div style="margin-top:14px;">
+            <div class="stat-row" style="font-size:12px;">
+                <span>当前已激活直推：<span class="stat-value" id="progressActivatedInvited">0</span>人</span>
+                <span>需达目标：<span class="stat-value" id="progressActivatedTarget">3</span>人</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressActivatedBar" style="width:0%;background:linear-gradient(90deg,#4ecca3,#f0b90b);"></div>
+            </div>
+        </div>
+        <!-- 进度条2：社区直推 -->
+        <div style="margin-top:8px;">
+            <div class="stat-row" style="font-size:12px;">
+                <span>当前社区直推：<span class="stat-value" id="progressCommunityDirect">0</span>人</span>
+                <span>需达目标：<span class="stat-value" id="progressCommunityTarget">6</span>人</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressCommunityBar" style="width:0%;background:linear-gradient(90deg,#f0b90b,#e94560);"></div>
+            </div>
+        </div>
     </div>
 
     <!-- ========== 权益卡片 ========== -->
     <div class="glass-card" style="padding: 12px 8px;">
         <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px; text-align: center;">🔓 权益卡片</h2>
         
-        <!-- MIDDLE 权益 -->
         <div class="unlock-card locked" id="middleCard">
             <h2 style="font-size: 1.1rem;">🔓 MIDDLE 权益<span class="badge badge-silver" style="font-size:10px;">权益卡</span></h2>
             <div class="desc" id="middleStatus" style="font-size:13px;">🔒未解锁</div>
@@ -209,7 +228,6 @@
             </div>
         </div>
 
-        <!-- 第一社区权益 FIRST -->
         <div class="unlock-card locked" id="community1Card">
             <h2 style="font-size:1.1rem;">第一社区权益<span class="badge badge-gold" style="font-size:10px;">FIRST</span></h2>
             <div class="desc" id="community1Status" style="font-size:13px;">🔒未解锁</div>
@@ -221,7 +239,6 @@
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
 
-        <!-- 第二社区权益 SECOND -->
         <div class="unlock-card locked" id="community2Card">
             <h2 style="font-size:1.1rem;">第二社区权益<span class="badge badge-gold" style="font-size:10px;">SECOND</span></h2>
             <div class="desc" id="community2Status" style="font-size:13px;">🔒未解锁</div>
@@ -233,7 +250,6 @@
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
 
-        <!-- 第三社区权益 THIRD -->
         <div class="unlock-card locked" id="community3Card">
             <h2 style="font-size:1.1rem;">第三社区权益<span class="badge badge-gold" style="font-size:10px;">THIRD</span></h2>
             <div class="desc" id="community3Status" style="font-size:13px;">🔒未解锁</div>
@@ -245,7 +261,6 @@
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
 
-        <!-- 第四社区权益 FOURTH -->
         <div class="unlock-card locked" id="community4Card">
             <h2 style="font-size:1.1rem;">第四社区权益<span class="badge badge-gold" style="font-size:10px;">FOURTH</span></h2>
             <div class="desc" id="community4Status" style="font-size:13px;">🔒未解锁</div>
@@ -259,7 +274,6 @@
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
 
-        <!-- 第五社区权益 FIFTH+ -->
         <div class="unlock-card locked" id="community5Card">
             <h2 style="font-size:1.1rem;">第五社区权益<span class="badge badge-gold" style="font-size:10px;">FIFTH+</span></h2>
             <div class="desc" id="community5Status" style="font-size:13px;">🔒未解锁</div>
@@ -410,6 +424,13 @@
                 if (crf) { crf.textContent = basic.referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(basic.referrer); crf.style.color = basic.referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
                 var ca = $('cardActivated'); if (ca) ca.textContent = basic.activatedAt > 0 ? new Date(basic.activatedAt * 1000).toLocaleDateString('zh-CN') : '未激活';
                 var ci = $('cardInvited'); if (ci) ci.textContent = basic.invited;
+                // 更新进度条
+                var activatedInvited = basic.activatedInvited || 0;
+                var directCommunity = basic.directCommunityCount || 0;
+                var pai = $('progressActivatedInvited'); if (pai) pai.textContent = activatedInvited;
+                var pcd = $('progressCommunityDirect'); if (pcd) pcd.textContent = directCommunity;
+                var pab = $('progressActivatedBar'); if (pab) pab.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
+                var pcb = $('progressCommunityBar'); if (pcb) pcb.style.width = Math.min(100, (directCommunity / 6) * 100).toFixed(1) + '%';
                 try { var cm = $('cardMYK'); if (cm) cm.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) {}
                 try { var cu = $('cardUSDT'); if (cu) cu.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) {}
             } catch (e) {}
@@ -495,12 +516,28 @@
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) return null;
             try {
-                var u = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint8','uint256','bool','uint256','uint256'], await web3.eth.call({ to: RP, data: encodeCall('getUserBasic(address)', ['address'], [userAddress]) }));
-                return { referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]), role: parseInt(u[3]), activatedAt: parseInt(u[4]), isActive: u[5], pendingActivationMYK: u[6], activityBalance: u[7] };
+                var u = web3.eth.abi.decodeParameters(
+                    ['address','uint256','uint256','uint256','uint256','uint8','uint256','bool','uint256','uint256'],
+                    await web3.eth.call({ to: RP, data: encodeCall('getUserBasic(address)', ['address'], [userAddress]) })
+                );
+                return {
+                    referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]),
+                    directPrimaryCount: parseInt(u[3]), directCommunityCount: parseInt(u[4]),
+                    role: parseInt(u[5]), activatedAt: parseInt(u[6]), isActive: u[7],
+                    pendingActivationMYK: n(u[8]), activityBalance: n(u[9])
+                };
             } catch (e) {
                 try {
-                    var u2 = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool'], await web3.eth.call({ to: RP, data: encodeCall('users(address)', ['address'], [userAddress]) }));
-                    return { referrer: u2[0], invited: parseInt(u2[1]), activatedInvited: parseInt(u2[1]), role: parseInt(u2[7]), activatedAt: parseInt(u2[4]), isActive: u2[8] };
+                    var u2 = web3.eth.abi.decodeParameters(
+                        ['address','uint256','uint256','uint8','uint256','bool','uint256','uint256'],
+                        await web3.eth.call({ to: RP, data: encodeCall('getUserBasic(address)', ['address'], [userAddress]) })
+                    );
+                    return {
+                        referrer: u2[0], invited: parseInt(u2[1]), activatedInvited: parseInt(u2[2]),
+                        directPrimaryCount: 0, directCommunityCount: 0,
+                        role: parseInt(u2[3]), activatedAt: parseInt(u2[4]), isActive: u2[5],
+                        pendingActivationMYK: n(u2[6]), activityBalance: n(u2[7])
+                    };
                 } catch (e2) {}
             }
             return null;
