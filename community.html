@@ -67,10 +67,6 @@
             background: linear-gradient(135deg, #f0b90b, #e8a000);
             box-shadow: 0 8px 18px rgba(240,185,11,0.3);
         }
-        .btn-green {
-            background: linear-gradient(135deg, #4ecca3, #2e8b6a);
-            box-shadow: 0 8px 18px rgba(78,204,163,0.3);
-        }
         .tab-container {
             display: flex; background: #0c0f1c; border-radius: 16px;
             padding: 4px; margin: 12px 0; border: 1px solid #2d3355;
@@ -171,7 +167,6 @@
     <div class="glass-card" style="padding: 12px 8px;">
         <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px; text-align: center;">🔓 权益卡片</h2>
         
-        <!-- MIDDLE 权益 -->
         <div class="unlock-card locked" id="middleCard">
             <h2 style="font-size: 1.1rem;">🔓 MIDDLE 权益<span class="badge badge-silver" style="font-size:10px;">权益卡</span></h2>
             <div class="desc" id="middleStatus" style="font-size:13px;">🔒未解锁</div>
@@ -186,81 +181,59 @@
             </div>
         </div>
 
-        <!-- 【修改】推荐升级权益 FIRST（原第一社区权益） -->
         <div class="unlock-card locked" id="community1Card">
-            <h2 style="font-size:1.1rem;">🤝 推荐升级权益<span class="badge badge-gold" style="font-size:10px;">FIRST</span></h2>
+            <h2 style="font-size:1.1rem;">第一社区权益<span class="badge badge-gold" style="font-size:10px;">FIRST</span></h2>
             <div class="desc" id="community1Status" style="font-size:13px;">🔒未解锁</div>
-            <div class="hint-unlock" id="community1Unlock">
-                解锁规则：已激活直推 ≥ 9 人自动升级 FIRST (<span>永久</span>)
-            </div>
-            <div class="hint-fund">
-                升级方式：合约自动检测，达到条件后自动升级，无需支付 USDT
-            </div>
-            <div class="desc" style="font-size:13px;">
-                权益：享受 <span class="highlight">1.6%</span> 日奖币 + <span class="highlight-green">1.6%/天×90天</span>（本金为0）
-            </div>
-            <div class="hint-text" style="font-size:11px;color:#f0b90b;">
-                🏆 团队奖励：伞下无限代业绩 10% 奖励
-            </div>
-            <div class="stat-row" style="font-size:12px;">
-                <span>当前已激活直推：<span class="stat-value" id="firstInvitedCount">--</span>人</span>
-                <span>需达目标：<span class="stat-value">9</span>人</span>
-            </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar-fill" id="firstProgress" style="width:0%;background:linear-gradient(90deg,#4ecca3,#f0b90b);"></div>
-            </div>
-            <button class="btn btn-green upgrade-btn" data-amount="0" id="upgradeFirstBtn" style="margin-top:10px;font-size:14px;display:none;">
-                🎉 立即升级 FIRST
-            </button>
+            <div class="hint-unlock" id="community1Unlock">解锁规则：支付 0.5 USDT 获取 FIRST 身份 (<span>永久</span>)</div>
+            <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
+            <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币 + <span class="highlight-green">1.6%/天×90天</span></div>
+            <div class="hint-text" style="font-size:11px;color:#f0b90b;">🏆 团队奖励：伞下无限代业绩 10% 奖励</div>
+            <button class="btn btn-gold upgrade-btn" data-amount="0.5" style="margin-top:10px;font-size:14px;">🔓 立即解锁权益</button>
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
 
-        <!-- 第二社区权益 SECOND -->
         <div class="unlock-card locked" id="community2Card">
             <h2 style="font-size:1.1rem;">第二社区权益<span class="badge badge-gold" style="font-size:10px;">SECOND</span></h2>
             <div class="desc" id="community2Status" style="font-size:13px;">🔒未解锁</div>
             <div class="hint-unlock" id="community2Unlock">解锁规则：支付 1 USDT 获取 SECOND 身份 (<span>永久</span>)</div>
             <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
             <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币 + <span class="highlight-green">1.6%/天×90天</span></div>
-            <div class="hint-text" style="font-size:11px;color:#f0b90b;">🏆 团队奖励：享受推荐升级权益 + 最高拿 <span class="highlight-cyan">第二层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励</div>
+            <div class="hint-text" style="font-size:11px;color:#f0b90b;">🏆 团队奖励：享受第一社区权益 + 最高拿 <span class="highlight-cyan">第二层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励</div>
             <button class="btn btn-gold upgrade-btn" data-amount="1" style="margin-top:10px;font-size:14px;">🔓 立即解锁权益</button>
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
 
-        <!-- 第三社区权益 THIRD -->
         <div class="unlock-card locked" id="community3Card">
             <h2 style="font-size:1.1rem;">第三社区权益<span class="badge badge-gold" style="font-size:10px;">THIRD</span></h2>
             <div class="desc" id="community3Status" style="font-size:13px;">🔒未解锁</div>
             <div class="hint-unlock" id="community3Unlock">解锁规则：支付 2 USDT 获取 THIRD 身份 (<span>永久</span>)</div>
             <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
             <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币 + <span class="highlight-green">1.6%/天×90天</span></div>
-            <div class="hint-text" style="font-size:11px;color:#f0b90b;">🏆 团队奖励：享受推荐升级权益 + 最高拿 <span class="highlight-cyan">第三层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励</div>
+            <div class="hint-text" style="font-size:11px;color:#f0b90b;">🏆 团队奖励：享受第一社区权益 + 最高拿 <span class="highlight-cyan">第三层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励</div>
             <button class="btn btn-gold upgrade-btn" data-amount="2" style="margin-top:10px;font-size:14px;">🔓 立即解锁权益</button>
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
 
-        <!-- 第四社区权益 FOURTH -->
         <div class="unlock-card locked" id="community4Card">
             <h2 style="font-size:1.1rem;">第四社区权益<span class="badge badge-gold" style="font-size:10px;">FOURTH</span></h2>
             <div class="desc" id="community4Status" style="font-size:13px;">🔒未解锁</div>
             <div class="hint-unlock" id="community4Unlock">解锁规则：MYK销毁累计 ≥ 500U 获取 FOURTH (<span>永久</span>)</div>
             <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
             <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C4分红池 <span class="highlight-green">35%</span></div>
-            <div class="hint-text" style="font-size:11px;color:#f0b90b;">🏆 团队奖励：享受推荐升级权益 + 最高拿 <span class="highlight-cyan">第四层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励</div>
+            <div class="hint-text" style="font-size:11px;color:#f0b90b;">🏆 团队奖励：享受第一社区权益 + 最高拿 <span class="highlight-cyan">第四层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励</div>
             <div class="hint-text" style="font-size:10px;color:#f0b90b;">SIXTH：MYK销毁累计 ≥ 2000U</div>
             <div class="price-row" style="margin-top:8px;"><span>当前等值MYK (含0.5%手续费)：<span class="price-value" id="fourthMykAmount">--</span> MYK</span></div>
             <button class="btn btn-gold upgrade-btn" data-amount="500" style="margin-top:10px;font-size:14px;">🔥 销毁MYK解锁FOURTH</button>
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
 
-        <!-- 第五社区权益 FIFTH+ -->
         <div class="unlock-card locked" id="community5Card">
             <h2 style="font-size:1.1rem;">第五社区权益<span class="badge badge-gold" style="font-size:10px;">FIFTH+</span></h2>
             <div class="desc" id="community5Status" style="font-size:13px;">🔒未解锁</div>
             <div class="hint-unlock" id="community5Unlock">解锁规则：MYK销毁累计 ≥ 1000U 获取 FIFTH (<span>永久</span>)</div>
             <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
             <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.6%</span> 日奖币，C5分红 + <span class="highlight-green">永久有效</span></div>
-            <div class="hint-text" style="font-size:11px;color:#f0b90b;">🏆 团队奖励：享受推荐升级权益 + 最高拿 <span class="highlight-cyan">第五层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励</div>
+            <div class="hint-text" style="font-size:11px;color:#f0b90b;">🏆 团队奖励：享受第一社区权益 + 最高拿 <span class="highlight-cyan">第五层</span> 社区收益的 <span class="highlight-cyan">50%</span> 奖励</div>
             <div class="hint-text" style="font-size:10px;color:#f0b90b;">SIXTH：MYK销毁累计 ≥ 2000U</div>
             <div class="price-row" style="margin-top:8px;"><span>当前等值MYK (含0.5%手续费)：<span class="price-value" id="fifthMykAmount">--</span> MYK</span></div>
             <button class="btn btn-gold upgrade-btn" data-amount="1000" style="margin-top:10px;font-size:14px;">🔥 销毁MYK解锁FIFTH</button>
@@ -321,8 +294,10 @@
 
         async function waitForTransaction(txHash) {
             for (var i = 0; i < 30; i++) {
-                try { var r = await web3.eth.getTransactionReceipt(txHash); if (r) { if (r.status) return r; else throw new Error('交易失败'); } }
-                catch (e) { if (i === 29) throw e; }
+                try {
+                    var r = await web3.eth.getTransactionReceipt(txHash);
+                    if (r) { if (r.status) return r; else throw new Error('交易失败'); }
+                } catch (e) { if (i === 29) throw e; }
                 await new Promise(function(r) { setTimeout(r, 2000); });
             }
             throw new Error('超时');
@@ -529,20 +504,13 @@
             } catch (e) {}
         }
 
-        // ===== 【修改】用户统计 - 新增推荐升级权益 FIRST =====
         async function fetchUserStats() {
             var userAddress = window.currentAccount;
             if (!userAddress || !web3) return;
             try {
                 var basic = await fetchUserBasic();
-                if (!basic) {
-                    var mic = $('middleInvitedCount'); if (mic) mic.textContent = '--';
-                    var fic = $('firstInvitedCount'); if (fic) fic.textContent = '--';
-                    return;
-                }
+                if (!basic) { var mic = $('middleInvitedCount'); if (mic) mic.textContent = '--'; return; }
                 var activatedInvited = basic.activatedInvited || 0;
-
-                // MIDDLE 权益
                 var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
                 var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
                 var mc = $('middleCard'), ms = $('middleStatus');
@@ -555,17 +523,6 @@
                         ms.textContent = (activatedInvited >= 3 && basic.role === 1) ? '⚠️条件满足，请检查锁仓状态' : '🔒未解锁';
                         ms.style.color = (activatedInvited >= 3 && basic.role === 1) ? '#f0b90b' : '#a3adc9';
                     }
-                }
-
-                // 【新增】推荐升级权益 FIRST
-                var fic2 = $('firstInvitedCount'); if (fic2) fic2.textContent = activatedInvited;
-                var fp = $('firstProgress'); if (fp) fp.style.width = Math.min(100, (activatedInvited / 9) * 100).toFixed(1) + '%';
-                var fcb = $('upgradeFirstBtn');
-                if (activatedInvited >= 9 && basic.role < 2) {
-                    // 满足条件但未升级
-                    if (fcb) fcb.style.display = 'block';
-                } else {
-                    if (fcb) fcb.style.display = 'none';
                 }
             } catch (e) {}
         }
@@ -587,25 +544,6 @@
                 var fe2 = $('fourthMykAmount'); if (fe2) fe2.textContent = '价格加载中...';
                 var fie2 = $('fifthMykAmount'); if (fie2) fie2.textContent = '价格加载中...';
             }
-        }
-
-        // ===== 【修改】推荐升级 FIRST - 调用 upgradeToFirst() =====
-        async function upgradeToFirst() {
-            var userAddress = window.currentAccount;
-            if (!userAddress) { alert('请先连接钱包'); return; }
-            if (!lock()) return;
-            var btn = $('upgradeFirstBtn');
-            var el = btn ? btn.nextElementSibling : null;
-            if (!btn || !el) return;
-            btn.disabled = true; btn.textContent = '升级中...'; el.style.display = 'block';
-            try {
-                el.innerHTML = '⏳ 合约验证直推人数...';
-                var txHash = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: userAddress, to: GOV, gas: '0xF4240', data: encodeCall('upgradeToFirst()') }] });
-                el.innerHTML = '⏳ 等待升级确认...'; await waitForTransaction(txHash);
-                el.innerHTML = '✅ 升级成功！已获得 FIRST 权益'; el.style.borderLeftColor = '#f0b90b'; el.style.background = 'rgba(240,185,11,0.1)';
-                btn.style.display = 'none'; setTimeout(function() { refreshAllData(); }, 3000);
-            } catch (e) { var m = parseError(e); el.innerHTML = (m.indexOf('Not enough') !== -1) ? '⚠️ 直推人数不足9人' : (m.indexOf('rejected') !== -1) ? '⚠️ 已取消' : '❌ ' + m; }
-            finally { btn.disabled = false; btn.textContent = '🎉 立即升级 FIRST'; unlock(); }
         }
 
         async function upgradeWithUSDT(amount) {
@@ -661,13 +599,10 @@
         }
 
         function setupUpgradeButtons() {
-            // 推荐升级 FIRST 按钮
-            var ufb = $('upgradeFirstBtn'); if (ufb) ufb.addEventListener('click', upgradeToFirst);
-            // 其他 USDT/销毁 升级按钮
             document.querySelectorAll('.upgrade-btn').forEach(function(b) {
                 b.addEventListener('click', function() {
                     var amt = parseFloat(this.dataset.amount);
-                    if (amt >= 500) { burnForTier(amt); } else if (amt > 0) { upgradeWithUSDT(amt); }
+                    if (amt >= 500) { burnForTier(amt); } else { upgradeWithUSDT(amt); }
                 });
             });
         }
