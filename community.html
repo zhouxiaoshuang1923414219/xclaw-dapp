@@ -211,7 +211,6 @@
     <!-- ========== 权益卡片 ========== -->
     <div class="glass-card" style="padding: 12px 8px;">
         <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px; text-align: center;">🔓 权益卡片</h2>
-        
         <div class="unlock-card locked" id="middleCard">
             <h2 style="font-size: 1.1rem;">🔓 MIDDLE 权益<span class="badge badge-silver" style="font-size:10px;">权益卡</span></h2>
             <div class="desc" id="middleStatus" style="font-size:13px;">🔒未解锁</div>
@@ -225,7 +224,6 @@
                 <div class="progress-bar-fill" id="middleProgress" style="width:0%;background:linear-gradient(90deg,#f0b90b,#e94560);"></div>
             </div>
         </div>
-
         <div class="unlock-card locked" id="community1Card">
             <h2 style="font-size:1.1rem;">第一社区权益<span class="badge badge-gold" style="font-size:10px;">FIRST</span></h2>
             <div class="desc" id="community1Status" style="font-size:13px;">🔒未解锁</div>
@@ -236,7 +234,6 @@
             <button class="btn btn-gold upgrade-btn" data-amount="0.5" style="margin-top:10px;font-size:14px;">🔓 立即解锁权益</button>
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
-
         <div class="unlock-card locked" id="community2Card">
             <h2 style="font-size:1.1rem;">第二社区权益<span class="badge badge-gold" style="font-size:10px;">SECOND</span></h2>
             <div class="desc" id="community2Status" style="font-size:13px;">🔒未解锁</div>
@@ -247,7 +244,6 @@
             <button class="btn btn-gold upgrade-btn" data-amount="1" style="margin-top:10px;font-size:14px;">🔓 立即解锁权益</button>
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
-
         <div class="unlock-card locked" id="community3Card">
             <h2 style="font-size:1.1rem;">第三社区权益<span class="badge badge-gold" style="font-size:10px;">THIRD</span></h2>
             <div class="desc" id="community3Status" style="font-size:13px;">🔒未解锁</div>
@@ -258,7 +254,6 @@
             <button class="btn btn-gold upgrade-btn" data-amount="2" style="margin-top:10px;font-size:14px;">🔓 立即解锁权益</button>
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
-
         <div class="unlock-card locked" id="community4Card">
             <h2 style="font-size:1.1rem;">第四社区权益<span class="badge badge-gold" style="font-size:10px;">FOURTH</span></h2>
             <div class="desc" id="community4Status" style="font-size:13px;">🔒未解锁</div>
@@ -271,7 +266,6 @@
             <button class="btn btn-gold upgrade-btn" data-amount="500" style="margin-top:10px;font-size:14px;">🔥 销毁MYK解锁FOURTH</button>
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
-
         <div class="unlock-card locked" id="community5Card">
             <h2 style="font-size:1.1rem;">第五社区权益<span class="badge badge-gold" style="font-size:10px;">FIFTH+</span></h2>
             <div class="desc" id="community5Status" style="font-size:13px;">🔒未解锁</div>
@@ -287,7 +281,16 @@
     </div>
 
     <script>
-    (function() {
+    var communityInitAttempts = 0;
+    var communityMaxAttempts = 20;
+
+    function communityInit() {
+        if (typeof web3 === 'undefined') {
+            communityInitAttempts++;
+            if (communityInitAttempts < communityMaxAttempts) { setTimeout(communityInit, 300); }
+            return;
+        }
+
         var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
         var RP = '0x1f92DE698B4578822d62a57767F9F690887BC577';
         var GOV = '0x937E4bF22CfCBCF770464dd48B82D1721ECbB7f4';
@@ -328,7 +331,7 @@
 
         async function waitForTransaction(txHash) {
             for (var i = 0; i < 30; i++) {
-                try { var r = await web3.eth.getTransactionReceipt(txHash); if (r) return r.status ? r : (function() { throw new Error('交易失败'); })(); }
+                try { var r = await web3.eth.getTransactionReceipt(txHash); if (r) { if (r.status) return r; else throw new Error('交易失败'); } }
                 catch (e) { if (i === 29) throw e; }
                 await new Promise(function(r) { setTimeout(r, 2000); });
             }
@@ -338,15 +341,12 @@
         async function fetchPrices() {
             if (!web3) return;
             try {
-                try {
-                    var priceResult = await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') });
-                    cachedActivationPrice = n(priceResult); cachedSpotPrice = n(priceResult);
-                } catch (e1) {
+                try { cachedSpotPrice = n(await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') })); }
+                catch (e1) {
                     try {
                         var ra = [{"constant":true,"inputs":[{"internalType":"uint256","name":"amountIn","type":"uint256"},{"internalType":"address[]","name":"path","type":"address[]"}],"name":"getAmountsOut","outputs":[{"internalType":"uint256[]","name":"amounts","type":"uint256[]"}],"type":"function"}];
                         var rc = new web3.eth.Contract(ra, ROUTER);
-                        var amounts = await rc.methods.getAmountsOut(Web3.utils.toWei('1','ether'), [MYK, USDT]).call();
-                        cachedSpotPrice = n(amounts[1]); cachedActivationPrice = cachedSpotPrice;
+                        cachedSpotPrice = n((await rc.methods.getAmountsOut(Web3.utils.toWei('1','ether'), [MYK, USDT]).call())[1]);
                     } catch (e2) {
                         try {
                             var pa = [{"constant":true,"inputs":[],"name":"getReserves","outputs":[{"internalType":"uint112","name":"_reserve0","type":"uint112"},{"internalType":"uint112","name":"_reserve1","type":"uint112"},{"internalType":"uint32","name":"_blockTimestampLast","type":"uint32"}],"type":"function"},{"constant":true,"inputs":[],"name":"token0","outputs":[{"internalType":"address","name":"","type":"address"}],"type":"function"}];
@@ -358,19 +358,18 @@
                             var rU = t0.toLowerCase() === USDT.toLowerCase() ? r0 : r1;
                             var rM = t0.toLowerCase() === USDT.toLowerCase() ? r1 : r0;
                             cachedSpotPrice = parseFloat(Web3.utils.fromWei(((rU * BigInt(10 ** 18)) / rM).toString(), 'ether'));
-                            cachedActivationPrice = cachedSpotPrice;
                         } catch (e3) {}
                     }
                 }
+                cachedActivationPrice = cachedSpotPrice;
                 updateActivateSuggestion(); updateAllMykSuggestions();
             } catch (e) {}
         }
 
         function getSpotPrice() { return cachedSpotPrice; }
-        function getActivationPrice() { return cachedActivationPrice; }
 
         function updateActivateSuggestion() {
-            var price = getActivationPrice();
+            var price = cachedSpotPrice;
             if (price > 0) {
                 var suggested = (2 / price * 1.05).toFixed(4);
                 var sm = $('suggestedMYK'); if (sm) sm.textContent = suggested;
@@ -378,16 +377,24 @@
             }
         }
 
-        function safeText(id, text) { var el = $(id); if (el) el.textContent = text; }
-
         async function fetchNodeInfo() {
             var ua = window.currentAccount;
             if (!ua || !web3) return;
             try {
-                var basic = await fetchUserBasic();
-                if (!basic) return;
-                var govTier = await fetchUserGovTier();
-                var rpRole = basic.role;
+                // 独立查询替代 getUserBasic
+                var isActive = false, role = 0, referrer = '0x0000000000000000000000000000000000000000';
+                var invited = 0, activatedInvited = 0, activatedAt = 0;
+                try { isActive = web3.eth.abi.decodeParameter('bool', await web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [ua]) })); } catch (e) {}
+                try { role = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [ua]) }))); } catch (e) {}
+                try { referrer = web3.eth.abi.decodeParameter('address', await web3.eth.call({ to: RP, data: encodeCall('getReferrer(address)', ['address'], [ua]) })); } catch (e) {}
+                try { var status = web3.eth.abi.decodeParameters(['bool','bool'], await web3.eth.call({ to: RP, data: encodeCall('getUserStatus(address)', ['address'], [ua]) })); isActive = status[0]; } catch (e) {}
+                try { activatedInvited = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getTotalCommunities()') }))); } catch (e) {}
+                try { var streak = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [ua]) }))); } catch (e) {}
+
+                var govTier = 0;
+                try { govTier = parseInt(web3.eth.abi.decodeParameter('uint8', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); } catch (e) {}
+
+                var rpRole = role >= 16 ? 3 : role >= 13 ? 2 : role >= 10 ? 1 : 0;
                 var roleName = '无', dailyRate = '--';
                 if (govTier >= 6) { roleName = '👑 SIXTH'; dailyRate = '1.6%'; }
                 else if (govTier >= 5) { roleName = '👑 FIFTH'; dailyRate = '1.6%'; }
@@ -398,24 +405,26 @@
                 else if (rpRole >= 3) { roleName = '🥇 COMMUNITY'; dailyRate = '1.6%'; }
                 else if (rpRole >= 2) { roleName = '🥈 MIDDLE'; dailyRate = '1.3%'; }
                 else if (rpRole >= 1) { roleName = '🥉 PRIMARY'; dailyRate = '1%'; }
-                safeText('cardRole', roleName);
-                safeText('cardDailyRate', dailyRate);
-                safeText('cardActiveBadge', basic.isActive
+
+                var cr = $('cardRole'); if (cr) cr.textContent = roleName;
+                var cdr = $('cardDailyRate'); if (cdr) cdr.textContent = dailyRate;
+                var cab = $('cardActiveBadge');
+                if (cab) cab.innerHTML = isActive
                     ? '<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅已激活</span>'
-                    : '<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌未激活</span>');
-                var ref = basic.referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(basic.referrer);
-                safeText('cardReferrer', ref);
-                $( 'cardReferrer').style.color = basic.referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8';
-                safeText('cardActivated', basic.activatedAt > 0 ? new Date(basic.activatedAt * 1000).toLocaleDateString('zh-CN') : '未激活');
-                safeText('cardInvited', basic.invited);
-                var ai = basic.activatedInvited || 0, dc = basic.directCommunityCount || 0;
-                safeText('progressActivatedInvited', ai);
-                safeText('progressCommunityDirect', dc);
-                var pab = $('progressActivatedBar'); if (pab) pab.style.width = Math.min(100, (ai / 3) * 100).toFixed(1) + '%';
-                var pcb = $('progressCommunityBar'); if (pcb) pcb.style.width = Math.min(100, (dc / 3) * 100).toFixed(1) + '%';
-                try { safeText('cardMYK', n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(4)); } catch (e) {}
-                try { safeText('cardUSDT', n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(4)); } catch (e) {}
-            } catch (e) { console.error('fetchNodeInfo error:', e); }
+                    : '<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌未激活</span>';
+                var crf = $('cardReferrer');
+                if (crf) { crf.textContent = referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(referrer); crf.style.color = referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
+                var ca = $('cardActivated'); if (ca) ca.textContent = activatedAt > 0 ? new Date(activatedAt * 1000).toLocaleDateString('zh-CN') : '未激活';
+                var ci = $('cardInvited'); if (ci) ci.textContent = invited;
+
+                var pai = $('progressActivatedInvited'); if (pai) pai.textContent = activatedInvited;
+                var pab = $('progressActivatedBar'); if (pab) pab.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
+                var pcd = $('progressCommunityDirect'); if (pcd) pcd.textContent = '--';
+                var pcb = $('progressCommunityBar'); if (pcb) pcb.style.width = '0%';
+
+                try { var cm = $('cardMYK'); if (cm) cm.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(4); } catch (e) {}
+                try { var cu = $('cardUSDT'); if (cu) cu.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(4); } catch (e) {}
+            } catch (e) {}
         }
 
         function setupActivateTabs() {
@@ -454,15 +463,12 @@
         async function activateMYK() {
             var ua = window.currentAccount; if (!ua) { alert('请先连接钱包'); return; } if (!lock()) return;
             var b = $('activateMYKBtn'), el = $('activateMYKResult'), amEl = $('mykAmount'); if (!b || !el) return;
-            var am = amEl ? amEl.value : '0'; if (!am || parseFloat(am) <= 0) { alert('请输入有效的MYK数量'); return; }
+            var am = amEl ? amEl.value : '0';
+            if (!am || parseFloat(am) <= 0) { alert('请输入有效的MYK数量'); return; }
             b.disabled = true; b.textContent = '处理中...'; el.style.display = 'block';
             try {
                 el.innerHTML = '⏳ 获取实时价格...';
-                var contractPrice = 0;
-                try { contractPrice = n(await web3.eth.call({ to: RP, data: encodeCall('getCurrentPrice()') })); }
-                catch (e1) { contractPrice = getSpotPrice(); }
-                if (contractPrice <= 0) throw new Error('无法获取合约价格');
-                var requiredMYK = (2 / contractPrice * 1.05).toFixed(4);
+                var requiredMYK = (2 / cachedSpotPrice * 1.05).toFixed(4);
                 var sm = $('suggestedMYK'); if (sm) sm.textContent = requiredMYK;
                 if (amEl) amEl.setAttribute('data-default', requiredMYK);
                 if (parseFloat((amEl ? amEl.value : am) || am) < parseFloat(requiredMYK)) {
@@ -486,23 +492,6 @@
             return 0;
         }
 
-        async function fetchUserBasic() {
-            var ua = window.currentAccount; if (!web3 || !ua) return null;
-            try {
-                var u = web3.eth.abi.decodeParameters(
-                    ['address','uint256','uint256','uint256','uint256','uint8','uint256','bool','uint256','uint256'],
-                    await web3.eth.call({ to: RP, data: encodeCall('getUserBasic(address)', ['address'], [ua]) })
-                );
-                return { referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]), directPrimaryCount: parseInt(u[3]), directCommunityCount: parseInt(u[4]), role: parseInt(u[5]), activatedAt: parseInt(u[6]), isActive: u[7], pendingActivationMYK: n(u[8]), activityBalance: n(u[9]) };
-            } catch (e) {
-                try {
-                    var u2 = web3.eth.abi.decodeParameters(['address','uint256','uint256','uint8','uint256','bool','uint256','uint256'], await web3.eth.call({ to: RP, data: encodeCall('getUserBasic(address)', ['address'], [ua]) }));
-                    return { referrer: u2[0], invited: parseInt(u2[1]), activatedInvited: parseInt(u2[2]), directPrimaryCount: 0, directCommunityCount: 0, role: parseInt(u2[3]), activatedAt: parseInt(u2[4]), isActive: u2[5], pendingActivationMYK: n(u2[6]), activityBalance: n(u2[7]) };
-                } catch (e2) {}
-            }
-            return null;
-        }
-
         async function fetchCommunityExpiry() {
             var ua = window.currentAccount; if (!web3 || !ua) return;
             try {
@@ -510,7 +499,8 @@
                 for (var cardId in CARD_EXPIRY_MAP) {
                     if (!CARD_EXPIRY_MAP.hasOwnProperty(cardId)) continue;
                     var el = $(CARD_EXPIRY_MAP[cardId]); if (!el) continue;
-                    var span = el.querySelector('span'); if (!span) continue; span.textContent = '永久';
+                    var span = el.querySelector('span'); if (!span) continue;
+                    span.textContent = '永久';
                 }
                 var tierCards = { 1: ['community1Card','community1Status'], 2: ['community2Card','community2Status'], 3: ['community3Card','community3Status'], 4: ['community4Card','community4Status'], 5: ['community5Card','community5Status'], 6: ['community5Card','community5Status'] };
                 for (var t = 1; t <= 6; t++) {
@@ -527,27 +517,46 @@
         async function fetchUserStats() {
             var ua = window.currentAccount; if (!ua || !web3) return;
             try {
-                var basic = await fetchUserBasic(); if (!basic) { safeText('middleInvitedCount','--'); return; }
-                var ai = basic.activatedInvited || 0;
-                safeText('middleInvitedCount', ai);
-                var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (ai / 3) * 100).toFixed(1) + '%';
+                var activatedInvited = 0;
+                try { activatedInvited = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getTotalCommunities()') }))); } catch (e) {}
+                var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
+                var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
                 var mc = $('middleCard'), ms = $('middleStatus');
-                if (basic.role === 2) { if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); } if (ms) { ms.textContent = '🔓已解锁'; ms.style.color = '#4ecca3'; } }
-                else { if (mc) { mc.classList.add('locked'); mc.classList.remove('unlocked'); } if (ms) { ms.textContent = (ai >= 3 && basic.role === 1) ? '⚠️条件满足，请检查锁仓状态' : '🔒未解锁'; ms.style.color = (ai >= 3 && basic.role === 1) ? '#f0b90b' : '#a3adc9'; } }
+                var role = 0;
+                try { role = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [ua]) }))); } catch (e) {}
+                if (role >= 13) {
+                    if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
+                    if (ms) { ms.textContent = '🔓已解锁'; ms.style.color = '#4ecca3'; }
+                } else {
+                    if (mc) { mc.classList.add('locked'); mc.classList.remove('unlocked'); }
+                    if (ms) { ms.textContent = (activatedInvited >= 3 && role >= 10) ? '⚠️条件满足，请检查锁仓状态' : '🔒未解锁'; ms.style.color = (activatedInvited >= 3 && role >= 10) ? '#f0b90b' : '#a3adc9'; }
+                }
             } catch (e) {}
         }
 
-        async function refreshAllData() { await fetchPrices(); await fetchNodeInfo(); await fetchUserStats(); await fetchCommunityExpiry(); updateAllMykSuggestions(); }
+        async function refreshAllData() {
+            await fetchPrices();
+            await fetchNodeInfo();
+            await fetchUserStats();
+            await fetchCommunityExpiry();
+            updateAllMykSuggestions();
+        }
 
         function updateAllMykSuggestions() {
             var sp = getSpotPrice();
-            if (sp > 0) { safeText('fourthMykAmount', (500 / sp * 1.055).toFixed(4)); safeText('fifthMykAmount', (1000 / sp * 1.055).toFixed(4)); }
-            else { safeText('fourthMykAmount', '价格加载中...'); safeText('fifthMykAmount', '价格加载中...'); }
+            if (sp > 0) {
+                var fe = $('fourthMykAmount'); if (fe) fe.textContent = (500 / sp * 1.055).toFixed(4);
+                var fie = $('fifthMykAmount'); if (fie) fie.textContent = (1000 / sp * 1.055).toFixed(4);
+            } else {
+                var fe2 = $('fourthMykAmount'); if (fe2) fe2.textContent = '价格加载中...';
+                var fie2 = $('fifthMykAmount'); if (fie2) fie2.textContent = '价格加载中...';
+            }
         }
 
         async function upgradeWithUSDT(amount) {
             var ua = window.currentAccount; if (!ua) { alert('请先连接钱包'); return; } if (!lock()) return;
-            var btn = document.querySelector('.upgrade-btn[data-amount="' + amount + '"]'), el = btn ? btn.nextElementSibling : null; if (!btn || !el) return;
+            var btn = document.querySelector('.upgrade-btn[data-amount="' + amount + '"]');
+            var el = btn ? btn.nextElementSibling : null; if (!btn || !el) return;
             btn.disabled = true; btn.textContent = '处理中...'; el.style.display = 'block';
             try {
                 var fee = Web3.utils.toWei(String(amount), 'ether');
@@ -565,10 +574,12 @@
 
         async function burnForTier(amount) {
             var ua = window.currentAccount; if (!ua) { alert('请先连接钱包'); return; } if (!lock()) return;
-            var btn = document.querySelector('.upgrade-btn[data-amount="' + amount + '"]'), el = btn ? btn.nextElementSibling : null; if (!btn || !el) return;
+            var btn = document.querySelector('.upgrade-btn[data-amount="' + amount + '"]');
+            var el = btn ? btn.nextElementSibling : null; if (!btn || !el) return;
             btn.disabled = true; btn.textContent = '处理中...'; el.style.display = 'block';
             try {
-                el.innerHTML = '⏳ 获取实时价格...'; await fetchPrices(); var sp = getSpotPrice();
+                el.innerHTML = '⏳ 获取实时价格...'; await fetchPrices();
+                var sp = getSpotPrice();
                 if (sp <= 0) { alert('无法获取现货价格'); unlock(); btn.disabled = false; btn.textContent = amount >= 500 ? '🔥 销毁MYK解锁' : '🔓 立即解锁权益'; return; }
                 var mykAmount = Web3.utils.toWei(String((amount / sp) * 1.055), 'ether');
                 el.innerHTML = '⏳ 将销毁 ' + parseFloat(Web3.utils.fromWei(mykAmount, 'ether')).toFixed(4) + ' MYK';
@@ -594,13 +605,15 @@
             setupActivateTabs(); setupUpgradeButtons();
             var aub = $('activateUSDTBtn'); if (aub) aub.addEventListener('click', activateUSDT);
             var amb = $('activateMYKBtn'); if (amb) amb.addEventListener('click', activateMYK);
-            if (window.currentAccount) { refreshAllData(); } else { fetchPrices(); }
+            if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshAllData(); }
+            else { fetchPrices(); }
             document.addEventListener('walletConnected', function() { refreshAllData(); });
-            setInterval(function() { if (window.currentAccount) { refreshAllData(); } }, 60000);
+            setInterval(function() { if (typeof web3 !== 'undefined' && web3 && window.currentAccount) { refreshAllData(); } }, 60000);
         }
 
-        if (typeof web3 !== 'undefined' && web3) { doInit(); }
-        else { var _c = 0; var _t = setInterval(function() { if (typeof web3 !== 'undefined' && web3) { clearInterval(_t); doInit(); } else if (_c++ > 40) { clearInterval(_t); } }, 500); }
-    })();
+        doInit();
+    }
+
+    communityInit();
     </script>
 </div>
