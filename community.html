@@ -185,7 +185,7 @@
                 <div class="asset-label">🥇 COMMUNITY</div>
                 <div class="rate-value" style="color:#f0b90b;">1.6%</div>
                 <div class="rate-label">日领币</div>
-                <div class="rate-condition">持有社区身份<br>已激活直推≥6</div>
+                <div class="rate-condition">持有社区身份<br>已社区直推≥3</div>
             </div>
         </div>
         <!-- 进度条1：直推激活 -->
@@ -202,7 +202,7 @@
         <div style="margin-top:8px;">
             <div class="stat-row" style="font-size:12px;">
                 <span>当前社区直推：<span class="stat-value" id="progressCommunityDirect">0</span>人</span>
-                <span>需达目标：<span class="stat-value" id="progressCommunityTarget">6</span>人</span>
+                <span>需达目标：<span class="stat-value" id="progressCommunityTarget">3</span>人</span>
             </div>
             <div class="progress-bar-container">
                 <div class="progress-bar-fill" id="progressCommunityBar" style="width:0%;background:linear-gradient(90deg,#f0b90b,#e94560);"></div>
@@ -430,7 +430,7 @@
                 var pai = $('progressActivatedInvited'); if (pai) pai.textContent = activatedInvited;
                 var pcd = $('progressCommunityDirect'); if (pcd) pcd.textContent = directCommunity;
                 var pab = $('progressActivatedBar'); if (pab) pab.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
-                var pcb = $('progressCommunityBar'); if (pcb) pcb.style.width = Math.min(100, (directCommunity / 6) * 100).toFixed(1) + '%';
+                var pcb = $('progressCommunityBar'); if (pcb) pcb.style.width = Math.min(100, (directCommunity / 3) * 100).toFixed(1) + '%';
                 try { var cm = $('cardMYK'); if (cm) cm.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) {}
                 try { var cu = $('cardUSDT'); if (cu) cu.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) }))).toFixed(4); } catch (e) {}
             } catch (e) {}
