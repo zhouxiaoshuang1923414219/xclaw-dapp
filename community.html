@@ -319,30 +319,49 @@
             throw new Error('超时');
         }
 
-        // ===== 使用 users mapping 直接读取 =====
+        async function fetchUserGovTier() {
+            var ua = window.currentAccount; if (!web3 || !ua) return 0;
+            try { return parseInt(web3.eth.abi.decodeParameter('uint8', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); }
+            catch (e) { try { return parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); } catch (e2) {} }
+            return 0;
+        }
+
+        // ===== 使用 getUserBasic 编码调用 + 降级独立查询 =====
         async function fetchUserBasic() {
             var ua = window.currentAccount;
             if (!web3 || !ua) return null;
             try {
-                var abi = ['function users(address) view returns (address,uint96,uint96,uint96,uint96,uint96,uint96,uint40,uint40,uint40,uint8,bool,uint256,uint256)'];
-                var c = new web3.eth.Contract(abi, RP);
-                var u = await c.methods.users(ua).call();
-                var role = parseInt(u[10]);
+                var data = await web3.eth.call({ to: RP, data: encodeCall('getUserBasic(address)', ['address'], [ua]) });
+                var u = web3.eth.abi.decodeParameters(
+                    ['address','uint256','uint256','uint256','uint256','uint8','uint256','bool','uint256','uint256'],
+                    data
+                );
+                var role = parseInt(u[5]);
                 var govTier = await fetchUserGovTier();
                 if (govTier >= 4) role = 3;
                 return {
-                    referrer: u[0],
-                    invited: parseInt(u[1]),
-                    activatedInvited: parseInt(u[2]),
-                    directPrimaryCount: parseInt(u[3]),
-                    directCommunityCount: parseInt(u[4]),
-                    role: role,
-                    activatedAt: parseInt(u[7]),
-                    isActive: u[11],
-                    pendingActivationMYK: parseFloat(Web3.utils.fromWei(u[12], 'ether')),
-                    activityBalance: parseFloat(Web3.utils.fromWei(u[13], 'ether'))
+                    referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]),
+                    directPrimaryCount: parseInt(u[3]), directCommunityCount: parseInt(u[4]),
+                    role: role, activatedAt: parseInt(u[6]), isActive: u[7],
+                    pendingActivationMYK: n(u[8]), activityBalance: n(u[9])
                 };
-            } catch (e) { return null; }
+            } catch (e) {
+                // 降级：独立查询
+                try {
+                    var isActive = web3.eth.abi.decodeParameter('bool', await web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [ua]) }));
+                    var roleRate = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [ua]) })));
+                    var referrer = web3.eth.abi.decodeParameter('address', await web3.eth.call({ to: RP, data: encodeCall('getReferrer(address)', ['address'], [ua]) }));
+                    var role = roleRate >= 16 ? 3 : roleRate >= 13 ? 2 : roleRate >= 10 ? 1 : 0;
+                    var govTier = await fetchUserGovTier();
+                    if (govTier >= 4) role = 3;
+                    return {
+                        referrer: referrer, invited: 0, activatedInvited: 0,
+                        directPrimaryCount: 0, directCommunityCount: 0,
+                        role: role, activatedAt: 0, isActive: isActive,
+                        pendingActivationMYK: 0, activityBalance: 0
+                    };
+                } catch (e2) { return null; }
+            }
         }
 
         async function fetchPrices() {
@@ -382,13 +401,6 @@
             }
         }
 
-        async function fetchUserGovTier() {
-            var ua = window.currentAccount; if (!web3 || !ua) return 0;
-            try { return parseInt(web3.eth.abi.decodeParameter('uint8', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); }
-            catch (e) { try { return parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); } catch (e2) {} }
-            return 0;
-        }
-
         async function fetchNodeInfo() {
             var ua = window.currentAccount;
             if (!ua || !web3) return;
@@ -400,10 +412,8 @@
                 var activatedInvited = basic.activatedInvited;
                 var rpRole = basic.role;
                 var referrer = basic.referrer;
-                var govTier = await fetchUserGovTier();
-                if (govTier >= 4) rpRole = 3;
 
-                // 直推人数 = activatedInvited
+                // 直推人数
                 var ci = $('cardInvited'); if (ci) ci.textContent = activatedInvited;
 
                 // 费率
@@ -413,6 +423,7 @@
                 else if (rpRole >= 1) dailyRate = '1.0%';
 
                 // 等级
+                var govTier = await fetchUserGovTier();
                 var roleName = '无';
                 if (govTier >= 6) roleName = '👑 SIXTH';
                 else if (govTier >= 5) roleName = '👑 FIFTH';
@@ -431,11 +442,9 @@
                 var crf = $('cardReferrer'); if (crf) { crf.textContent = referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(referrer); crf.style.color = referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
                 var ca = $('cardActivated'); if (ca) ca.textContent = isActive ? '已激活' : '未激活';
 
-                // MIDDLE 进度条
+                // MIDDLE
                 var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
                 var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
-
-                // MIDDLE 状态
                 var mc = $('middleCard'), ms = $('middleStatus');
                 if (rpRole >= 2) {
                     if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
