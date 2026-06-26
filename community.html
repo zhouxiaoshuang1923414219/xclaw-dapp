@@ -326,7 +326,6 @@
             return 0;
         }
 
-        // ===== getUserBasic + users mapping 降级 =====
         async function fetchUserBasic() {
             var ua = window.currentAccount;
             if (!web3 || !ua) return null;
@@ -346,7 +345,6 @@
                     pendingActivationMYK: n(u[8]), activityBalance: n(u[9])
                 };
             } catch (e) {
-                // 降级：直接用 users mapping 读取全部字段
                 try {
                     var userData = web3.eth.abi.decodeParameters(
                         ['address','uint256','uint256','uint256','uint256','uint256','uint256','uint256','uint256','uint256','uint8','bool','uint256','uint256'],
@@ -356,16 +354,10 @@
                     var govTier2 = await fetchUserGovTier();
                     if (govTier2 >= 4) role2 = 3;
                     return {
-                        referrer: userData[0],
-                        invited: parseInt(userData[1]),
-                        activatedInvited: parseInt(userData[2]),
-                        directPrimaryCount: parseInt(userData[3]),
-                        directCommunityCount: parseInt(userData[4]),
-                        role: role2,
-                        activatedAt: parseInt(userData[7]),
-                        isActive: userData[11],
-                        pendingActivationMYK: n(userData[12]),
-                        activityBalance: n(userData[13])
+                        referrer: userData[0], invited: parseInt(userData[1]), activatedInvited: parseInt(userData[2]),
+                        directPrimaryCount: parseInt(userData[3]), directCommunityCount: parseInt(userData[4]),
+                        role: role2, activatedAt: parseInt(userData[7]), isActive: userData[11],
+                        pendingActivationMYK: n(userData[12]), activityBalance: n(userData[13])
                     };
                 } catch (e2) { return null; }
             }
@@ -447,17 +439,19 @@
                 var crf = $('cardReferrer'); if (crf) { crf.textContent = referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(referrer); crf.style.color = referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
                 var ca = $('cardActivated'); if (ca) ca.textContent = isActive ? '已激活' : '未激活';
 
+                // MIDDLE 解锁判断：activatedInvited >= 3 且 无社区身份(rpRole < 3)
                 var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
                 var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
                 var mc = $('middleCard'), ms = $('middleStatus');
-                if (rpRole >= 2) {
+                var isMiddleUnlocked = (activatedInvited >= 3 && rpRole < 3);
+                if (rpRole >= 2 || isMiddleUnlocked) {
                     if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
                     if (ms) { ms.textContent = '🔓已解锁'; ms.style.color = '#4ecca3'; }
                 } else {
                     if (mc) { mc.classList.add('locked'); mc.classList.remove('unlocked'); }
                     if (ms) {
-                        ms.textContent = (activatedInvited >= 3 && rpRole < 3) ? '⚠️条件满足，请检查锁仓状态' : '🔒未解锁';
-                        ms.style.color = (activatedInvited >= 3 && rpRole < 3) ? '#f0b90b' : '#a3adc9';
+                        ms.textContent = (activatedInvited >= 3 && rpRole >= 3) ? '🔒未解锁（已有社区身份）' : '🔒未解锁';
+                        ms.style.color = '#a3adc9';
                     }
                 }
 
