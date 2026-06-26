@@ -108,7 +108,6 @@
         .rate-condition { font-size: 10px; color: #666; margin-top: 2px; }
     </style>
 
-    <!-- ========== 信息卡 ========== -->
     <div class="glass-card">
         <h2 style="display: flex; align-items: center; font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px;">
             <span class="live-dot" style="margin-right: 8px;"></span>节点信息
@@ -139,7 +138,6 @@
         </div>
     </div>
 
-    <!-- ========== 激活初级卡片 ========== -->
     <div class="glass-card">
         <h2 style="font-size: 1.1rem; color: #f0b90b; display: flex; align-items: center; margin-bottom: 4px;">
             🥉 激活初级
@@ -166,7 +164,6 @@
         </div>
     </div>
 
-    <!-- ========== 角色费率卡片 + 进度条 ========== -->
     <div class="glass-card">
         <div style="display:flex;gap:10px;">
             <div class="asset-box" style="flex:1;">
@@ -208,7 +205,6 @@
         </div>
     </div>
 
-    <!-- ========== 权益卡片 ========== -->
     <div class="glass-card" style="padding: 12px 8px;">
         <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px; text-align: center;">🔓 权益卡片</h2>
         <div class="unlock-card locked" id="middleCard">
@@ -381,20 +377,13 @@
             var ua = window.currentAccount;
             if (!ua || !web3) return;
             try {
-                // 独立查询替代 getUserBasic
-                var isActive = false, role = 0, referrer = '0x0000000000000000000000000000000000000000';
-                var invited = 0, activatedInvited = 0, activatedAt = 0;
+                var isActive = false, roleRate = 0, referrer = '0x0000000000000000000000000000000000000000';
                 try { isActive = web3.eth.abi.decodeParameter('bool', await web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [ua]) })); } catch (e) {}
-                try { role = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [ua]) }))); } catch (e) {}
+                try { roleRate = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [ua]) }))); } catch (e) {}
                 try { referrer = web3.eth.abi.decodeParameter('address', await web3.eth.call({ to: RP, data: encodeCall('getReferrer(address)', ['address'], [ua]) })); } catch (e) {}
-                try { var status = web3.eth.abi.decodeParameters(['bool','bool'], await web3.eth.call({ to: RP, data: encodeCall('getUserStatus(address)', ['address'], [ua]) })); isActive = status[0]; } catch (e) {}
-                try { activatedInvited = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getTotalCommunities()') }))); } catch (e) {}
-                try { var streak = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [ua]) }))); } catch (e) {}
-
                 var govTier = 0;
                 try { govTier = parseInt(web3.eth.abi.decodeParameter('uint8', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); } catch (e) {}
-
-                var rpRole = role >= 16 ? 3 : role >= 13 ? 2 : role >= 10 ? 1 : 0;
+                var rpRole = roleRate >= 16 ? 3 : roleRate >= 13 ? 2 : roleRate >= 10 ? 1 : 0;
                 var roleName = '无', dailyRate = '--';
                 if (govTier >= 6) { roleName = '👑 SIXTH'; dailyRate = '1.6%'; }
                 else if (govTier >= 5) { roleName = '👑 FIFTH'; dailyRate = '1.6%'; }
@@ -405,23 +394,18 @@
                 else if (rpRole >= 3) { roleName = '🥇 COMMUNITY'; dailyRate = '1.6%'; }
                 else if (rpRole >= 2) { roleName = '🥈 MIDDLE'; dailyRate = '1.3%'; }
                 else if (rpRole >= 1) { roleName = '🥉 PRIMARY'; dailyRate = '1%'; }
-
                 var cr = $('cardRole'); if (cr) cr.textContent = roleName;
                 var cdr = $('cardDailyRate'); if (cdr) cdr.textContent = dailyRate;
                 var cab = $('cardActiveBadge');
-                if (cab) cab.innerHTML = isActive
-                    ? '<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅已激活</span>'
-                    : '<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌未激活</span>';
+                if (cab) cab.innerHTML = isActive ? '<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅已激活</span>' : '<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌未激活</span>';
                 var crf = $('cardReferrer');
                 if (crf) { crf.textContent = referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(referrer); crf.style.color = referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
-                var ca = $('cardActivated'); if (ca) ca.textContent = activatedAt > 0 ? new Date(activatedAt * 1000).toLocaleDateString('zh-CN') : '未激活';
-                var ci = $('cardInvited'); if (ci) ci.textContent = invited;
-
-                var pai = $('progressActivatedInvited'); if (pai) pai.textContent = activatedInvited;
-                var pab = $('progressActivatedBar'); if (pab) pab.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
+                var ca = $('cardActivated'); if (ca) ca.textContent = isActive ? '已激活' : '未激活';
+                var ci = $('cardInvited'); if (ci) ci.textContent = '--';
+                var pai = $('progressActivatedInvited'); if (pai) pai.textContent = '--';
+                var pab = $('progressActivatedBar'); if (pab) pab.style.width = '0%';
                 var pcd = $('progressCommunityDirect'); if (pcd) pcd.textContent = '--';
                 var pcb = $('progressCommunityBar'); if (pcb) pcb.style.width = '0%';
-
                 try { var cm = $('cardMYK'); if (cm) cm.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(4); } catch (e) {}
                 try { var cu = $('cardUSDT'); if (cu) cu.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(4); } catch (e) {}
             } catch (e) {}
@@ -517,19 +501,17 @@
         async function fetchUserStats() {
             var ua = window.currentAccount; if (!ua || !web3) return;
             try {
-                var activatedInvited = 0;
-                try { activatedInvited = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getTotalCommunities()') }))); } catch (e) {}
-                var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
-                var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
+                var roleRate = 0;
+                try { roleRate = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [ua]) }))); } catch (e) {}
+                var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = '--';
+                var mp = $('middleProgress'); if (mp) mp.style.width = '0%';
                 var mc = $('middleCard'), ms = $('middleStatus');
-                var role = 0;
-                try { role = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [ua]) }))); } catch (e) {}
-                if (role >= 13) {
+                if (roleRate >= 13) {
                     if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
                     if (ms) { ms.textContent = '🔓已解锁'; ms.style.color = '#4ecca3'; }
                 } else {
                     if (mc) { mc.classList.add('locked'); mc.classList.remove('unlocked'); }
-                    if (ms) { ms.textContent = (activatedInvited >= 3 && role >= 10) ? '⚠️条件满足，请检查锁仓状态' : '🔒未解锁'; ms.style.color = (activatedInvited >= 3 && role >= 10) ? '#f0b90b' : '#a3adc9'; }
+                    if (ms) { ms.textContent = '🔒未解锁'; ms.style.color = '#a3adc9'; }
                 }
             } catch (e) {}
         }
