@@ -439,20 +439,16 @@
                 var crf = $('cardReferrer'); if (crf) { crf.textContent = referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(referrer); crf.style.color = referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
                 var ca = $('cardActivated'); if (ca) ca.textContent = isActive ? '已激活' : '未激活';
 
-                // MIDDLE 解锁判断：activatedInvited >= 3 且 无社区身份(rpRole < 3)
+                // MIDDLE 解锁判断：只看 activatedInvited >= 3
                 var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
                 var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
                 var mc = $('middleCard'), ms = $('middleStatus');
-                var isMiddleUnlocked = (activatedInvited >= 3 && rpRole < 3);
-                if (rpRole >= 2 || isMiddleUnlocked) {
+                if (activatedInvited >= 3) {
                     if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
                     if (ms) { ms.textContent = '🔓已解锁'; ms.style.color = '#4ecca3'; }
                 } else {
                     if (mc) { mc.classList.add('locked'); mc.classList.remove('unlocked'); }
-                    if (ms) {
-                        ms.textContent = (activatedInvited >= 3 && rpRole >= 3) ? '🔒未解锁（已有社区身份）' : '🔒未解锁';
-                        ms.style.color = '#a3adc9';
-                    }
+                    if (ms) { ms.textContent = '🔒未解锁'; ms.style.color = '#a3adc9'; }
                 }
 
                 try { var cm = $('cardMYK'); if (cm) cm.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(4); } catch (e) {}
