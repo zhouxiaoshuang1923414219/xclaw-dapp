@@ -209,17 +209,19 @@
             if (!ua) { st('bonusEstimate','--'); st('bonusPrincipal','0.00 USDT'); st('bonusDaily','0.000000 MYK'); st('bonusClaimed','0天 / 0.000000 MYK'); st('bonusRemaining','--'); sd('claimBonusBtn',true); st('claimBonusBtn','📈 暂无升级奖励'); return; }
             try {
                 var info = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','bool','uint256'], await web3.eth.call({ to: RP, data: encodeCall('getDailyBonusInfo(address)', ['address'], [ua]) }));
-                var principal = n(info[0]);
-                var dailyAmount = n(info[1]);
-                var totalClaimed = n(info[3]);
-                var isActive = info[4];
-                var claimableUSDT = n(info[5]);
+                var principal = n(info[0]);      // totalPrincipal
+                var dailyAmount = n(info[1]);    // totalDailyAmount
+                var totalClaimed = n(info[3]);   // totalClaimed
+                var isActive = info[4];           // isActive
+                var claimableUSDT = n(info[5]);  // claimable
 
                 var sp = cachedSpotPrice;
                 var dailyAmountMYK = sp > 0 ? dailyAmount / sp : 0;
                 var totalClaimedMYK = sp > 0 ? totalClaimed / sp : 0;
                 var claimableMYK = sp > 0 ? claimableUSDT / sp : 0;
-                var totalDays = 90;
+
+                // 根据 _getBonusDays 计算 totalDays
+                var totalDays = _getBonusDays(principal);
                 var claimedDays = dailyAmount > 0 ? Math.floor(totalClaimed / dailyAmount) : 0;
                 var remainingDays = Math.max(0, totalDays - claimedDays);
 
@@ -232,6 +234,16 @@
                 sd('claimBonusBtn', !isActive || remainingDays <= 0);
                 st('claimBonusBtn', !isActive ? '📈 暂无升级奖励' : remainingDays <= 0 ? '✅ 已全部领取' : '📈 领取今日升级奖励');
             } catch (e) { st('bonusEstimate','--'); st('bonusPrincipal','0.00 USDT'); st('bonusDaily','0.000000 MYK'); st('bonusClaimed','0天 / 0.000000 MYK'); st('bonusRemaining','--'); sd('claimBonusBtn',true); st('claimBonusBtn','📈 暂无升级奖励'); }
+        }
+
+        // 根据 _getBonusDays 映射 totalDays
+        function _getBonusDays(principalUSDT) {
+            if (principalUSDT >= 1000) return 360;
+            if (principalUSDT >= 500) return 300;
+            if (principalUSDT >= 200) return 240;
+            if (principalUSDT >= 100) return 180;
+            if (principalUSDT >= 50) return 120;
+            return 90;
         }
 
         async function claimBonus() {
