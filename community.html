@@ -193,9 +193,9 @@
     <!-- ========== 权益卡片 ========== -->
     <div class="glass-card" style="padding: 12px 8px;">
         <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px; text-align: center;">🔓 权益卡片</h2>
-        <div class="unlock-card unlocked" id="middleCard">
+        <div class="unlock-card locked" id="middleCard">
             <h2 style="font-size: 1.1rem;">🔓 MIDDLE 权益<span class="badge badge-silver" style="font-size:10px;">权益卡</span></h2>
-            <div class="desc" id="middleStatus" style="font-size:13px;">🔓已解锁</div>
+            <div class="desc" id="middleStatus" style="font-size:13px;">🔒未解锁</div>
             <div class="hint-text" style="font-size:11px;">解锁规则：已激活直推 ≥ 3 解锁更多权益</div>
             <div class="desc" style="font-size:13px;">权益：享受 <span class="highlight">1.3%</span> 日奖币</div>
             <div class="stat-row" style="font-size:12px;">
@@ -248,9 +248,9 @@
             <button class="btn btn-gold upgrade-btn" data-amount="2.5" style="margin-top:10px;font-size:14px;">🔥 销毁MYK解锁FOURTH</button>
             <div class="info-box upgrade-result" style="display:none;"></div>
         </div>
-        <div class="unlock-card unlocked" id="community5Card">
+        <div class="unlock-card locked" id="community5Card">
             <h2 style="font-size:1.1rem;">第五社区权益<span class="badge badge-gold" style="font-size:10px;">FIFTH+</span></h2>
-            <div class="desc" id="community5Status" style="font-size:13px;">🔓已解锁</div>
+            <div class="desc" id="community5Status" style="font-size:13px;">🔒未解锁</div>
             <div class="hint-unlock" id="community5Unlock">解锁规则：MYK销毁累计 ≥ 3 USDT 等值 MYK 获取 FIFTH (<span>永久</span>)</div>
             <div class="hint-fund">资金用途：社区建设＋去中心化基金合约自动添加LP维持市值</div>
             <div class="desc" style="font-size:13px;">最高权益：享受 <span class="highlight">1.6%</span> 日奖币 + <span class="highlight-green">1.6%/天×360天</span> + C5分红池 <span class="highlight-green">25%</span></div>
@@ -404,21 +404,29 @@
                 var ca = $('cardActivated'); if (ca) ca.textContent = isActive ? '已激活' : '未激活';
                 var ci = $('cardInvited'); if (ci) ci.textContent = invited;
 
-                // MIDDLE 进度条
+                // MIDDLE 进度条：使用 activatedInvited
                 var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
                 var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
 
-                // MIDDLE 卡片状态
+                // MIDDLE 解锁判断：仅限 roleRate 在 13-15（MIDDLE身份）
                 var mc = $('middleCard'), ms = $('middleStatus');
-                if (roleRate >= 13) {
-                    if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
-                    if (ms) { ms.textContent = '🔓已解锁'; ms.style.color = '#4ecca3'; }
-                } else {
-                    if (mc) { mc.classList.add('locked'); mc.classList.remove('unlocked'); }
-                    if (ms) {
-                        ms.textContent = (activatedInvited >= 3 && roleRate >= 10) ? '⚠️条件满足，请检查锁仓状态' : '🔒未解锁';
-                        ms.style.color = (activatedInvited >= 3 && roleRate >= 10) ? '#f0b90b' : '#a3adc9';
+                if (roleRate >= 13 && roleRate <= 15) {
+                    // 是 MIDDLE 身份
+                    if (activatedInvited >= 3) {
+                        if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
+                        if (ms) { ms.textContent = '🔓已解锁'; ms.style.color = '#4ecca3'; }
+                    } else {
+                        if (mc) { mc.classList.add('locked'); mc.classList.remove('unlocked'); }
+                        if (ms) { ms.textContent = '🔒未解锁（直推不足3人）'; ms.style.color = '#a3adc9'; }
                     }
+                } else if (roleRate >= 16) {
+                    // 已是 COMMUNITY 或更高，MIDDLE 自动解锁
+                    if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
+                    if (ms) { ms.textContent = '🔓已解锁（已升级）'; ms.style.color = '#4ecca3'; }
+                } else {
+                    // PRIMARY
+                    if (mc) { mc.classList.add('locked'); mc.classList.remove('unlocked'); }
+                    if (ms) { ms.textContent = '🔒未解锁'; ms.style.color = '#a3adc9'; }
                 }
 
                 try { var cm = $('cardMYK'); if (cm) cm.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(4); } catch (e) {}
