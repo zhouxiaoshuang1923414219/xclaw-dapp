@@ -56,7 +56,7 @@
             <span>持币：<span class="stat-value" id="holdingAmount">--</span></span>
         </div>
         <div class="stat-row" style="margin-top:8px;">
-            <span>今天可领：<span class="stat-value" id="todayReward">--</span></span>
+            <span>当前可领：<span class="stat-value" id="todayReward">--</span></span>
             <span>已领币：<span class="stat-value" id="claimedToday">--</span></span>
         </div>
         <button class="btn btn-green" id="claimRewardBtn">领取奖励</button>
@@ -88,7 +88,6 @@
         var USDT = '0x55d398326f99059fF775485246999027B3197955';
         var ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
         var PAIR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
-        var SNAPSHOT_PERIOD = 300;
 
         var isProcessing = false, cachedSpotPrice = 0;
 
@@ -125,7 +124,6 @@
         }
 
         function getAccount() { return window.currentAccount || null; }
-        function getDay() { return Math.floor(Date.now() / 1000 / SNAPSHOT_PERIOD); }
 
         async function fetchSpotPrice() {
             if (!web3) return 0;
@@ -153,78 +151,60 @@
             return cachedSpotPrice;
         }
 
-        // ===== 做市7天 - 使用 public 变量 getter =====
         async function fetchHoldingInfo() {
             var ua = getAccount();
             if (!ua) { st('holdingBalance','--'); st('holdingAmount','--'); st('streakDays','--'); st('claimedToday','--'); st('todayReward','--'); sd('claimRewardBtn',true); st('claimRewardBtn','请先连接钱包'); return; }
 
-            var isActive = false, buyTs = 0, buyVal = 0, buyAmt = 0, streak = 0, claimed = 0, claimable = 0;
+            var isActive = false, buyTs = 0, buyVal = 0, buyAmt = 0, streak = 0, claimed = 0, totalClaimable = 0;
 
             try {
-                // 1. 激活状态
                 try { isActive = web3.eth.abi.decodeParameter('bool', await web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [ua]) })); } catch (e) {}
-
-                // 2. public 变量 getter：lastPancakeBuyAmount
                 try { buyAmt = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('lastPancakeBuyAmount(address)', ['address'], [ua]) }))); } catch (e) {}
-
-                // 3. public 变量 getter：lastPancakeBuyValue
                 try { buyVal = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('lastPancakeBuyValue(address)', ['address'], [ua]) }))); } catch (e) {}
-
-                // 4. public 变量 getter：lastPancakeBuyTime
                 try { buyTs = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('lastPancakeBuyTime(address)', ['address'], [ua]) }))); } catch (e) {}
 
                 st('holdingBalance', buyVal.toFixed(2) + ' USDT');
                 st('holdingAmount', buyAmt.toFixed(2) + ' MYK');
 
-                // 5. getStreakLength
                 try { streak = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getStreakLength(address)', ['address'], [ua]) }))); st('streakDays', streak); } catch (e) { st('streakDays','0'); }
 
-                // 6. totalDailyRewardClaimed (public 变量 getter)
                 try { claimed = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('totalDailyRewardClaimed(address)', ['address'], [ua]) }))); st('claimedToday', claimed.toFixed(4) + ' MYK'); } catch (e) { st('claimedToday','0.0000 MYK'); }
 
-                // 7. getClaimableDailyReward
-                try { claimable = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getClaimableDailyReward(address)', ['address'], [ua]) }))); } catch (e) {}
+                // 当前可领 = 窗口内 + 过期
+                var w = 0, a = 0;
+                try { w = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getClaimableDailyReward(address)', ['address'], [ua]) }))); } catch (e) {}
+                try { a = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getClaimableAccumulatedReward(address)', ['address'], [ua]) }))); } catch (e) {}
+                totalClaimable = w + a;
+                st('todayReward', totalClaimable.toFixed(6) + ' MYK');
 
-                // 8. 时间显示
                 if (buyTs > 0) {
-                    var diff = Math.floor(Date.now() / 1000) - buyTs;
-                    var dd = Math.floor(diff / 86400);
+                    var diff = Math.floor(Date.now() / 1000) - buyTs, dd = Math.floor(diff / 86400);
                     st('holdingDaysAgo', dd <= 0 ? (Math.floor(diff / 3600) <= 0 ? (Math.floor(diff / 60) <= 1 ? '(刚刚)' : '(' + Math.floor(diff / 60) + '分钟前)') : '(' + Math.floor(diff / 3600) + '小时前)') : '(' + dd + '天前)');
-                } else {
-                    st('holdingDaysAgo','');
-                }
+                } else { st('holdingDaysAgo',''); }
 
-                // 9. 可领判断
                 var em = '', bd = false;
-                if (!isActive) { em = '请先激活 PRIMARY 身份'; bd = true; st('todayReward','未激活'); }
-                else if (buyTs <= 0) { em = '7天内无PancakeSwap买入记录'; bd = true; st('todayReward','无买入记录'); }
-                else if (Math.floor(Date.now()/1000) - buyTs > 7*86400) { em = '最近买入已超过7天'; bd = true; st('todayReward','超过7天'); }
-                else {
-                    var bd2 = Math.floor(buyTs / SNAPSHOT_PERIOD);
-                    if (bd2 >= getDay()) { em = '买入当天不可领取'; bd = true; st('todayReward','等待结算'); }
-                    else if (claimable <= 0) { em = '今日已领取'; bd = true; st('todayReward','已领取'); }
-                    else { st('todayReward', claimable.toFixed(6) + ' MYK'); }
-                }
+                if (!isActive) { em = '请先激活 PRIMARY 身份'; bd = true; }
+                else if (totalClaimable <= 0) { em = '今日已领取'; bd = true; }
                 sd('claimRewardBtn', bd); st('claimRewardBtn', bd ? em : '领取奖励');
             } catch (e) { st('holdingBalance','0.00 USDT'); st('holdingAmount','0.00 MYK'); st('streakDays','--'); st('claimedToday','--'); st('todayReward','--'); sd('claimRewardBtn',true); st('claimRewardBtn','加载失败'); }
         }
 
+        // ===== 统一领取：claimDailyReward =====
         async function claimDailyReward() {
             var ua = getAccount(); if (!ua) { alert('请先连接钱包'); return; } if (!lock()) return;
             var b = $('claimRewardBtn'), el = $('claimRewardResult'); if (!b || !el) return;
             el.style.display = 'block'; el.innerHTML = '⏳ 领取中...'; b.disabled = true; b.textContent = '处理中...';
             try {
-                await waitForTx(await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: ua, to: RP, data: encodeCall('claimDailyRewardAuto()'), gas: '0xF4240' }] }));
+                await waitForTx(await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: ua, to: RP, data: encodeCall('claimDailyReward()'), gas: '0xF4240' }] }));
                 el.innerHTML = '✅ 领取成功！'; el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
                 b.textContent = '已领取（明天再来）'; b.disabled = true;
                 setTimeout(function() { fetchAll(); }, 3000);
             } catch (e) {
                 var m = parseError(e);
-                el.innerHTML = (m.indexOf('NotActive')!==-1)?'⚠️ 账户未激活':(m.indexOf('NoRecent')!==-1)?'⚠️ 7天内无买入':(m.indexOf('TooFrequent')!==-1)?'⚠️ 今天已领取':(m.indexOf('rejected')!==-1)?'⚠️ 已取消':'❌ '+m;
+                el.innerHTML = (m.indexOf('NotActive')!==-1)?'⚠️ 账户未激活':(m.indexOf('rejected')!==-1)?'⚠️ 已取消':'❌ '+m;
             } finally { b.disabled = false; if (b.textContent.indexOf('已领取')===-1) b.textContent='领取奖励'; unlock(); }
         }
 
-        // ===== 每日升级奖励 =====
         async function fetchBonus() {
             var ua = getAccount();
             if (!ua) { st('bonusPrincipal','--'); st('bonusDaily','--'); st('bonusClaimed','--'); st('bonusRemaining','--'); sd('claimBonusBtn',true); st('claimBonusBtn','📈 暂无升级奖励'); return; }
