@@ -319,6 +319,32 @@
             throw new Error('超时');
         }
 
+        // ===== 使用 users mapping 直接读取 =====
+        async function fetchUserBasic() {
+            var ua = window.currentAccount;
+            if (!web3 || !ua) return null;
+            try {
+                var abi = ['function users(address) view returns (address,uint96,uint96,uint96,uint96,uint96,uint96,uint40,uint40,uint40,uint8,bool,uint256,uint256)'];
+                var c = new web3.eth.Contract(abi, RP);
+                var u = await c.methods.users(ua).call();
+                var role = parseInt(u[10]);
+                var govTier = await fetchUserGovTier();
+                if (govTier >= 4) role = 3;
+                return {
+                    referrer: u[0],
+                    invited: parseInt(u[1]),
+                    activatedInvited: parseInt(u[2]),
+                    directPrimaryCount: parseInt(u[3]),
+                    directCommunityCount: parseInt(u[4]),
+                    role: role,
+                    activatedAt: parseInt(u[7]),
+                    isActive: u[11],
+                    pendingActivationMYK: parseFloat(Web3.utils.fromWei(u[12], 'ether')),
+                    activityBalance: parseFloat(Web3.utils.fromWei(u[13], 'ether'))
+                };
+            } catch (e) { return null; }
+        }
+
         async function fetchPrices() {
             if (!web3) return;
             try {
@@ -356,30 +382,29 @@
             }
         }
 
+        async function fetchUserGovTier() {
+            var ua = window.currentAccount; if (!web3 || !ua) return 0;
+            try { return parseInt(web3.eth.abi.decodeParameter('uint8', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); }
+            catch (e) { try { return parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); } catch (e2) {} }
+            return 0;
+        }
+
         async function fetchNodeInfo() {
             var ua = window.currentAccount;
             if (!ua || !web3) return;
             try {
-                var isActive = false, roleRate = 0, referrer = '0x0000000000000000000000000000000000000000', govTier = 0;
-                var invited = 0, activatedInvited = 0;
+                var basic = await fetchUserBasic();
+                var isActive = basic ? basic.isActive : false;
+                var invited = basic ? basic.invited : 0;
+                var activatedInvited = basic ? basic.activatedInvited : 0;
+                var rpRole = basic ? basic.role : 0;
+                var referrer = basic ? basic.referrer : '0x0000000000000000000000000000000000000000';
+                var govTier = await fetchUserGovTier();
 
-                try { isActive = web3.eth.abi.decodeParameter('bool', await web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [ua]) })); } catch (e) {}
-                try { roleRate = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [ua]) }))); } catch (e) {}
-                try { referrer = web3.eth.abi.decodeParameter('address', await web3.eth.call({ to: RP, data: encodeCall('getReferrer(address)', ['address'], [ua]) })); } catch (e) {}
-                try { govTier = parseInt(web3.eth.abi.decodeParameter('uint8', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); } catch (e) {}
+                // 直推人数显示已激活直推
+                var ci = $('cardInvited'); if (ci) ci.textContent = activatedInvited;
 
-                // getUserBasic 10字段
-                try {
-                    var basic = web3.eth.abi.decodeParameters(
-                        ['address','uint256','uint256','uint256','uint256','uint8','uint256','bool','uint256','uint256'],
-                        await web3.eth.call({ to: RP, data: encodeCall('getUserBasic(address)', ['address'], [ua]) })
-                    );
-                    invited = parseInt(basic[1]);
-                    activatedInvited = parseInt(basic[2]);
-                } catch (e) {}
-
-                // roleRate: 10-12=PRIMARY, 13-15=MIDDLE, 16=COMMUNITY
-                var rpRole = roleRate >= 16 ? 3 : roleRate >= 13 ? 2 : roleRate >= 10 ? 1 : 0;
+                // 费率固定值
                 var dailyRate = '--';
                 if (rpRole >= 3) dailyRate = '1.6%';
                 else if (rpRole >= 2) dailyRate = '1.3%';
@@ -402,31 +427,22 @@
                 if (cab) cab.innerHTML = isActive ? '<span style="color:#4ecca3;background:rgba(78,204,163,0.15);padding:2px 10px;border-radius:12px;">✅已激活</span>' : '<span style="color:#e94560;background:rgba(233,69,96,0.15);padding:2px 10px;border-radius:12px;">❌未激活</span>';
                 var crf = $('cardReferrer'); if (crf) { crf.textContent = referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(referrer); crf.style.color = referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
                 var ca = $('cardActivated'); if (ca) ca.textContent = isActive ? '已激活' : '未激活';
-                var ci = $('cardInvited'); if (ci) ci.textContent = invited;
 
-                // MIDDLE 进度条：使用 activatedInvited
+                // MIDDLE 进度条：activatedInvited / 3
                 var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
                 var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
 
-                // MIDDLE 解锁判断：仅限 roleRate 在 13-15（MIDDLE身份）
+                // MIDDLE 解锁判断：activatedInvited >= 3 且无社区身份
                 var mc = $('middleCard'), ms = $('middleStatus');
-                if (roleRate >= 13 && roleRate <= 15) {
-                    // 是 MIDDLE 身份
-                    if (activatedInvited >= 3) {
-                        if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
-                        if (ms) { ms.textContent = '🔓已解锁'; ms.style.color = '#4ecca3'; }
-                    } else {
-                        if (mc) { mc.classList.add('locked'); mc.classList.remove('unlocked'); }
-                        if (ms) { ms.textContent = '🔒未解锁（直推不足3人）'; ms.style.color = '#a3adc9'; }
-                    }
-                } else if (roleRate >= 16) {
-                    // 已是 COMMUNITY 或更高，MIDDLE 自动解锁
+                if (rpRole >= 2) {
                     if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
-                    if (ms) { ms.textContent = '🔓已解锁（已升级）'; ms.style.color = '#4ecca3'; }
+                    if (ms) { ms.textContent = '🔓已解锁'; ms.style.color = '#4ecca3'; }
                 } else {
-                    // PRIMARY
                     if (mc) { mc.classList.add('locked'); mc.classList.remove('unlocked'); }
-                    if (ms) { ms.textContent = '🔒未解锁'; ms.style.color = '#a3adc9'; }
+                    if (ms) {
+                        ms.textContent = (activatedInvited >= 3 && rpRole < 3) ? '⚠️条件满足，请检查锁仓状态' : '🔒未解锁';
+                        ms.style.color = (activatedInvited >= 3 && rpRole < 3) ? '#f0b90b' : '#a3adc9';
+                    }
                 }
 
                 try { var cm = $('cardMYK'); if (cm) cm.textContent = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ua]) }))).toFixed(4); } catch (e) {}
@@ -488,13 +504,6 @@
                 setTimeout(function() { refreshAllData(); }, 3000);
             } catch (e) { el.innerHTML = '❌ ' + parseError(e); }
             finally { b.disabled = false; b.textContent = '💸 支付MYK激活'; unlock(); }
-        }
-
-        async function fetchUserGovTier() {
-            var ua = window.currentAccount; if (!web3 || !ua) return 0;
-            try { return parseInt(web3.eth.abi.decodeParameter('uint8', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); }
-            catch (e) { try { return parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); } catch (e2) {} }
-            return 0;
         }
 
         async function fetchCommunityExpiry() {
