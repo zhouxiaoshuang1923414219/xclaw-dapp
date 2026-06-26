@@ -384,17 +384,30 @@
                 try { referrer = web3.eth.abi.decodeParameter('address', await web3.eth.call({ to: RP, data: encodeCall('getReferrer(address)', ['address'], [ua]) })); } catch (e) {}
                 try { govTier = parseInt(web3.eth.abi.decodeParameter('uint8', await web3.eth.call({ to: GOV, data: encodeCall('getCommunityTier(address)', ['address'], [ua]) }))); } catch (e) {}
 
+                // 通过 GOV 合约 getRoleRate 获取当前日领币百分比
+                var dailyRate = '--';
+                try {
+                    var govRoleRate = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: GOV, data: encodeCall('getRoleRate(address)', ['address'], [ua]) })));
+                    dailyRate = (govRoleRate / 1000).toFixed(1) + '%';
+                } catch (e) {
+                    // 降级：使用 RP 的 getRoleRate 判断
+                    var rpRole = roleRate >= 16 ? 3 : roleRate >= 13 ? 2 : roleRate >= 10 ? 1 : 0;
+                    if (rpRole >= 3) dailyRate = '1.6%';
+                    else if (rpRole >= 2) dailyRate = '1.3%';
+                    else if (rpRole >= 1) dailyRate = '1%';
+                }
+
                 var rpRole = roleRate >= 16 ? 3 : roleRate >= 13 ? 2 : roleRate >= 10 ? 1 : 0;
-                var roleName = '无', dailyRate = '--';
-                if (govTier >= 6) { roleName = '👑 SIXTH'; dailyRate = '1.6%'; }
-                else if (govTier >= 5) { roleName = '👑 FIFTH'; dailyRate = '1.6%'; }
-                else if (govTier >= 4) { roleName = '🥇 FOURTH'; dailyRate = '1.6%'; }
-                else if (govTier >= 3) { roleName = '🥇 THIRD'; dailyRate = '1.6%'; }
-                else if (govTier >= 2) { roleName = '🥇 SECOND'; dailyRate = '1.6%'; }
-                else if (govTier >= 1) { roleName = '🥇 FIRST'; dailyRate = '1.6%'; }
-                else if (rpRole >= 3) { roleName = '🥇 COMMUNITY'; dailyRate = '1.6%'; }
-                else if (rpRole >= 2) { roleName = '🥈 MIDDLE'; dailyRate = '1.3%'; }
-                else if (rpRole >= 1) { roleName = '🥉 PRIMARY'; dailyRate = '1%'; }
+                var roleName = '无';
+                if (govTier >= 6) roleName = '👑 SIXTH';
+                else if (govTier >= 5) roleName = '👑 FIFTH';
+                else if (govTier >= 4) roleName = '🥇 FOURTH';
+                else if (govTier >= 3) roleName = '🥇 THIRD';
+                else if (govTier >= 2) roleName = '🥇 SECOND';
+                else if (govTier >= 1) roleName = '🥇 FIRST';
+                else if (rpRole >= 3) roleName = '🥇 COMMUNITY';
+                else if (rpRole >= 2) roleName = '🥈 MIDDLE';
+                else if (rpRole >= 1) roleName = '🥉 PRIMARY';
 
                 var cr = $('cardRole'); if (cr) cr.textContent = roleName;
                 var cdr = $('cardDailyRate'); if (cdr) cdr.textContent = dailyRate;
