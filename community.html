@@ -108,7 +108,7 @@
         .rate-condition { font-size: 10px; color: #666; margin-top: 2px; }
     </style>
 
-    <!-- ========== 信息卡 ========== -->
+    <!-- 信息卡 -->
     <div class="glass-card">
         <h2 style="display: flex; align-items: center; font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px;">
             <span class="live-dot" style="margin-right: 8px;"></span>节点信息
@@ -139,7 +139,7 @@
         </div>
     </div>
 
-    <!-- ========== 激活初级卡片 ========== -->
+    <!-- 激活初级卡片 -->
     <div class="glass-card">
         <h2 style="font-size: 1.1rem; color: #f0b90b; display: flex; align-items: center; margin-bottom: 4px;">
             🥉 激活初级
@@ -166,7 +166,7 @@
         </div>
     </div>
 
-    <!-- ========== 角色费率卡片 ========== -->
+    <!-- 角色费率卡片 -->
     <div class="glass-card">
         <div style="display:flex;gap:10px;">
             <div class="asset-box" style="flex:1;">
@@ -190,7 +190,7 @@
         </div>
     </div>
 
-    <!-- ========== 权益卡片 ========== -->
+    <!-- 权益卡片 -->
     <div class="glass-card" style="padding: 12px 8px;">
         <h2 style="font-size: 1.1rem; color: #f0b90b; margin-bottom: 12px; text-align: center;">🔓 权益卡片</h2>
         <div class="unlock-card locked" id="middleCard">
@@ -326,7 +326,7 @@
             return 0;
         }
 
-        // ===== 使用 getUserBasic 编码调用 + 降级独立查询 =====
+        // ===== getUserBasic：10字段解码 =====
         async function fetchUserBasic() {
             var ua = window.currentAccount;
             if (!web3 || !ua) return null;
@@ -340,13 +340,18 @@
                 var govTier = await fetchUserGovTier();
                 if (govTier >= 4) role = 3;
                 return {
-                    referrer: u[0], invited: parseInt(u[1]), activatedInvited: parseInt(u[2]),
-                    directPrimaryCount: parseInt(u[3]), directCommunityCount: parseInt(u[4]),
-                    role: role, activatedAt: parseInt(u[6]), isActive: u[7],
-                    pendingActivationMYK: n(u[8]), activityBalance: n(u[9])
+                    referrer: u[0],
+                    invited: parseInt(u[1]),
+                    activatedInvited: parseInt(u[2]),
+                    directPrimaryCount: parseInt(u[3]),
+                    directCommunityCount: parseInt(u[4]),
+                    role: role,
+                    activatedAt: parseInt(u[6]),
+                    isActive: u[7],
+                    pendingActivationMYK: n(u[8]),
+                    activityBalance: n(u[9])
                 };
             } catch (e) {
-                // 降级：独立查询
                 try {
                     var isActive = web3.eth.abi.decodeParameter('bool', await web3.eth.call({ to: RP, data: encodeCall('isActiveUser(address)', ['address'], [ua]) }));
                     var roleRate = parseInt(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getRoleRate(address)', ['address'], [ua]) })));
@@ -409,12 +414,14 @@
                 if (!basic) return;
 
                 var isActive = basic.isActive;
+                var invited = basic.invited;
                 var activatedInvited = basic.activatedInvited;
                 var rpRole = basic.role;
                 var referrer = basic.referrer;
+                var govTier = await fetchUserGovTier();
 
-                // 直推人数
-                var ci = $('cardInvited'); if (ci) ci.textContent = activatedInvited;
+                // 直推人数 = invited（总直推含未激活）
+                var ci = $('cardInvited'); if (ci) ci.textContent = invited;
 
                 // 费率
                 var dailyRate = '--';
@@ -423,7 +430,6 @@
                 else if (rpRole >= 1) dailyRate = '1.0%';
 
                 // 等级
-                var govTier = await fetchUserGovTier();
                 var roleName = '无';
                 if (govTier >= 6) roleName = '👑 SIXTH';
                 else if (govTier >= 5) roleName = '👑 FIFTH';
@@ -442,7 +448,7 @@
                 var crf = $('cardReferrer'); if (crf) { crf.textContent = referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(referrer); crf.style.color = referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
                 var ca = $('cardActivated'); if (ca) ca.textContent = isActive ? '已激活' : '未激活';
 
-                // MIDDLE
+                // MIDDLE 进度条使用 activatedInvited
                 var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
                 var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
                 var mc = $('middleCard'), ms = $('middleStatus');
