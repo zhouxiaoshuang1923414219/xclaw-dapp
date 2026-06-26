@@ -394,22 +394,25 @@
             if (!ua || !web3) return;
             try {
                 var basic = await fetchUserBasic();
-                var isActive = basic ? basic.isActive : false;
-                var invited = basic ? basic.invited : 0;
-                var activatedInvited = basic ? basic.activatedInvited : 0;
-                var rpRole = basic ? basic.role : 0;
-                var referrer = basic ? basic.referrer : '0x0000000000000000000000000000000000000000';
-                var govTier = await fetchUserGovTier();
+                if (!basic) return;
 
-                // 直推人数显示已激活直推
+                var isActive = basic.isActive;
+                var activatedInvited = basic.activatedInvited;
+                var rpRole = basic.role;
+                var referrer = basic.referrer;
+                var govTier = await fetchUserGovTier();
+                if (govTier >= 4) rpRole = 3;
+
+                // 直推人数 = activatedInvited
                 var ci = $('cardInvited'); if (ci) ci.textContent = activatedInvited;
 
-                // 费率固定值
+                // 费率
                 var dailyRate = '--';
                 if (rpRole >= 3) dailyRate = '1.6%';
                 else if (rpRole >= 2) dailyRate = '1.3%';
                 else if (rpRole >= 1) dailyRate = '1.0%';
 
+                // 等级
                 var roleName = '无';
                 if (govTier >= 6) roleName = '👑 SIXTH';
                 else if (govTier >= 5) roleName = '👑 FIFTH';
@@ -428,11 +431,11 @@
                 var crf = $('cardReferrer'); if (crf) { crf.textContent = referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(referrer); crf.style.color = referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
                 var ca = $('cardActivated'); if (ca) ca.textContent = isActive ? '已激活' : '未激活';
 
-                // MIDDLE 进度条：activatedInvited / 3
+                // MIDDLE 进度条
                 var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
                 var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
 
-                // MIDDLE 解锁判断：activatedInvited >= 3 且无社区身份
+                // MIDDLE 状态
                 var mc = $('middleCard'), ms = $('middleStatus');
                 if (rpRole >= 2) {
                     if (mc) { mc.classList.remove('locked'); mc.classList.add('unlocked'); }
