@@ -191,7 +191,7 @@
             <span style="color:#888;">当前奖金池：<span id="airdropPoolBalance">--</span> MYK</span>
             <span style="color:#888;" id="airdropPercent">0%</span>
         </div>
-        <button class="btn btn-green" id="bindContractBtn" onclick="bindContract()"> 绑定合约（奖励1000 MYK ）</button>
+        <button class="btn btn-green" id="bindContractBtn" onclick="bindContract()"> 绑定合约（奖励1000 MYP ）</button>
         <div class="info-box" id="bindContractResult" style="display:none;"></div>
     </div>
 
@@ -313,7 +313,7 @@
             el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : '❌ ' + m;
         } finally {
             btn.disabled = false;
-            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = ' 绑定合约（奖励1000 MYK）';
+            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = ' 绑定合约（奖励1000 MYP）';
             unlock();
         }
     }
