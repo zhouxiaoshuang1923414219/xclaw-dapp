@@ -314,7 +314,7 @@
             el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : '❌ ' + m;
         } finally {
             btn.disabled = false;
-            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = ' 绑定合约（）';
+            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = ' 绑定合约（1）';
             unlock();
         }
     }
