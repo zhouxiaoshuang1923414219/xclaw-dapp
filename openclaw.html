@@ -178,7 +178,7 @@
     <div class="glass-card">
         <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 12px;">🎁 MYK生态福利</h2>
         <div class="desc">
-            新人绑定合约即送 <span class="highlight">1000</span> MYK，推荐人奖励 <span class="highlight">250</span> MYK，总量 
+            新人绑定合约即送 <span class="highlight">1000</span> MYK，推荐人奖励 <span class="highlight">250</span> MYK，总量
             <span class="highlight-green" id="airdropTotal">--</span> MYK 赠完即止
         </div>
         <div class="stat-row">
@@ -192,7 +192,7 @@
             <span style="color:#888;">当前奖金池：<span id="airdropPoolBalance">--</span> MYK</span>
             <span style="color:#888;" id="airdropPercent">0%</span>
         </div>
-        <button class="btn btn-green" id="bindContractBtn" onclick="bindContract()">💵 绑定合约（奖励1000 MYP）</button>
+        <button class="btn btn-green" id="bindContractBtn" onclick="bindContract()">💵 绑定合约（奖励1000 MYK）</button>
         <div class="info-box" id="bindContractResult" style="display:none;"></div>
     </div>
 
@@ -221,6 +221,14 @@
             <div class="contract-addr-row">
                 <span class="contract-addr-label">🟡 Governance</span><span class="contract-addr-value">0x937E4b...b7f4</span>
                 <button class="contract-addr-copy" data-addr="0x937E4bF22CfCBCF770464dd48B82D1721ECbB7f4">复制</button>
+            </div>
+            <div class="contract-addr-row">
+                <span class="contract-addr-label">🔴 FundManager</span><span class="contract-addr-value">0xe86B05...0e67</span>
+                <button class="contract-addr-copy" data-addr="0xe86B0536Db1167dDFD9A95E3Ad522f63B76B0e67">复制</button>
+            </div>
+            <div class="contract-addr-row">
+                <span class="contract-addr-label">🟣 MYKPoints</span><span class="contract-addr-value">0x3e43c3...C0A3</span>
+                <button class="contract-addr-copy" data-addr="0x3e43c36966370C07bf5a2b0a7Da512562076C0A3">复制</button>
             </div>
         </div>
     </div>
@@ -311,7 +319,7 @@
             el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : '❌ ' + m;
         } finally {
             btn.disabled = false;
-            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = '💵 绑定合约（奖励1000 MYP）';
+            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = '💵 绑定合约（奖励1000 MYK）';
             unlock();
         }
     }
@@ -323,12 +331,12 @@
         var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
         var RP = '0x157Fe615Ce19Be6e5AA8A731b2a97eF1198E5f09';
         var GOV = '0x937E4bF22CfCBCF770464dd48B82D1721ECbB7f4';
+        var FM = '0xe86B0536Db1167dDFD9A95E3Ad522f63B76B0e67';
+        var MYP = '0x3e43c36966370C07bf5a2b0a7Da512562076C0A3';
         var DEAD_ADDR = '0x000000000000000000000000000000000000dEaD';
         var ZERO_ADDR = '0x0000000000000000000000000000000000000000';
 
-        var AIRDROP_INITIAL = 200000000;
-        var AIRDROP_STORAGE_KEY = 'myk_airdrop_total_v3_';
-        var airdropTotalAmount = 200000000;
+        var MYP_TOTAL = 1000000000; // 10亿 MYP
 
         function $(id) { return document.getElementById(id); }
         function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
@@ -342,36 +350,23 @@
         async function fetchAirdrop() {
             if (!web3) return;
             try {
-                var data = encodeCall('getActivityPoolBalance()');
-                var result = await web3.eth.call({ to: RP, data: data });
-                var currentBalance = n(web3.eth.abi.decodeParameter('uint256', result));
+                // 从 MYKPoints 合约查询余额
+                var data = encodeCall('balanceOf(address)', ['address'], [MYP]);
+                var result = await web3.eth.call({ to: MYP, data: data });
+                var contractBalance = n(web3.eth.abi.decodeParameter('uint256', result));
 
-                var storageKey = AIRDROP_STORAGE_KEY + RP;
-                var stored = localStorage.getItem(storageKey);
-
-                if (!stored) {
-                    airdropTotalAmount = Math.max(currentBalance, AIRDROP_INITIAL);
-                    localStorage.setItem(storageKey, airdropTotalAmount);
-                } else {
-                    airdropTotalAmount = parseFloat(stored);
-                    if (currentBalance > airdropTotalAmount) {
-                        airdropTotalAmount = currentBalance;
-                        localStorage.setItem(storageKey, airdropTotalAmount);
-                    }
-                }
-
-                var paid = airdropTotalAmount - currentBalance;
-                var percent = Math.min(100, Math.max(0, (paid / airdropTotalAmount) * 100));
-
-                // 已激活人数 = 已赠送 / 1000
+                // 已赠送 = 10亿 - 合约余额
+                var paid = MYP_TOTAL - contractBalance;
+                if (paid < 0) paid = 0;
+                var percent = Math.min(100, Math.max(0, (paid / MYP_TOTAL) * 100));
                 var activatedCount = Math.floor(paid / 1000);
 
-                $('airdropTotal').textContent = formatM(airdropTotalAmount);
+                $('airdropTotal').textContent = formatM(MYP_TOTAL);
                 $('airdropPaid').textContent = formatM(paid);
                 $('airdropActivated').textContent = activatedCount;
                 $('airdropProgress').style.width = percent.toFixed(1) + '%';
                 $('airdropPercent').textContent = percent.toFixed(1) + '%';
-                $('airdropPoolBalance').textContent = formatM(currentBalance);
+                $('airdropPoolBalance').textContent = formatM(contractBalance);
             } catch (e) {
                 $('airdropTotal').textContent = '--'; $('airdropPaid').textContent = '--';
                 $('airdropActivated').textContent = '--'; $('airdropPercent').textContent = '0%';
@@ -400,7 +395,7 @@
                     try { $('govLocked').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) })))); } catch (e2) { $('govLocked').textContent = '--'; }
                 }
 
-                try { $('fundAsset').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) })))); } catch (e) { $('fundAsset').textContent = '--'; }
+                try { $('fundAsset').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [FM]) })))); } catch (e) { $('fundAsset').textContent = '--'; }
             } catch (e) { $('totalSupply').textContent = '--'; $('burnedAmount').textContent = '--'; }
         }
 
