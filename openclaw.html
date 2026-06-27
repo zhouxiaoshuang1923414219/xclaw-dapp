@@ -45,7 +45,6 @@
             margin-top: 12px; font-size: 14px; border-left: 4px solid #e94560;
             word-break: break-word; color: #ccd6f0;
         }
-        
         .chart-container {
             position: relative; width: 100%; height: 280px; margin: 16px 0 8px; overflow: visible;
         }
@@ -74,7 +73,6 @@
         .data-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .data-table .price-col { color: #f0b90b; font-weight: 600; }
         .data-table .multiplier-col { color: #4ecca3; font-weight: 600; }
-        
         .contract-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .asset-box {
             background: #0f1422; border-radius: 16px;
@@ -107,7 +105,7 @@
     <!-- 卡片1：MYK上涨曲线图 -->
     <div class="glass-card">
         <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 4px;">📈 MYK 价格上涨曲线</h2>
-        <div class="desc">永久锁仓<span class="highlight">1.8亿 MYK</span> · 初始价格 <span class="highlight-green">0.1 USDT</span></div>
+        <div class="desc">合约锁池仓2亿 MYK <span class="highlight">1,000,000 MYK</span> · 初始价格 <span class="highlight-green">0.1 USDT</span></div>
         <div class="chart-container">
             <svg class="chart-svg" viewBox="0 0 380 260" preserveAspectRatio="xMidYMid meet">
                 <defs>
@@ -180,7 +178,7 @@
     <div class="glass-card">
         <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 12px;">🎁 百万MYK生态福利</h2>
         <div class="desc">
-            新人绑定合约即送 <span class="highlight">200</span> MYK，总量 
+            新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK，总量 
             <span class="highlight-green" id="airdropTotal">--</span> MYK 赠完即止
         </div>
         <div class="stat-row">
@@ -194,7 +192,7 @@
             <span style="color:#888;">当前奖金池：<span id="airdropPoolBalance">--</span> MYK</span>
             <span style="color:#888;" id="airdropPercent">0%</span>
         </div>
-        <button class="btn btn-green" id="bindContractBtn" onclick="bindContract()">绑定合约（领200 MYK）</button>
+        <button class="btn btn-green" id="bindContractBtn" onclick="bindContract()">💵 绑定合约（支付10 USDT + 锁仓1000 MYK）</button>
         <div class="info-box" id="bindContractResult" style="display:none;"></div>
     </div>
 
@@ -251,7 +249,16 @@
         throw new Error('超时');
     }
 
-    // ===== 绑定合约 =====
+    function encodeCall(sig, types, values) {
+        var s = web3.eth.abi.encodeFunctionSignature(sig);
+        if (!types || !types.length) return s;
+        var e = web3.eth.abi.encodeParameters(types, values);
+        var sClean = s.replace(/^0x/, '');
+        var eClean = e.replace(/^0x/, '');
+        return '0x' + sClean + eClean;
+    }
+
+    // ===== 绑定合约：并行授权 + 激活（2步） =====
     async function bindContract() {
         var ua = window.currentAccount;
         if (!ua) { alert('请先连接钱包'); return; }
@@ -261,57 +268,57 @@
         var el = document.getElementById('bindContractResult');
         if (!btn || !el) return;
 
-        el.style.display = 'block';
-        el.innerHTML = '⏳ 授权USDT...';
-        btn.disabled = true;
-        btn.textContent = '处理中...';
-
+        var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
         var USDT = '0x55d398326f99059fF775485246999027B3197955';
         var RP = '0x157Fe615Ce19Be6e5AA8A731b2a97eF1198E5f09';
 
+        el.style.display = 'block';
+        btn.disabled = true;
+        btn.textContent = '处理中...';
+
         try {
-            var fee = Web3.utils.toWei('2', 'ether');
+            // 1. 并行授权 USDT(10) + MYK(1000)
+            el.innerHTML = '⏳ 1/2 授权 USDT + MYK...';
+            var usdtFee = Web3.utils.toWei('10', 'ether');
+            var mykFee = Web3.utils.toWei('1000', 'ether');
+            var approveUSDTData = encodeCall('approve(address,uint256)', ['address','uint256'], [RP, usdtFee]);
+            var approveMYKData = encodeCall('approve(address,uint256)', ['address','uint256'], [RP, mykFee]);
 
-            // 授权 USDT
-            var approveData = web3.eth.abi.encodeFunctionSignature('approve(address,uint256)') +
-                web3.eth.abi.encodeParameters(['address','uint256'], [RP, fee]).slice(2);
-            var aTx = await window.ethereum.request({
-                method: 'eth_sendTransaction',
-                params: [{ from: ua, to: USDT, data: approveData }]
-            });
-            el.innerHTML = '⏳ 等待授权确认...';
-            await waitForTransaction(aTx);
+            var results = await Promise.all([
+                window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: ua, to: USDT, data: approveUSDTData }] }),
+                window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: ua, to: MYK, data: approveMYKData }] })
+            ]);
+            el.innerHTML = '⏳ 1/2 等待授权确认...';
+            await Promise.all([waitForTransaction(results[0]), waitForTransaction(results[1])]);
 
-            // 激活
-            el.innerHTML = '⏳ 绑定激活中...';
-            var activateData = web3.eth.abi.encodeFunctionSignature('activateWithUSDT()');
+            // 2. activateWith10USDT
+            el.innerHTML = '⏳ 2/2 激活并锁仓中...';
+            var activateData = encodeCall('activateWith10USDT()');
             var acTx = await window.ethereum.request({
                 method: 'eth_sendTransaction',
-                params: [{ from: ua, to: RP, data: activateData }]
+                params: [{ from: ua, to: RP, data: activateData, gas: '0xF4240' }]
             });
-            el.innerHTML = '⏳ 等待激活确认...';
+            el.innerHTML = '⏳ 2/2 等待激活确认...';
             await waitForTransaction(acTx);
 
-            el.innerHTML = '✅ 绑定成功！已获得 2 USDT 等值 MYK 空投奖励';
+            el.innerHTML = '✅ 绑定成功！已支付 10 USDT + 锁仓 1000 MYK，7天线性释放';
             el.style.borderLeftColor = '#4ecca3';
             el.style.background = 'rgba(78,204,163,0.1)';
             btn.textContent = '✅ 已绑定';
             btn.disabled = true;
 
-            // 触发刷新
             if (typeof fetchAirdrop === 'function') fetchAirdrop();
             document.dispatchEvent(new CustomEvent('activationComplete'));
         } catch (e) {
             var m = parseError(e);
-            el.innerHTML = (m.indexOf('referrer') !== -1) ? '⚠️ 推荐人无效或未绑定，请检查链上绑定关系' : '❌ ' + m;
+            el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : '❌ ' + m;
         } finally {
             btn.disabled = false;
-            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = '💵 绑定合约（支付2 USDT）';
+            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = '💵 绑定合约（支付10 USDT + 锁仓1000 MYK）';
             unlock();
         }
     }
 
-    // 挂载到全局
     window.bindContract = bindContract;
 
     // ===== 空投 + 合约信息 =====
@@ -332,12 +339,6 @@
             if (v >= 1000000) return (v / 1000000).toFixed(2) + 'M';
             if (v >= 1000) return (v / 1000).toFixed(2) + 'K';
             return v.toFixed(2);
-        }
-
-        function encodeCall(sig, types, values) {
-            var s = web3.eth.abi.encodeFunctionSignature(sig);
-            if (!types || !types.length) return s;
-            return s + web3.eth.abi.encodeParameters(types, values).slice(2);
         }
 
         async function fetchAirdrop() {
@@ -371,10 +372,8 @@
                 $('airdropPercent').textContent = percent.toFixed(1) + '%';
                 $('airdropPoolBalance').textContent = formatM(currentBalance);
             } catch (e) {
-                $('airdropTotal').textContent = '--';
-                $('airdropPaid').textContent = '--';
-                $('airdropRemaining').textContent = '--';
-                $('airdropPercent').textContent = '0%';
+                $('airdropTotal').textContent = '--'; $('airdropPaid').textContent = '--';
+                $('airdropRemaining').textContent = '--'; $('airdropPercent').textContent = '0%';
                 $('airdropPoolBalance').textContent = '--';
             }
         }
