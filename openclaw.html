@@ -27,70 +27,51 @@
             height: 100%; border-radius: 10px; transition: width 0.3s;
             background: linear-gradient(90deg, #4ecca3, #f0b90b);
         }
+        .btn {
+            background: linear-gradient(135deg, #e94560, #b92b4a);
+            border: none; color: white; font-weight: 700;
+            padding: 14px 18px; border-radius: 18px; cursor: pointer;
+            transition: 0.2s; box-shadow: 0 8px 18px rgba(233,69,96,0.3);
+            width: 100%; font-size: 15px; margin-top: 12px;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.6; box-shadow: none; transform: none; }
+        .btn-green {
+            background: linear-gradient(135deg, #4ecca3, #2e8b6a);
+            box-shadow: 0 8px 18px rgba(78,204,163,0.3);
+        }
+        .info-box {
+            background: #0a0d16; border-radius: 14px; padding: 12px;
+            margin-top: 12px; font-size: 14px; border-left: 4px solid #e94560;
+            word-break: break-word; color: #ccd6f0;
+        }
         
-        /* 图表容器 */
         .chart-container {
-            position: relative;
-            width: 100%;
-            height: 280px;
-            margin: 16px 0 8px;
-            overflow: visible;
+            position: relative; width: 100%; height: 280px; margin: 16px 0 8px; overflow: visible;
         }
-        .chart-svg {
-            width: 100%;
-            height: 100%;
-        }
-        /* 柱状图发光 */
-        .bar-glow {
-            filter: drop-shadow(0 0 6px rgba(78,204,163,0.6));
-        }
-        /* 箭头线发光 */
+        .chart-svg { width: 100%; height: 100%; }
+        .bar-glow { filter: drop-shadow(0 0 6px rgba(78,204,163,0.6)); }
         .arrow-line {
-            stroke: #f0b90b;
-            stroke-width: 2.5;
-            fill: none;
-            stroke-dasharray: 8 4;
-            animation: dashMove 1s linear infinite;
+            stroke: #f0b90b; stroke-width: 2.5; fill: none;
+            stroke-dasharray: 8 4; animation: dashMove 1s linear infinite;
             filter: drop-shadow(0 0 4px rgba(240,185,11,0.5));
         }
-        @keyframes dashMove {
-            to { stroke-dashoffset: -24; }
-        }
-        /* 微光点 */
-        .sparkle {
-            animation: sparklePulse 2s ease-in-out infinite;
-        }
-        @keyframes sparklePulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-        .sparkle:nth-child(1) { animation-delay: 0s; }
-        .sparkle:nth-child(2) { animation-delay: 0.5s; }
-        .sparkle:nth-child(3) { animation-delay: 1s; }
-        .sparkle:nth-child(4) { animation-delay: 1.5s; }
-        
+        @keyframes dashMove { to { stroke-dashoffset: -24; } }
+        .sparkle { animation: sparklePulse 2s ease-in-out infinite; }
+        @keyframes sparklePulse { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
+        .sparkle:nth-child(1){animation-delay:0s;} .sparkle:nth-child(2){animation-delay:0.5s;}
+        .sparkle:nth-child(3){animation-delay:1s;} .sparkle:nth-child(4){animation-delay:1.5s;}
         .chart-label { font-size: 10px; fill: #a3adc9; }
         .chart-value { font-size: 11px; fill: #4ef0a8; font-weight: 700; }
-        .chart-price { font-size: 10px; fill: #f0b90b; font-weight: 600; }
-        
         .legend-row {
             display: flex; justify-content: center; gap: 20px; margin-top: 8px; font-size: 11px; color: #a3adc9;
         }
-        .legend-dot {
-            display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px;
-        }
-        
+        .legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
         .data-table {
-            width: 100%; margin-top: 12px; font-size: 11px; color: #a3adc9;
-            border-collapse: collapse;
+            width: 100%; margin-top: 12px; font-size: 11px; color: #a3adc9; border-collapse: collapse;
         }
-        .data-table th {
-            text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08);
-            color: #888; font-weight: 600;
-        }
-        .data-table td {
-            padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
+        .data-table th { text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); color: #888; font-weight: 600; }
+        .data-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .data-table .price-col { color: #f0b90b; font-weight: 600; }
         .data-table .multiplier-col { color: #4ecca3; font-weight: 600; }
         
@@ -111,8 +92,7 @@
         .contract-addr-label { font-size: 11px; color: #888; white-space: nowrap; margin-right: 8px; }
         .contract-addr-value {
             font-family: 'Fira Code', monospace; font-size: 11px;
-            color: #4ef0a8; flex: 1; text-align: center;
-            overflow: hidden; text-overflow: ellipsis;
+            color: #4ef0a8; flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis;
         }
         .contract-addr-copy {
             background: rgba(233,69,96,0.2); border: 1px solid #e94560;
@@ -124,12 +104,10 @@
         .contract-addr-copy.copied { background: #4ecca3; border-color: #4ecca3; color: white; }
     </style>
 
-    <!-- ========== 卡片1：MYK上涨曲线图（新增排序第一） ========== -->
+    <!-- 卡片1：MYK上涨曲线图 -->
     <div class="glass-card">
         <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 4px;">📈 MYK 价格上涨曲线</h2>
-        <div class="desc">奖金池永久锁仓 <span class="highlight">1.8亿 MYK</span> · 初始价格 <span class="highlight-green"> $ 0.1 </span></div>
-        
-        <!-- SVG 图表 -->
+        <div class="desc">底池 <span class="highlight">1,000,000 MYK</span> · 初始价格 <span class="highlight-green">0.1 U</span></div>
         <div class="chart-container">
             <svg class="chart-svg" viewBox="0 0 380 260" preserveAspectRatio="xMidYMid meet">
                 <defs>
@@ -141,85 +119,52 @@
                         <stop offset="0%" stop-color="#f0b90b" stop-opacity="0.9"/>
                         <stop offset="100%" stop-color="#f0b90b" stop-opacity="0.2"/>
                     </linearGradient>
-                    <filter id="glow">
-                        <feGaussianBlur stdDeviation="2" result="blur"/>
-                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
+                    <filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                 </defs>
-                
-                <!-- 网格线 -->
                 <line x1="50" y1="230" x2="360" y2="230" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
                 <line x1="50" y1="180" x2="360" y2="180" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
                 <line x1="50" y1="130" x2="360" y2="130" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
                 <line x1="50" y1="80" x2="360" y2="80" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
                 <line x1="50" y1="30" x2="360" y2="30" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
-                
-                <!-- Y轴标签 -->
                 <text x="44" y="234" class="chart-label" text-anchor="end">0.1</text>
                 <text x="44" y="184" class="chart-label" text-anchor="end">10</text>
                 <text x="44" y="134" class="chart-label" text-anchor="end">100</text>
                 <text x="44" y="84" class="chart-label" text-anchor="end">1K</text>
                 <text x="44" y="34" class="chart-label" text-anchor="end">100K</text>
                 <text x="44" y="14" class="chart-label" text-anchor="end" style="font-size:9px;">价格(U)</text>
-                
-                <!-- 柱状图：10人 -->
                 <rect x="62" y="226" width="28" height="4" rx="2" fill="url(#barGrad)" class="bar-glow"/>
                 <text x="76" y="222" class="chart-value" text-anchor="middle">0.102</text>
                 <text x="76" y="252" class="chart-label" text-anchor="middle">10人</text>
-                
-                <!-- 柱状图：100人 -->
                 <rect x="118" y="222" width="28" height="8" rx="2" fill="url(#barGrad)" class="bar-glow"/>
                 <text x="132" y="218" class="chart-value" text-anchor="middle">0.121</text>
                 <text x="132" y="252" class="chart-label" text-anchor="middle">100人</text>
-                
-                <!-- 柱状图：1000人 -->
                 <rect x="174" y="190" width="28" height="40" rx="2" fill="url(#barGrad)" class="bar-glow"/>
                 <text x="188" y="186" class="chart-value" text-anchor="middle">0.40</text>
                 <text x="188" y="252" class="chart-label" text-anchor="middle">1000人</text>
-                
-                <!-- 柱状图：1万人 -->
                 <rect x="230" y="110" width="28" height="120" rx="2" fill="url(#barGradGold)" class="bar-glow"/>
                 <text x="244" y="106" class="chart-value" text-anchor="middle">12.10</text>
                 <text x="244" y="252" class="chart-label" text-anchor="middle">1万人</text>
-                
-                <!-- 柱状图：10万人 -->
                 <rect x="286" y="35" width="28" height="195" rx="2" fill="url(#barGradGold)" class="bar-glow"/>
                 <text x="300" y="31" class="chart-value" text-anchor="middle">1,020</text>
                 <text x="300" y="252" class="chart-label" text-anchor="middle">10万人</text>
-                
-                <!-- 柱状图：100万人 -->
                 <rect x="342" y="8" width="28" height="222" rx="2" fill="url(#barGradGold)" class="bar-glow"/>
                 <text x="356" y="5" class="chart-value" text-anchor="middle">100K</text>
                 <text x="356" y="252" class="chart-label" text-anchor="middle">100万人</text>
-                
-                <!-- 增长箭头线（从左到右穿过柱顶） -->
-                <polyline points="76,224 132,220 188,188 244,108 300,33 356,6" 
-                    class="arrow-line" stroke="#f0b90b" stroke-width="2" fill="none"
-                    filter="url(#glow)"/>
-                
-                <!-- 微光点（沿箭头线分布） -->
+                <polyline points="76,224 132,220 188,188 244,108 300,33 356,6" class="arrow-line" filter="url(#glow)"/>
                 <circle cx="104" cy="222" r="3" fill="#fff" class="sparkle" opacity="0.8"/>
                 <circle cx="160" cy="204" r="2.5" fill="#fff" class="sparkle" opacity="0.6"/>
                 <circle cx="216" cy="148" r="3" fill="#fff" class="sparkle" opacity="0.8"/>
                 <circle cx="272" cy="70" r="2.5" fill="#fff" class="sparkle" opacity="0.6"/>
-                
-                <!-- X轴标签 -->
                 <text x="190" y="258" class="chart-label" text-anchor="middle">参与人数 →</text>
             </svg>
         </div>
-        
-        <!-- 图例 -->
         <div class="legend-row">
             <span><span class="legend-dot" style="background:#4ecca3;"></span> 10-1000人</span>
             <span><span class="legend-dot" style="background:#f0b90b;"></span> 1万-100万人</span>
             <span><span style="color:#f0b90b;">➤</span> 价格趋势线</span>
         </div>
-        
-        <!-- 数据表格 -->
         <table class="data-table">
-            <thead>
-                <tr><th>参与人数</th><th>总池价值 (U)</th><th>资金翻倍数</th><th>预估价格 (U)</th></tr>
-            </thead>
+            <thead><tr><th>参与人数</th><th>总池价值 (U)</th><th>资金翻倍数</th><th>预估价格 (U)</th></tr></thead>
             <tbody>
                 <tr><td>10人</td><td>101,000</td><td class="multiplier-col">1.01倍</td><td class="price-col">0.102</td></tr>
                 <tr><td>100人</td><td>110,000</td><td class="multiplier-col">1.1倍</td><td class="price-col">0.121</td></tr>
@@ -231,13 +176,11 @@
         </table>
     </div>
 
-    <!-- ========== 卡片2：百万MYK生态福利 ========== -->
+    <!-- 卡片2：百万MYK生态福利 + 绑定合约按钮 -->
     <div class="glass-card">
-        <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 12px;">
-            🎁 百万MYK生态福利
-        </h2>
+        <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 12px;">🎁 百万MYK生态福利</h2>
         <div class="desc">
-            新人绑定合约即送 <span class="highlight">送</span> 200 MYK，总量 
+            新人激活即送 <span class="highlight">2 USDT</span> 等值 MYK，总量 
             <span class="highlight-green" id="airdropTotal">--</span> MYK 赠完即止
         </div>
         <div class="stat-row">
@@ -251,54 +194,127 @@
             <span style="color:#888;">当前奖金池：<span id="airdropPoolBalance">--</span> MYK</span>
             <span style="color:#888;" id="airdropPercent">0%</span>
         </div>
+        <button class="btn btn-green" id="bindContractBtn" onclick="bindContract()">💵 绑定合约（支付2 USDT）</button>
+        <div class="info-box" id="bindContractResult" style="display:none;"></div>
     </div>
 
-    <!-- ========== 卡片3：合约信息 ========== -->
+    <!-- 卡片3：合约信息 -->
     <div class="glass-card">
         <div class="contract-info-grid">
             <div class="asset-box asset-box-full">
                 <div class="asset-label">📊 MYK总发行量 (2100万)</div>
                 <div class="stat-value" id="totalSupply" style="font-size:16px;">--</div>
             </div>
-            <div class="asset-box">
-                <div class="asset-label">🎁 奖金池持币</div>
-                <div class="stat-value" id="bonusPool" style="font-size:14px;">--</div>
-            </div>
-            <div class="asset-box">
-                <div class="asset-label">💵 社区治理奖励</div>
-                <div class="stat-value" id="govLocked" style="font-size:14px;">--</div>
-            </div>
-            <div class="asset-box">
-                <div class="asset-label">🔥 MYK永久销毁</div>
-                <div class="stat-value" id="burnedAmount" style="font-size:14px;">--</div>
-            </div>
-            <div class="asset-box">
-                <div class="asset-label">💰 去中心化基金</div>
-                <div class="stat-value" id="fundAsset" style="font-size:14px;">--</div>
-            </div>
+            <div class="asset-box"><div class="asset-label">🎁 奖金池持币</div><div class="stat-value" id="bonusPool" style="font-size:14px;">--</div></div>
+            <div class="asset-box"><div class="asset-label">💵 社区治理奖励</div><div class="stat-value" id="govLocked" style="font-size:14px;">--</div></div>
+            <div class="asset-box"><div class="asset-label">🔥 MYK永久销毁</div><div class="stat-value" id="burnedAmount" style="font-size:14px;">--</div></div>
+            <div class="asset-box"><div class="asset-label">💰 去中心化基金</div><div class="stat-value" id="fundAsset" style="font-size:14px;">--</div></div>
         </div>
-
         <div style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);">
             <div style="font-size:12px;color:#888;margin-bottom:8px;">📋 合约地址</div>
             <div class="contract-addr-row">
-                <span class="contract-addr-label">🔵 MYK</span>
-                <span class="contract-addr-value">0xc23CfE...192a</span>
+                <span class="contract-addr-label">🔵 MYK</span><span class="contract-addr-value">0xc23CfE...192a</span>
                 <button class="contract-addr-copy" data-addr="0xc23CfEeC6D188D627C85106f682D9eb38d94192a">复制</button>
             </div>
             <div class="contract-addr-row">
-                <span class="contract-addr-label">🟢 RewardPool</span>
-                <span class="contract-addr-value">0x157Fe6...5f09</span>
+                <span class="contract-addr-label">🟢 RewardPool</span><span class="contract-addr-value">0x157Fe6...5f09</span>
                 <button class="contract-addr-copy" data-addr="0x157Fe615Ce19Be6e5AA8A731b2a97eF1198E5f09">复制</button>
             </div>
             <div class="contract-addr-row">
-                <span class="contract-addr-label">🟡 Governance</span>
-                <span class="contract-addr-value">0x937E4b...b7f4</span>
+                <span class="contract-addr-label">🟡 Governance</span><span class="contract-addr-value">0x937E4b...b7f4</span>
                 <button class="contract-addr-copy" data-addr="0x937E4bF22CfCBCF770464dd48B82D1721ECbB7f4">复制</button>
             </div>
         </div>
     </div>
 
     <script>
+    var _isProcessing = false;
+
+    function lock() { if (_isProcessing) { alert('请等待当前操作完成'); return false; } _isProcessing = true; return true; }
+    function unlock() { _isProcessing = false; }
+
+    function parseError(e) {
+        var m = (e && e.message) || '';
+        var mc = m.match(/execution reverted:\s*(.+?)(?:"|$)/);
+        if (mc) return mc[1].trim();
+        var m2 = m.match(/reason="([^"]+)"/);
+        if (m2) return m2[1];
+        return m.slice(0, 200);
+    }
+
+    async function waitForTransaction(txHash) {
+        for (var i = 0; i < 30; i++) {
+            try { var r = await web3.eth.getTransactionReceipt(txHash); if (r) return r.status ? r : (function(){throw new Error('交易失败');})(); }
+            catch (e) { if (i === 29) throw e; }
+            await new Promise(function(r) { setTimeout(r, 2000); });
+        }
+        throw new Error('超时');
+    }
+
+    // ===== 绑定合约 =====
+    async function bindContract() {
+        var ua = window.currentAccount;
+        if (!ua) { alert('请先连接钱包'); return; }
+        if (!lock()) return;
+
+        var btn = document.getElementById('bindContractBtn');
+        var el = document.getElementById('bindContractResult');
+        if (!btn || !el) return;
+
+        el.style.display = 'block';
+        el.innerHTML = '⏳ 授权USDT...';
+        btn.disabled = true;
+        btn.textContent = '处理中...';
+
+        var USDT = '0x55d398326f99059fF775485246999027B3197955';
+        var RP = '0x157Fe615Ce19Be6e5AA8A731b2a97eF1198E5f09';
+
+        try {
+            var fee = Web3.utils.toWei('2', 'ether');
+
+            // 授权 USDT
+            var approveData = web3.eth.abi.encodeFunctionSignature('approve(address,uint256)') +
+                web3.eth.abi.encodeParameters(['address','uint256'], [RP, fee]).slice(2);
+            var aTx = await window.ethereum.request({
+                method: 'eth_sendTransaction',
+                params: [{ from: ua, to: USDT, data: approveData }]
+            });
+            el.innerHTML = '⏳ 等待授权确认...';
+            await waitForTransaction(aTx);
+
+            // 激活
+            el.innerHTML = '⏳ 绑定激活中...';
+            var activateData = web3.eth.abi.encodeFunctionSignature('activateWithUSDT()');
+            var acTx = await window.ethereum.request({
+                method: 'eth_sendTransaction',
+                params: [{ from: ua, to: RP, data: activateData }]
+            });
+            el.innerHTML = '⏳ 等待激活确认...';
+            await waitForTransaction(acTx);
+
+            el.innerHTML = '✅ 绑定成功！已获得 2 USDT 等值 MYK 空投奖励';
+            el.style.borderLeftColor = '#4ecca3';
+            el.style.background = 'rgba(78,204,163,0.1)';
+            btn.textContent = '✅ 已绑定';
+            btn.disabled = true;
+
+            // 触发刷新
+            if (typeof fetchAirdrop === 'function') fetchAirdrop();
+            document.dispatchEvent(new CustomEvent('activationComplete'));
+        } catch (e) {
+            var m = parseError(e);
+            el.innerHTML = (m.indexOf('referrer') !== -1) ? '⚠️ 推荐人无效或未绑定，请检查链上绑定关系' : '❌ ' + m;
+        } finally {
+            btn.disabled = false;
+            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = '💵 绑定合约（支付2 USDT）';
+            unlock();
+        }
+    }
+
+    // 挂载到全局
+    window.bindContract = bindContract;
+
+    // ===== 空投 + 合约信息 =====
     (function() {
         var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
         var RP = '0x157Fe615Ce19Be6e5AA8A731b2a97eF1198E5f09';
@@ -321,8 +337,7 @@
         function encodeCall(sig, types, values) {
             var s = web3.eth.abi.encodeFunctionSignature(sig);
             if (!types || !types.length) return s;
-            var e = web3.eth.abi.encodeParameters(types, values);
-            return s + e.slice(2);
+            return s + web3.eth.abi.encodeParameters(types, values).slice(2);
         }
 
         async function fetchAirdrop() {
@@ -371,63 +386,37 @@
                 $('totalSupply').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', tsResult)));
 
                 var burnedTotal = 0;
-                try {
-                    var deadResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [DEAD_ADDR]) });
-                    burnedTotal += n(web3.eth.abi.decodeParameter('uint256', deadResult));
-                } catch (e) {}
-                try {
-                    var zeroResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ZERO_ADDR]) });
-                    burnedTotal += n(web3.eth.abi.decodeParameter('uint256', zeroResult));
-                } catch (e) {}
+                try { burnedTotal += n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [DEAD_ADDR]) }))); } catch (e) {}
+                try { burnedTotal += n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [ZERO_ADDR]) }))); } catch (e) {}
                 $('burnedAmount').textContent = formatM(burnedTotal);
 
-                try {
-                    var bpResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [RP]) });
-                    $('bonusPool').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', bpResult)));
-                } catch (e) { $('bonusPool').textContent = '--'; }
+                try { $('bonusPool').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [RP]) })))); } catch (e) { $('bonusPool').textContent = '--'; }
 
                 try {
-                    var divData = encodeCall('getDividendInfo()');
-                    var divResult = await web3.eth.call({ to: GOV, data: divData });
+                    var divResult = await web3.eth.call({ to: GOV, data: encodeCall('getDividendInfo()') });
                     var info = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256'], divResult);
-                    var totalDividend = BigInt(info[0]) + BigInt(info[1]) + BigInt(info[2]);
-                    $('govLocked').textContent = formatM(n(totalDividend.toString()));
+                    $('govLocked').textContent = formatM(n((BigInt(info[0]) + BigInt(info[1]) + BigInt(info[2])).toString()));
                 } catch (e) {
-                    try {
-                        var gbResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) });
-                        $('govLocked').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', gbResult)));
-                    } catch (e2) { $('govLocked').textContent = '--'; }
+                    try { $('govLocked').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) })))); } catch (e2) { $('govLocked').textContent = '--'; }
                 }
 
-                try {
-                    var fbResult = await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) });
-                    $('fundAsset').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', fbResult)));
-                } catch (e) { $('fundAsset').textContent = '--'; }
-            } catch (e) {
-                $('totalSupply').textContent = '--';
-                $('burnedAmount').textContent = '--';
-            }
+                try { $('fundAsset').textContent = formatM(n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [GOV]) })))); } catch (e) { $('fundAsset').textContent = '--'; }
+            } catch (e) { $('totalSupply').textContent = '--'; $('burnedAmount').textContent = '--'; }
         }
 
         function setupCopyButtons() {
             document.querySelectorAll('.contract-addr-copy').forEach(function(btn) {
                 btn.addEventListener('click', async function() {
-                    var addr = this.dataset.addr;
-                    if (!addr) return;
+                    var addr = this.dataset.addr; if (!addr) return;
                     try {
                         await navigator.clipboard.writeText(addr);
-                        this.textContent = '✅已复制';
-                        this.classList.add('copied');
+                        this.textContent = '✅已复制'; this.classList.add('copied');
                         setTimeout(function(self) { self.textContent = '复制'; self.classList.remove('copied'); }, 2000, this);
                     } catch (e) {
-                        var ta = document.createElement('textarea');
-                        ta.value = addr;
-                        document.body.appendChild(ta);
-                        ta.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(ta);
-                        this.textContent = '✅已复制';
-                        this.classList.add('copied');
+                        var ta = document.createElement('textarea'); ta.value = addr;
+                        document.body.appendChild(ta); ta.select();
+                        document.execCommand('copy'); document.body.removeChild(ta);
+                        this.textContent = '✅已复制'; this.classList.add('copied');
                         setTimeout(function(self) { self.textContent = '复制'; self.classList.remove('copied'); }, 2000, this);
                     }
                 });
@@ -437,15 +426,13 @@
         function init() {
             setupCopyButtons();
             if (typeof web3 !== 'undefined' && web3) {
-                fetchAirdrop();
-                fetchContractInfo();
+                fetchAirdrop(); fetchContractInfo();
                 setInterval(function() { fetchAirdrop(); fetchContractInfo(); }, 60000);
             } else {
                 var checkWeb3 = setInterval(function() {
                     if (typeof web3 !== 'undefined' && web3) {
                         clearInterval(checkWeb3);
-                        fetchAirdrop();
-                        fetchContractInfo();
+                        fetchAirdrop(); fetchContractInfo();
                         setInterval(function() { fetchAirdrop(); fetchContractInfo(); }, 60000);
                     }
                 }, 500);
@@ -455,6 +442,8 @@
 
         if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
         else { init(); }
+
+        window.fetchAirdrop = fetchAirdrop;
     })();
     </script>
 </div>
