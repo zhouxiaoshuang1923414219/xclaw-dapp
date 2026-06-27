@@ -166,35 +166,7 @@
         }
     </style>
 
-    <!-- ========== 卡片1：MYP → MYK 兑换（新增） ========== -->
-    <div class="glass-card">
-        <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 12px;">🔄 MYP 兑换 MYK</h2>
-        <div class="desc">使用 <span class="highlight">MYP</span> 兑换 <span class="highlight">MYK</span></div>
-        <div class="balance-row">
-            <div class="balance-item">
-                <span class="balance-label"> MYP 余额:</span>
-                <span class="balance-value" id="mypBalance">--</span>
-            </div>
-            <div class="balance-item">
-                <span class="balance-label"> MYK 余额:</span>
-                <span class="balance-value" id="mykBalanceSwap">--</span>
-            </div>
-        </div>
-        <div class="price-row" style="margin-top:8px;">
-            <span>兑换率: <span class="price-value" id="swapRate">--</span> MYK/MYP</span>
-        </div>
-        <div style="position: relative;">
-            <input class="input-field" id="mypAmount" type="number" placeholder="MYP 数量" value="1000" step="1" min="0">
-            <span class="balance-max" id="mypMaxBtn" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%);">MAX</span>
-        </div>
-        <div class="price-row">
-            <span>预计获得: <span class="price-value" id="expectedMYKSwap">--</span> MYK</span>
-        </div>
-        <button class="btn btn-green" id="swapMYPBtn"> 兑换 MYP → MYK</button>
-        <div class="info-box" id="swapResult" style="display:none;"></div>
-    </div>
-
-    <!-- ========== 卡片2：买卖 MYK ========== -->
+    <!-- ========== 卡片1：买卖 MYK ========== -->
     <div class="glass-card">
         <h2 style="justify-content: space-between; display: flex; align-items: center; font-size: 1.2rem; color: #f0b90b;">
             <span>📈 买卖 MYK</span>
@@ -284,6 +256,34 @@
         </div>
     </div>
 
+    <!-- ========== 卡片2：MYP → MYK 兑换 ========== -->
+    <div class="glass-card">
+        <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 12px;">🔄 MYP 兑换 MYK</h2>
+        <div class="desc">使用 <span class="highlight">MYP</span> 兑换 <span class="highlight">MYK</span></div>
+        <div class="balance-row">
+            <div class="balance-item">
+                <span class="balance-label"> MYP 余额:</span>
+                <span class="balance-value" id="mypBalance">--</span>
+            </div>
+            <div class="balance-item">
+                <span class="balance-label"> MYK 余额:</span>
+                <span class="balance-value" id="mykBalanceSwap">--</span>
+            </div>
+        </div>
+        <div class="price-row" style="margin-top:8px;">
+            <span>兑换率: <span class="price-value" id="swapRate">--</span> MYK/MYP</span>
+        </div>
+        <div style="position: relative;">
+            <input class="input-field" id="mypAmount" type="number" placeholder="MYP 数量" value="1000" step="1" min="0">
+            <span class="balance-max" id="mypMaxBtn" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%);">MAX</span>
+        </div>
+        <div class="price-row">
+            <span>预计获得: <span class="price-value" id="expectedMYKSwap">--</span> MYK</span>
+        </div>
+        <button class="btn btn-green" id="swapMYPBtn">兑换 MYP → MYK</button>
+        <div class="info-box" id="swapResult" style="display:none;"></div>
+    </div>
+
     <script>
     (function() {
         var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
@@ -340,7 +340,6 @@
             throw new Error('超时');
         }
 
-        // ===== MYP → MYK 兑换 =====
         async function fetchMYPSwapInfo() {
             var ua = window.currentAccount;
             if (!ua || !web3) {
@@ -419,12 +418,11 @@
                 el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : '❌ ' + m;
             } finally {
                 b.disabled = false;
-                b.textContent = '🔄 兑换 MYP → MYK';
+                b.textContent = '兑换 MYP → MYK';
                 unlock();
             }
         }
 
-        // ===== 获取余额 =====
         async function fetchBalances() {
             var ua = window.currentAccount;
             if (!ua || !web3) { resetBalances(); return; }
@@ -447,7 +445,6 @@
             cachedUSDTBalance = '0'; cachedMYKBalance = '0';
         }
 
-        // ===== MAX 按钮 =====
         function setupMaxButtons() {
             $('mypMaxBtn').addEventListener('click', function() {
                 if (cachedMYPBalance === '0' || cachedMYPBalance === '--') { alert('MYP 余额不足'); return; }
@@ -464,7 +461,6 @@
             });
         }
 
-        // ===== 价格（买卖MYK部分保持不变） =====
         function getTodayKey() {
             var d = new Date();
             return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
