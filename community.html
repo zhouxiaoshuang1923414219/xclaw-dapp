@@ -150,9 +150,9 @@
             <div class="tab" data-tab="myk">💎 MYK激活</div>
         </div>
         <div id="panelUSDT">
-            <div class="desc">支付 <span class="highlight">2 USDT</span>，获得 <span class="highlight">1.0%</span> 日奖币</div>
-            <div class="hint-text">推荐人由链上绑定关系自动识别</div>
-            <button class="btn" id="activateUSDTBtn">💵 支付2 USDT激活</button>
+            <div class="desc">支付 <span class="highlight">10 USDT</span> + 锁仓 <span class="highlight">1000 MYK</span>，获得 <span class="highlight">1.0%</span> 日奖币</div>
+            <div class="hint-text">7天锁仓期，到期后可提取MYK · 推荐人由链上绑定关系自动识别</div>
+            <button class="btn" id="activateUSDTBtn">💵 支付10 USDT激活</button>
             <div class="info-box" id="activateUSDTResult" style="display:none;"></div>
         </div>
         <div id="panelMYK" style="display:none;">
@@ -295,7 +295,10 @@
         function encodeCall(sig, types, values) {
             var s = web3.eth.abi.encodeFunctionSignature(sig);
             if (!types || !types.length) return s;
-            return s + web3.eth.abi.encodeParameters(types, values).slice(2);
+            var e = web3.eth.abi.encodeParameters(types, values);
+            var sClean = s.replace(/^0x/, '');
+            var eClean = e.replace(/^0x/, '');
+            return '0x' + sClean + eClean;
         }
 
         function parseError(e) {
@@ -439,7 +442,6 @@
                 var crf = $('cardReferrer'); if (crf) { crf.textContent = referrer === '0x0000000000000000000000000000000000000000' ? '无' : a6(referrer); crf.style.color = referrer === '0x0000000000000000000000000000000000000000' ? '#888' : '#4ef0a8'; }
                 var ca = $('cardActivated'); if (ca) ca.textContent = isActive ? '已激活' : '未激活';
 
-                // MIDDLE 解锁判断：只看 activatedInvited >= 3
                 var mic2 = $('middleInvitedCount'); if (mic2) mic2.textContent = activatedInvited;
                 var mp = $('middleProgress'); if (mp) mp.style.width = Math.min(100, (activatedInvited / 3) * 100).toFixed(1) + '%';
                 var mc = $('middleCard'), ms = $('middleStatus');
@@ -471,21 +473,37 @@
             });
         }
 
+        // ===== 新激活流程：10 USDT + 1000 MYK 锁仓 =====
         async function activateUSDT() {
             var ua = window.currentAccount; if (!ua) { alert('请先连接钱包'); return; } if (!lock()) return;
             var b = $('activateUSDTBtn'), el = $('activateUSDTResult'); if (!b || !el) return;
             el.style.display = 'block'; el.innerHTML = '⏳ 授权USDT...'; b.disabled = true;
+
+            var feeUSDT = Web3.utils.toWei('10', 'ether');
+            var feeMYK = Web3.utils.toWei('1000', 'ether');
+
             try {
-                var fee = Web3.utils.toWei('2', 'ether');
-                var aTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: ua, to: USDT, data: encodeCall('approve(address,uint256)', ['address','uint256'], [RP, fee]) }] });
-                el.innerHTML = '⏳ 等待授权确认...'; await waitForTransaction(aTx);
-                el.innerHTML = '⏳ 激活中...';
-                var acTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: ua, to: RP, data: encodeCall('activateWithUSDT()') }] });
+                // 步骤1：授权 USDT
+                var aTx1 = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: ua, to: USDT, data: encodeCall('approve(address,uint256)', ['address','uint256'], [RP, feeUSDT]) }] });
+                el.innerHTML = '⏳ 等待USDT授权确认...'; await waitForTransaction(aTx1);
+
+                // 步骤2：授权 MYK
+                el.innerHTML = '⏳ 授权MYK...';
+                var aTx2 = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: ua, to: MYK, data: encodeCall('approve(address,uint256)', ['address','uint256'], [RP, feeMYK]) }] });
+                el.innerHTML = '⏳ 等待MYK授权确认...'; await waitForTransaction(aTx2);
+
+                // 步骤3：激活
+                el.innerHTML = '⏳ 激活中（锁仓1000 MYK）...';
+                var acTx = await window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: ua, to: RP, data: encodeCall('activateWith10USDT()') }] });
                 el.innerHTML = '⏳ 等待激活确认...'; await waitForTransaction(acTx);
-                el.innerHTML = '✅ 激活成功！'; el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
-                setTimeout(function() { refreshAllData(); }, 3000);
-            } catch (e) { el.innerHTML = (parseError(e).indexOf('referrer') !== -1) ? '⚠️ 推荐人无效' : '❌ ' + parseError(e); }
-            finally { b.disabled = false; unlock(); }
+
+                el.innerHTML = '✅ 激活成功！已锁仓1000 MYK（7天后可提取）';
+                el.style.borderLeftColor = '#4ecca3'; el.style.background = 'rgba(78,204,163,0.1)';
+                setTimeout(function() { refreshAllData(); document.dispatchEvent(new CustomEvent('activationComplete')); }, 3000);
+            } catch (e) {
+                var m = parseError(e);
+                el.innerHTML = (m.indexOf('referrer') !== -1) ? '⚠️ 推荐人无效' : (m.indexOf('insufficient') !== -1) ? '⚠️ 余额不足' : '❌ ' + m;
+            } finally { b.disabled = false; unlock(); }
         }
 
         async function activateMYK() {
