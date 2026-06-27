@@ -178,7 +178,7 @@
     <div class="glass-card">
         <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 12px;">🎁 百万MYK生态福利</h2>
         <div class="desc">
-            新人绑定合约即送 <span class="highlight">送</span> 1000 MYK，总量 
+            新人绑定合约即送 <span class="highlight">1000</span> MYK，总量 
             <span class="highlight-green" id="airdropTotal">--</span> MYK 赠完即止
         </div>
         <div class="stat-row">
@@ -192,7 +192,7 @@
             <span style="color:#888;">当前奖金池：<span id="airdropPoolBalance">--</span> MYK</span>
             <span style="color:#888;" id="airdropPercent">0%</span>
         </div>
-        <button class="btn btn-green" id="bindContractBtn" onclick="bindContract()"> 绑定合约（支付10 USDT ）</button>
+        <button class="btn btn-green" id="bindContractBtn" onclick="bindContract()"> 绑定合约（奖励1000 MYK ）</button>
         <div class="info-box" id="bindContractResult" style="display:none;"></div>
     </div>
 
@@ -314,7 +314,7 @@
             el.innerHTML = (m.indexOf('User denied') !== -1 || m.indexOf('rejected') !== -1) ? '⚠️ 交易已取消' : '❌ ' + m;
         } finally {
             btn.disabled = false;
-            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = '💵 绑定合约（支付10 USDT + 锁仓1000 MYK）';
+            if (btn.textContent.indexOf('已绑定') === -1) btn.textContent = ' 绑定合约（）';
             unlock();
         }
     }
