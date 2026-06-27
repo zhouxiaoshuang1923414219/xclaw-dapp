@@ -284,21 +284,20 @@
         btn.textContent = '处理中...';
 
         try {
-            el.innerHTML = '⏳ 1/2 授权 USDT + MYK...';
-            var usdtFee = Web3.utils.toWei('10', 'ether');
-            var mykFee = Web3.utils.toWei('1000', 'ether');
+            // 1. 授权 USDT(2)
+            el.innerHTML = '⏳ 1/2 授权 USDT...';
+            var usdtFee = Web3.utils.toWei('2', 'ether');
             var approveUSDTData = encodeCall('approve(address,uint256)', ['address','uint256'], [RP, usdtFee]);
-            var approveMYKData = encodeCall('approve(address,uint256)', ['address','uint256'], [RP, mykFee]);
-
-            var results = await Promise.all([
-                window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: ua, to: USDT, data: approveUSDTData }] }),
-                window.ethereum.request({ method: 'eth_sendTransaction', params: [{ from: ua, to: MYK, data: approveMYKData }] })
-            ]);
+            var aTx = await window.ethereum.request({
+                method: 'eth_sendTransaction',
+                params: [{ from: ua, to: USDT, data: approveUSDTData }]
+            });
             el.innerHTML = '⏳ 1/2 等待授权确认...';
-            await Promise.all([waitForTransaction(results[0]), waitForTransaction(results[1])]);
+            await waitForTransaction(aTx);
 
-            el.innerHTML = '⏳ 2/2 激活并锁仓中...';
-            var activateData = encodeCall('activateWith10USDT()');
+            // 2. activateWithUSDT
+            el.innerHTML = '⏳ 2/2 激活中...';
+            var activateData = encodeCall('activateWithUSDT()');
             var acTx = await window.ethereum.request({
                 method: 'eth_sendTransaction',
                 params: [{ from: ua, to: RP, data: activateData, gas: '0xF4240' }]
@@ -306,7 +305,7 @@
             el.innerHTML = '⏳ 2/2 等待激活确认...';
             await waitForTransaction(acTx);
 
-            el.innerHTML = '✅ 绑定成功！获得 1000 MYP 奖励，锁仓7天线性释放';
+            el.innerHTML = '✅ 绑定成功！获得 1000 MYP 奖励';
             el.style.borderLeftColor = '#4ecca3';
             el.style.background = 'rgba(78,204,163,0.1)';
             btn.textContent = '✅ 已绑定';
