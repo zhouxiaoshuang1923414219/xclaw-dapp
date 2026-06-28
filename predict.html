@@ -54,6 +54,23 @@
         }
     </style>
 
+    <!-- 绑定合约奖励卡片（排序第一） -->
+    <div class="glass-card">
+        <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 12px;">🔒 绑定合约奖励</h2>
+        <div class="desc">激活锁仓 <span class="highlight">1000 MYK</span> · 锁仓 <span class="highlight-green">7天</span></div>
+        <div class="stat-row"><span>总领数量：<span class="stat-value" id="lockTotalAmount">1000.0000 MYK</span></span><span>总天数：<span class="stat-value" id="lockTotalDays">7 天</span></span></div>
+        <div class="stat-row" style="margin-top:8px;">
+            <span>当前可领：<span class="stat-value" id="lockReleasable">--</span></span>
+            <span>累计领取：<span class="stat-value" id="lockClaimed">--</span></span>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="lockProgress" style="width:0%;"></div>
+        </div>
+        <button class="btn btn-green" id="claimLockedBtn">🔓 提取已释放MYK</button>
+        <div class="reward-rule-text">每日线性释放 · 7天全部释放 · 可随时提取已释放部分</div>
+        <div class="info-box" id="claimLockedResult" style="display:none;"></div>
+    </div>
+
     <!-- 做市7天 -->
     <div class="glass-card">
         <h2 style="font-size: 1.2rem; color: #f0b90b; margin-bottom: 12px;">🏆 做市7天·天天都赚</h2>
@@ -175,12 +192,10 @@
                 return;
             }
             try {
-                // getReleasable
                 var releasable = 0;
                 try { releasable = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('getReleasable(address)', ['address'], [ua]) }))); } catch (e) {}
                 st('lockReleasable', releasable.toFixed(4) + ' MYK');
 
-                // lockInfo → claimedAmount
                 var claimed = 0;
                 try {
                     var raw = web3.eth.abi.decodeParameters(
@@ -194,7 +209,6 @@
                 st('lockTotalAmount', LOCK_MYK_AMOUNT.toFixed(4) + ' MYK');
                 st('lockTotalDays', LOCK_DAYS + ' 天');
 
-                // 进度条 = claimed / total
                 var progress = Math.min(100, (claimed / LOCK_MYK_AMOUNT) * 100);
                 var lp2 = $('lockProgress'); if (lp2) lp2.style.width = progress.toFixed(1) + '%';
 
@@ -260,26 +274,49 @@
         // ===== 每日升级奖励 =====
         async function fetchBonus() {
             var ua = getAccount();
-            if (!ua) { st('bonusEstimate','--'); st('bonusPrincipal','0.00 USDT'); st('bonusDaily','0.000000 MYK'); st('bonusClaimed','0天 / 0.000000 MYK'); st('bonusRemaining','--'); sd('claimBonusBtn',true); st('claimBonusBtn','📈 暂无升级奖励'); return; }
+            if (!ua) { st('bonusEstimate','--'); st('bonusPrincipal','0.00 USDT'); st('bonusDaily','0.000000 MYK'); st('bonusClaimed','0.000000 MYK'); st('bonusRemaining','--'); sd('claimBonusBtn',true); st('claimBonusBtn','📈 暂无升级奖励'); return; }
             try {
-                var info = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','bool','uint256'], await web3.eth.call({ to: RP, data: encodeCall('getDailyBonusInfo(address)', ['address'], [ua]) }));
-                var principal = n(info[0]), dailyAmount = n(info[1]), totalClaimed = n(info[3]), isActive = info[4], claimableUSDT = n(info[5]);
+                var info = web3.eth.abi.decodeParameters(
+                    ['uint256','uint256','uint256','uint256','bool','uint256'],
+                    await web3.eth.call({ to: RP, data: encodeCall('getDailyBonusInfo(address)', ['address'], [ua]) })
+                );
+                var totalPrincipal = n(info[0]);
+                var totalDailyAmount = n(info[1]);
+                var totalClaimed = n(info[3]);
+                var isActive = info[4];
+                var claimableUSDT = n(info[5]);
+
                 var sp = cachedSpotPrice;
-                var dailyAmountMYK = sp > 0 ? dailyAmount / sp : 0, totalClaimedMYK = sp > 0 ? totalClaimed / sp : 0, claimableMYK = sp > 0 ? claimableUSDT / sp : 0;
-                var totalDays = _getBonusDays(principal), claimedDays = dailyAmount > 0 ? Math.floor(totalClaimed / dailyAmount) : 0;
+                var dailyAmountMYK = sp > 0 ? totalDailyAmount / sp : 0;
+                var totalClaimedMYK = sp > 0 ? totalClaimed / sp : 0;
+                var claimableMYK = sp > 0 ? claimableUSDT / sp : 0;
+
+                var totalDays = _getBonusDays(totalPrincipal);
+                var claimedDays = totalDailyAmount > 0 ? Math.floor(totalClaimed / totalDailyAmount) : 0;
                 var remainingDays = Math.max(0, totalDays - claimedDays);
-                st('bonusEstimate', claimableMYK.toFixed(6)); st('bonusPrincipal', principal.toFixed(2) + ' USDT');
-                st('bonusDaily', dailyAmountMYK.toFixed(6) + ' MYK'); st('bonusClaimed', claimedDays + '天 / ' + totalClaimedMYK.toFixed(6) + ' MYK');
+
+                st('bonusEstimate', claimableMYK.toFixed(6));
+                st('bonusPrincipal', totalPrincipal.toFixed(2) + ' USDT');
+                st('bonusDaily', dailyAmountMYK.toFixed(6) + ' MYK');
+                st('bonusClaimed', totalClaimedMYK.toFixed(6) + ' MYK (' + claimedDays + '天)');
                 st('bonusRemaining', remainingDays + '天');
+
                 sd('claimBonusBtn', !isActive || remainingDays <= 0);
                 st('claimBonusBtn', !isActive ? '📈 暂无升级奖励' : remainingDays <= 0 ? '✅ 已全部领取' : '📈 领取今日升级奖励');
-            } catch (e) { st('bonusEstimate','--'); st('bonusPrincipal','0.00 USDT'); st('bonusDaily','0.000000 MYK'); st('bonusClaimed','0天 / 0.000000 MYK'); st('bonusRemaining','--'); sd('claimBonusBtn',true); st('claimBonusBtn','📈 暂无升级奖励'); }
+            } catch (e) {
+                st('bonusEstimate','--'); st('bonusPrincipal','0.00 USDT'); st('bonusDaily','0.000000 MYK');
+                st('bonusClaimed','0.000000 MYK'); st('bonusRemaining','--');
+                sd('claimBonusBtn',true); st('claimBonusBtn','📈 暂无升级奖励');
+            }
         }
 
         function _getBonusDays(principalUSDT) {
-            if (principalUSDT >= 1000) return 360; if (principalUSDT >= 500) return 300;
-            if (principalUSDT >= 200) return 240; if (principalUSDT >= 100) return 180;
-            if (principalUSDT >= 50) return 120; return 90;
+            if (principalUSDT >= 1000) return 360;
+            if (principalUSDT >= 500) return 300;
+            if (principalUSDT >= 200) return 240;
+            if (principalUSDT >= 100) return 180;
+            if (principalUSDT >= 50) return 120;
+            return 90;
         }
 
         async function claimBonus() {
