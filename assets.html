@@ -49,7 +49,7 @@
         <div class="flex-row">
             <div>
                 <div class="title-main">💰 总资产</div>
-                <div class="desc">资产来源链上和生态合约汇总</div>
+                <div class="desc">资产分布4项美金价值汇总</div>
             </div>
             <div>
                 <div class="stat-val" id="totalAssetValue">$--</div>
@@ -96,20 +96,25 @@
             <span>持币奖励</span>
             <span class="desc" id="recentHoldingReward">--</span>
         </div>
-        <div class="flex-row" style="padding: 8px 0;">
+        <div class="flex-row" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
             <span>升级奖励</span>
             <span class="green-text" id="recentBonusReward">--</span>
+        </div>
+        <div class="flex-row" style="padding: 8px 0;">
+            <span>赠送MYP</span>
+            <span class="green-text" id="recentMYPReward">--</span>
         </div>
     </div>
 
     <script>
     (function() {
         var MYK = '0xc23CfEeC6D188D627C85106f682D9eb38d94192a';
-        var RP = '0xf7C62F0902a0D18897D69d5f5a6ee5AB668614e5';
+        var RP = '0x4cc05Ad2a6B3A75bb8e1E86f89fC1aECFf57E85a';
         var GOV = '0x937E4bF22CfCBCF770464dd48B82D1721ECbB7f4';
         var USDT = '0x55d398326f99059fF775485246999027B3197955';
         var ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
         var PAIR = '0xCa4F4a81ed8a5f953f0Ea07d7Ee4e65969a33156';
+        var MYP = '0x3e43c36966370C07bf5a2b0a7Da512562076C0A3';
 
         function $(id) { return document.getElementById(id); }
         function n(w) { return parseFloat(Web3.utils.fromWei(w + '', 'ether')); }
@@ -118,7 +123,9 @@
             var s = web3.eth.abi.encodeFunctionSignature(sig);
             if (!types || !types.length) return s;
             var e = web3.eth.abi.encodeParameters(types, values);
-            return s + e.slice(2);
+            var sClean = s.replace(/^0x/, '');
+            var eClean = e.replace(/^0x/, '');
+            return '0x' + sClean + eClean;
         }
 
         async function fetchSpotPrice() {
@@ -147,7 +154,6 @@
             return 0;
         }
 
-        // ===== 可领持币奖励 (MYK) =====
         async function fetchHoldingRewardClaimable() {
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) return 0;
@@ -157,7 +163,6 @@
             return 0;
         }
 
-        // ===== 可领升级奖励 (USDT) =====
         async function fetchDailyBonusClaimable() {
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) return 0;
@@ -167,12 +172,11 @@
                     await web3.eth.call({ to: RP, data: encodeCall('getDailyBonusInfo(address)', ['address'], [userAddress]) })
                 );
                 if (!info[4]) return 0;
-                return n(info[5]); // claimable USDT
+                return n(info[5]);
             } catch (e) {}
             return 0;
         }
 
-        // ===== 社区分红 (MYK) =====
         async function fetchCommunityDividend() {
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) return 0;
@@ -198,19 +202,30 @@
             var userAddress = window.currentAccount;
             if (!web3 || !userAddress) return;
             try {
+                // 最近 PancakeSwap 买入
                 try {
                     var buyAmt = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('lastPancakeBuyAmount(address)', ['address'], [userAddress]) })));
                     var buyVal = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('lastPancakeBuyValue(address)', ['address'], [userAddress]) })));
                     var rb = $('recentBuy'); if (rb) rb.textContent = buyVal > 0 ? '+' + buyAmt.toFixed(2) + ' ($' + buyVal.toFixed(2) + ')' : '暂无';
                 } catch (e) { var rb2 = $('recentBuy'); if (rb2) rb2.textContent = '--'; }
+
+                // 持币奖励
                 try {
                     var claimed = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: RP, data: encodeCall('totalDailyRewardClaimed(address)', ['address'], [userAddress]) })));
                     var rhr = $('recentHoldingReward'); if (rhr) rhr.textContent = claimed.toFixed(4);
                 } catch (e) { var rhr2 = $('recentHoldingReward'); if (rhr2) rhr2.textContent = '--'; }
+
+                // 升级奖励
                 try {
                     var bonusInfo = web3.eth.abi.decodeParameters(['uint256','uint256','uint256','uint256','bool','uint256'], await web3.eth.call({ to: RP, data: encodeCall('getDailyBonusInfo(address)', ['address'], [userAddress]) }));
                     var rbr = $('recentBonusReward'); if (rbr) rbr.textContent = n(bonusInfo[3]).toFixed(4);
                 } catch (e) { var rbr2 = $('recentBonusReward'); if (rbr2) rbr2.textContent = '--'; }
+
+                // 赠送MYP = 用户 MYP 余额
+                try {
+                    var mypBal = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYP, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) })));
+                    var rmr = $('recentMYPReward'); if (rmr) rmr.textContent = mypBal.toFixed(4) + ' MYP';
+                } catch (e) { var rmr2 = $('recentMYPReward'); if (rmr2) rmr2.textContent = '--'; }
             } catch (e) {}
         }
 
@@ -228,7 +243,6 @@
                 var usdtBal = 0, mykBal = 0;
                 var usdtUsd = 0, mykUsd = 0, claimableUsd = 0, dividendUsd = 0;
 
-                // USDT 余额
                 try {
                     usdtBal = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: USDT, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) })));
                     usdtUsd = usdtBal;
@@ -236,7 +250,6 @@
                     var uuv = $('usdtUsdValue'); if (uuv) uuv.textContent = '≈ $' + usdtBal.toFixed(2);
                 } catch (e) { var ub2 = $('usdtBalance'); if (ub2) ub2.textContent = '--'; var uuv2 = $('usdtUsdValue'); if (uuv2) uuv2.textContent = '≈ $--'; }
 
-                // MYK 余额
                 try {
                     mykBal = n(web3.eth.abi.decodeParameter('uint256', await web3.eth.call({ to: MYK, data: encodeCall('balanceOf(address)', ['address'], [userAddress]) })));
                     mykUsd = sp > 0 ? mykBal * sp : 0;
@@ -244,7 +257,6 @@
                     var muv = $('mykUsdValue'); if (muv) muv.textContent = '≈ $' + mykUsd.toFixed(2);
                 } catch (e) { var mb2 = $('mykBalance'); if (mb2) mb2.textContent = '--'; var muv2 = $('mykUsdValue'); if (muv2) muv2.textContent = '≈ $--'; }
 
-                // 可领MYK = 持币奖励(MYK) + 升级奖励(claimableUSDT / price)
                 var holdingMYK = await fetchHoldingRewardClaimable();
                 var dailyBonusUSDT = await fetchDailyBonusClaimable();
                 var dailyBonusMYK = sp > 0 ? dailyBonusUSDT / sp : 0;
@@ -253,13 +265,11 @@
                 var cm = $('claimableMYK'); if (cm) cm.textContent = totalClaimable.toFixed(4);
                 var cuv = $('claimableUsdValue'); if (cuv) cuv.textContent = '≈ $' + claimableUsd.toFixed(2);
 
-                // 社区分红
                 var dividend = await fetchCommunityDividend();
                 dividendUsd = dividend * sp;
                 var cd = $('communityDividend'); if (cd) cd.textContent = dividend.toFixed(4);
                 var duv = $('dividendUsdValue'); if (duv) duv.textContent = '≈ $' + dividendUsd.toFixed(2);
 
-                // 总资产
                 var totalValue = usdtUsd + mykUsd + claimableUsd + dividendUsd;
                 var tv = $('totalAssetValue'); if (tv) tv.textContent = '$' + totalValue.toFixed(2);
 
